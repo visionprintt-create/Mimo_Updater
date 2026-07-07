@@ -1,0 +1,266 @@
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  addDoc,
+  limit,
+} from 'firebase/firestore';
+import { db } from './firebase';
+import type {
+  MimoUser,
+  WorkSession,
+  MimoNotification,
+  SessionReview,
+  UserStatus,
+  SessionStatus,
+} from '@/types';
+
+// ═══════════════════════════════════════════════════════════════════
+// USER OPERATIONS
+// ═══════════════════════════════════════════════════════════════════
+
+export async function getUser(uid: string): Promise<MimoUser | null> {
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? (snap.data() as MimoUser) : null;
+}
+
+export async function getAllUsers(): Promise<MimoUser[]> {
+  const snap = await getDocs(collection(db, 'users'));
+  return snap.docs.map((d) => d.data() as MimoUser);
+}
+
+export async function getPendingUsers(): Promise<MimoUser[]> {
+  const q = query(collection(db, 'users'), where('status', '==', 'pending'));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as MimoUser);
+}
+
+export async function updateUserStatus(
+  uid: string,
+  status: UserStatus,
+  adminId: string,
+  reason?: string
+) {
+  const updates: Record<string, unknown> = { status };
+
+  if (status === 'approved') {
+    updates.approvedBy = adminId;
+    updates.approvedAt = new Date().toISOString();
+  } else if (status === 'rejected') {
+    updates.rejectedBy = adminId;
+    updates.rejectedAt = new Date().toISOString();
+    if (reason) updates.rejectionReason = reason;
+  }
+
+  await updateDoc(doc(db, 'users', uid), updates);
+}
+
+export async function updateUser(uid: string, data: Partial<MimoUser>) {
+  await updateDoc(doc(db, 'users', uid), data);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SESSION OPERATIONS
+// ═══════════════════════════════════════════════════════════════════
+
+export async function createSession(session: Omit<WorkSession, 'id'>): Promise<string> {
+  const docRef = await addDoc(collection(db, 'sessions'), session);
+  await updateDoc(docRef, { id: docRef.id });
+  return docRef.id;
+}
+
+export async function getSession(id: string): Promise<WorkSession | null> {
+  const snap = await getDoc(doc(db, 'sessions', id));
+  return snap.exists() ? (snap.data() as WorkSession) : null;
+}
+
+export async function updateSession(id: string, data: Partial<WorkSession>) {
+  await updateDoc(doc(db, 'sessions', id), data);
+}
+
+export async function getUserSessions(userId: string): Promise<WorkSession[]> {
+  const q = query(
+    collection(db, 'sessions'),
+    where('userId', '==', userId),
+    orderBy('clockInTime', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession));
+}
+
+export async function getActiveSession(userId: string): Promise<WorkSession | null> {
+  const q = query(
+    collection(db, 'sessions'),
+    where('userId', '==', userId),
+    where('status', '==', 'active')
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return snap.docs[0].data() as WorkSession;
+}
+
+export async function getAllSessions(
+  statusFilter?: SessionStatus
+): Promise<WorkSession[]> {
+  let q;
+  if (statusFilter) {
+    q = query(
+      collection(db, 'sessions'),
+      where('status', '==', statusFilter),
+      orderBy('clockInTime', 'desc')
+    );
+  } else {
+    q = query(collection(db, 'sessions'), orderBy('clockInTime', 'desc'));
+  }
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as WorkSession);
+}
+
+export async function getUnreviewedSessions(): Promise<WorkSession[]> {
+  const q = query(
+    collection(db, 'sessions'),
+    where('status', 'in', ['completed', 'auto-stopped']),
+    orderBy('clockInTime', 'desc')
+  );
+  const snap = await getDocs(q);
+  // Filter out already reviewed
+  return snap.docs
+    .map((d) => d.data() as WorkSession)
+    .filter((s) => !s.review);
+}
+
+export async function reviewSession(
+  sessionId: string,
+  review: SessionReview
+) {
+  // Strip undefined fields — Firestore rejects them
+  const cleanReview: Record<string, unknown> = {
+    action: review.action,
+    reviewedBy: review.reviewedBy,
+    reviewedAt: review.reviewedAt,
+  };
+  if (review.comment) cleanReview.comment = review.comment;
+
+  const updates: Record<string, unknown> = { review: cleanReview };
+  if (review.action === 'flagged') {
+    updates.status = 'flagged';
+  }
+  await updateDoc(doc(db, 'sessions', sessionId), updates);
+}
+
+// ─── Real-time listeners ──────────────────────────────────────────
+export function onActiveSessions(
+  callback: (sessions: WorkSession[]) => void
+) {
+  const q = query(
+    collection(db, 'sessions'),
+    where('status', '==', 'active')
+  );
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => d.data() as WorkSession));
+  });
+}
+
+export function onUserSessions(
+  userId: string,
+  callback: (sessions: WorkSession[]) => void
+) {
+  const q = query(
+    collection(db, 'sessions'),
+    where('userId', '==', userId),
+    orderBy('clockInTime', 'desc')
+  );
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession)));
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NOTIFICATION OPERATIONS
+// ═══════════════════════════════════════════════════════════════════
+
+export async function createNotification(
+  notif: Omit<MimoNotification, 'id'>
+): Promise<string> {
+  const docRef = await addDoc(collection(db, 'notifications'), notif);
+  await updateDoc(docRef, { id: docRef.id });
+  return docRef.id;
+}
+
+export async function getUserNotifications(
+  userId: string
+): Promise<MimoNotification[]> {
+  const q = query(
+    collection(db, 'notifications'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc'),
+    limit(50)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id } as MimoNotification));
+}
+
+export async function markNotificationRead(id: string) {
+  await updateDoc(doc(db, 'notifications', id), { read: true });
+}
+
+export async function markAllNotificationsRead(userId: string) {
+  const q = query(
+    collection(db, 'notifications'),
+    where('userId', '==', userId),
+    where('read', '==', false)
+  );
+  const snap = await getDocs(q);
+  const promises = snap.docs.map((d) =>
+    updateDoc(doc(db, 'notifications', d.id), { read: true })
+  );
+  await Promise.all(promises);
+}
+
+export function onUserNotifications(
+  userId: string,
+  callback: (notifications: MimoNotification[]) => void
+) {
+  const q = query(
+    collection(db, 'notifications'),
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc'),
+    limit(50)
+  );
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ ...d.data(), id: d.id } as MimoNotification)));
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANALYTICS HELPERS
+// ═══════════════════════════════════════════════════════════════════
+
+export async function getSessionsInRange(
+  startDate: string,
+  endDate: string
+): Promise<WorkSession[]> {
+  const q = query(
+    collection(db, 'sessions'),
+    where('clockInTime', '>=', startDate),
+    where('clockInTime', '<=', endDate),
+    orderBy('clockInTime', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as WorkSession);
+}
+
+export async function getTodaysSessions(): Promise<WorkSession[]> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  return getSessionsInRange(today.toISOString(), tomorrow.toISOString());
+}
