@@ -19,10 +19,10 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#0a0a0a',
-          color: '#ffffff',
-          fontSize: '320px',
-          fontWeight: 800,
+          background: 'transparent',
+          color: '#111111', // Solid dark color for the M
+          fontSize: '420px',
+          fontWeight: 900,
           fontFamily: 'system-ui, sans-serif',
           letterSpacing: '-0.05em',
         }}
