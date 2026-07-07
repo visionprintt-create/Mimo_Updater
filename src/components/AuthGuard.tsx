@@ -34,12 +34,20 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
     }
 
     if (mimoUser.status === 'rejected') {
-      router.replace('/login');
+      import('@/lib/auth').then(({ signOutUser }) => {
+        signOutUser().then(() => {
+          router.replace('/login');
+        });
+      });
       return;
     }
 
     if (mimoUser.status === 'suspended') {
-      router.replace('/login');
+      import('@/lib/auth').then(({ signOutUser }) => {
+        signOutUser().then(() => {
+          router.replace('/login');
+        });
+      });
       return;
     }
 
