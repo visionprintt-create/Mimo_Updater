@@ -16,7 +16,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setEmailLoading(true);
 
     try {
       const user = await signIn(email, password);
