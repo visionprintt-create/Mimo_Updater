@@ -20,34 +20,14 @@ export default function Icon() {
           alignItems: 'center',
           justifyContent: 'center',
           background: 'transparent',
-          position: 'relative',
+          color: '#ffffff', // Pure white M
+          fontSize: '420px',
+          fontWeight: 900,
+          fontFamily: 'system-ui, sans-serif',
+          letterSpacing: '-0.05em',
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            color: '#38bdf8', // Bright Sky Blue
-            fontSize: '420px',
-            fontWeight: 900,
-            fontFamily: 'system-ui, sans-serif',
-            transform: 'translateY(-35px)',
-          }}
-        >
-          M
-        </div>
-        <div
-          style={{
-            position: 'absolute',
-            color: '#f472b6', // Bright Pink
-            fontSize: '420px',
-            fontWeight: 900,
-            fontFamily: 'system-ui, sans-serif',
-            transform: 'translateY(35px)',
-            opacity: 0.85,
-          }}
-        >
-          W
-        </div>
+        M
       </div>
     ),
     { ...size }
