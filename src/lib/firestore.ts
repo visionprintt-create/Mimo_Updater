@@ -189,7 +189,7 @@ export async function createNotification(
   notif: Omit<MimoNotification, 'id'>
 ): Promise<string> {
   const docRef = await addDoc(collection(db, 'notifications'), notif);
-  await updateDoc(docRef, { id: docRef.id });
+
   return docRef.id;
 }
 
