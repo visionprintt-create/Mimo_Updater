@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { useUIStore } from '@/store/uiStore';
 import { signOutUser, isAdmin } from '@/lib/auth';
 
 const DEPT_COLORS: Record<string, string> = {
@@ -17,6 +18,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { mimoUser } = useAuthStore();
+  const { isMobileSidebarOpen, closeSidebar } = useUIStore();
   const admin = mimoUser && isAdmin(mimoUser.role);
 
   const handleSignOut = async () => {
@@ -33,16 +35,22 @@ export default function Sidebar() {
     .slice(0, 2) || '?';
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <div>
-          <div className="sidebar-logo">Mimo</div>
-          <div className="sidebar-subtitle">WorkTracker</div>
+    <>
+      {/* Mobile overlay */}
+      {isMobileSidebarOpen && (
+        <div className="sidebar-overlay" onClick={closeSidebar} />
+      )}
+      
+      <aside className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div>
+            <div className="sidebar-logo">Mimo</div>
+            <div className="sidebar-subtitle">WorkTracker</div>
+          </div>
         </div>
-      </div>
 
-      <nav className="sidebar-nav">
-        {admin ? (
+        <nav className="sidebar-nav" onClick={closeSidebar}>
+          {admin ? (
           <>
             <div className="sidebar-section-title">Admin</div>
             <Link
@@ -149,5 +157,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

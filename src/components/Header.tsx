@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useUIStore } from '@/store/uiStore';
 import { onUserNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/firestore';
 import type { MimoNotification } from '@/types';
+import { FiMenu } from 'react-icons/fi';
 
 function timeAgo(dateStr: string): string {
   const now = new Date().getTime();
@@ -21,6 +23,7 @@ function timeAgo(dateStr: string): string {
 
 export default function Header() {
   const { mimoUser } = useAuthStore();
+  const { toggleSidebar } = useUIStore();
   const [notifications, setNotifications] = useState<MimoNotification[]>([]);
   const [showNotifs, setShowNotifs] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,7 +61,14 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-left">
-        <h4 style={{ fontSize: 'var(--font-size-md)', fontWeight: 500, color: 'var(--text-secondary)' }}>
+        <button 
+          className="mobile-menu-btn" 
+          onClick={toggleSidebar}
+          aria-label="Toggle Sidebar"
+        >
+          <FiMenu size={24} />
+        </button>
+        <h4 style={{ fontSize: 'var(--font-size-md)', fontWeight: 500, color: 'var(--text-secondary)' }} className="header-dept">
           {mimoUser?.department || ''}
         </h4>
       </div>

@@ -1425,8 +1425,47 @@ a:hover {
   flex-shrink: 0;
 }
 
-/* ─── Responsive ────────────────────────────────────────────────── */
+/* ─── Responsive & Mobile UI ────────────────────────────────────── */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: var(--space-xs);
+  margin-right: var(--space-sm);
+  z-index: 201;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 150;
+  opacity: 0;
+  animation: fadeIn var(--transition-base) forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
 @media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
   .sidebar {
     transform: translateX(-100%);
     z-index: 200;
@@ -1440,10 +1479,16 @@ a:hover {
     margin-left: 0;
     padding: var(--space-md);
     padding-top: calc(var(--header-height) + var(--space-md));
+    width: 100vw;
   }
 
   .header {
     left: 0;
+    padding: 0 var(--space-md);
+  }
+
+  .header-dept {
+    display: none;
   }
 
   .grid-2,
@@ -1475,7 +1520,15 @@ a:hover {
 
   .notif-dropdown {
     width: 300px;
-    right: -60px;
+    right: -10px;
+  }
+  
+  /* Make tables scrollable horizontally on mobile */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(var(--space-md) * -1);
+    padding: 0 var(--space-md);
   }
 }
 
