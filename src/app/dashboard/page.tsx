@@ -38,14 +38,16 @@ type Tab = 'Today' | 'History' | 'Tasks';
 
 /* ─── shared inline style helpers ─── */
 const INPUT: React.CSSProperties = {
-  width: '100%', background: '#1a1a1a', border: '1px solid #2a2a2a',
-  borderRadius: '8px', padding: '10px 12px', color: '#fff',
-  fontSize: '13px', outline: 'none', boxSizing: 'border-box',
+  width: '100%', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderRadius: '12px', padding: '14px 16px', color: '#f3f4f6',
+  fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+  transition: 'border-color 0.2s ease',
 };
 const TEXTAREA: React.CSSProperties = {
-  ...INPUT, resize: 'vertical', minHeight: '72px', fontFamily: 'inherit',
+  ...INPUT, resize: 'vertical', minHeight: '90px', fontFamily: 'inherit',
 };
-const LABEL: React.CSSProperties = { fontSize: '12px', fontWeight: 600, color: '#666', marginBottom: '8px', display: 'block' };
+const LABEL: React.CSSProperties = { fontSize: '13px', fontWeight: 600, color: '#9ca3af', marginBottom: '10px', display: 'block', letterSpacing: '0.02em' };
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -405,114 +407,163 @@ export default function DashboardPage() {
 
           {/* ══ TASKS TAB ══ */}
           {tab === 'Tasks' && (
-            <div style={{ padding: '24px 28px', maxWidth: '640px' }}>
+            <div style={{ padding: '40px 32px', maxWidth: '720px', margin: '0 auto' }}>
               {!activeSession ? (
-                <div style={{ textAlign: 'center', padding: '80px 0', color: '#333' }}>
-                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>⏱️</div>
-                  <div style={{ fontWeight: 600, color: '#555', marginBottom: '8px' }}>No active session</div>
-                  <button onClick={() => setTab('Today')} style={{ background: 'none', border: 'none', color: '#6C5CE7', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}>
+                <div style={{ textAlign: 'center', padding: '100px 0', color: '#333' }}>
+                  <div style={{ fontSize: '56px', marginBottom: '16px', opacity: 0.8 }}>⏱️</div>
+                  <div style={{ fontWeight: 600, color: '#6b7280', fontSize: '18px', marginBottom: '12px' }}>No active session</div>
+                  <button onClick={() => setTab('Today')} style={{ background: 'none', border: 'none', color: '#818cf8', cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 16px', borderRadius: '8px', transition: 'background 0.2s' }}>
                     → Go Clock In
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Session info */}
-                  <div style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '10px', padding: '14px 18px', display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                  {/* Session info - Premium glass card */}
+                  <div style={{ 
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)', 
+                    border: '1px solid rgba(255,255,255,0.08)', 
+                    borderRadius: '16px', padding: '20px 24px', 
+                    display: 'flex', gap: '32px', flexWrap: 'wrap', alignItems: 'center',
+                    boxShadow: '0 4px 24px -4px rgba(0,0,0,0.5)'
+                  }}>
                     <div>
-                      <div style={{ fontSize: '10px', color: '#444' }}>Login</div>
-                      <div style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shortTime(activeSession.clockInTime)}</div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Login Time</div>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '15px' }}>{shortTime(activeSession.clockInTime)}</div>
                     </div>
                     {activeSession.clockOutTime && (
                       <div>
-                        <div style={{ fontSize: '10px', color: '#444' }}>Logout</div>
-                        <div style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shortTime(activeSession.clockOutTime)}</div>
+                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Logout Time</div>
+                        <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '15px' }}>{shortTime(activeSession.clockOutTime)}</div>
                       </div>
                     )}
                     <div>
-                      <div style={{ fontSize: '10px', color: '#444' }}>Worked</div>
-                      <div style={{ fontFamily: 'monospace', fontWeight: 700 }}>{fmtDuration(SESSION_DURATION_MS - remainingMs - activeSession.breakDurationMs)}</div>
+                      <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Time Worked</div>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '15px', color: '#818cf8' }}>{fmtDuration(SESSION_DURATION_MS - remainingMs - activeSession.breakDurationMs)}</div>
                     </div>
                     {isWorking && (
-                      <div style={{ marginLeft: 'auto' }}>
-                        <div style={{ fontSize: '10px', color: '#444' }}>Remaining</div>
-                        <div style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '18px', color: remainingMs < 600000 ? '#ef4444' : '#fff' }}>{formatTime(remainingMs)}</div>
+                      <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                        <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Remaining</div>
+                        <div style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '22px', color: remainingMs < 600000 ? '#ef4444' : '#fff' }}>{formatTime(remainingMs)}</div>
                       </div>
                     )}
                   </div>
 
                   {/* Tasks */}
                   <div>
-                    <label style={LABEL}>What did you work on? *</label>
-                    {draftTasks.map((task, idx) => (
-                      <div key={task.id} style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '10px', padding: '12px', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '11px', color: '#444' }}>Task #{idx + 1}</span>
-                          <button onClick={() => removeTask(task.id)} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                    <label style={LABEL}>What did you work on? <span style={{color: '#ef4444'}}>*</span></label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {draftTasks.map((task, idx) => (
+                        <div key={task.id} style={{ 
+                          background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', 
+                          borderRadius: '16px', padding: '20px', transition: 'transform 0.2s ease'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Task #{idx + 1}</span>
+                            <button onClick={() => removeTask(task.id)} style={{ background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#ef4444', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>✕</button>
+                          </div>
+                          <input style={{ ...INPUT, marginBottom: '12px' }} placeholder="E.g. Implemented new dashboard layout..." value={task.title} onChange={(e) => updateTask(task.id, 'title', e.target.value)} />
+                          <div style={{ display: 'flex', gap: '12px' }}>
+                            <select style={{ ...INPUT, flex: '0 0 180px', color: task.category ? '#fff' : '#9ca3af' }} value={task.category} onChange={(e) => updateTask(task.id, 'category', e.target.value)}>
+                              {TASK_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <input style={INPUT} placeholder="Additional details (optional)..." value={task.description} onChange={(e) => updateTask(task.id, 'description', e.target.value)} />
+                          </div>
                         </div>
-                        <input style={{ ...INPUT, marginBottom: '8px' }} placeholder="Task title" value={task.title} onChange={(e) => updateTask(task.id, 'title', e.target.value)} />
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <select style={{ ...INPUT, flex: '0 0 150px' }} value={task.category} onChange={(e) => updateTask(task.id, 'category', e.target.value)}>
-                            {TASK_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                          </select>
-                          <input style={INPUT} placeholder="Description (optional)" value={task.description} onChange={(e) => updateTask(task.id, 'description', e.target.value)} />
-                        </div>
-                      </div>
-                    ))}
-                    <button onClick={addTask} style={{ width: '100%', background: 'none', border: '1px dashed #2a2a2a', borderRadius: '8px', color: '#444', cursor: 'pointer', padding: '10px', fontSize: '13px' }}>
-                      + Add Task
+                      ))}
+                    </div>
+                    <button onClick={addTask} style={{ 
+                      width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.2)', 
+                      borderRadius: '12px', color: '#9ca3af', cursor: 'pointer', padding: '16px', fontSize: '14px',
+                      fontWeight: 600, marginTop: '16px', transition: 'all 0.2s',
+                    }}>
+                      + Add Another Task
                     </button>
                   </div>
+
+                  {/* Divider */}
+                  <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)' }} />
 
                   {/* Remark */}
                   <div>
                     <label style={LABEL}>Remark for the day</label>
-                    <textarea style={TEXTAREA} placeholder="Brief summary of your session..." value={draftSummary} onChange={(e) => setDraftSummary(e.target.value)} />
+                    <textarea style={TEXTAREA} placeholder="Provide a brief, overall summary of your session today..." value={draftSummary} onChange={(e) => setDraftSummary(e.target.value)} />
                   </div>
 
                   {/* Mood */}
                   <div>
-                    <label style={LABEL}>How was your session?</label>
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      {MOODS.map((m) => (
-                        <button key={m.value} type="button" onClick={() => setDraftMood(draftMood === m.value ? null : m.value)} style={{ background: draftMood === m.value ? '#2a2a2a' : '#111', border: `1px solid ${draftMood === m.value ? '#555' : '#1e1e1e'}`, borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ fontSize: '24px' }}>{m.emoji}</span>
-                          <span style={{ fontSize: '11px', color: '#666' }}>{m.label}</span>
-                        </button>
-                      ))}
+                    <label style={LABEL}>How are you feeling about this session?</label>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      {MOODS.map((m) => {
+                        const isSelected = draftMood === m.value;
+                        return (
+                          <button key={m.value} type="button" onClick={() => setDraftMood(isSelected ? null : m.value)} style={{ 
+                            background: isSelected ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.02)', 
+                            border: `1px solid ${isSelected ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.05)'}`, 
+                            borderRadius: '12px', padding: '12px 20px', cursor: 'pointer', 
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                            minWidth: '80px', transition: 'all 0.2s ease',
+                            transform: isSelected ? 'translateY(-2px)' : 'none',
+                            boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.2)' : 'none'
+                          }}>
+                            <span style={{ fontSize: '28px', filter: isSelected ? 'none' : 'grayscale(0.5)', opacity: isSelected ? 1 : 0.7 }}>{m.emoji}</span>
+                            <span style={{ fontSize: '12px', color: isSelected ? '#fff' : '#9ca3af', fontWeight: isSelected ? 600 : 400 }}>{m.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Blockers */}
-                  <div>
-                    <label style={LABEL}>Blockers (optional)</label>
-                    <textarea style={{ ...TEXTAREA, minHeight: '60px' }} placeholder="Any blockers you faced..." value={draftBlockers} onChange={(e) => setDraftBlockers(e.target.value)} />
-                  </div>
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    {/* Blockers */}
+                    <div style={{ flex: 1 }}>
+                      <label style={LABEL}>Blockers <span style={{ fontWeight: 400, color: '#6b7280' }}>(optional)</span></label>
+                      <textarea style={{ ...TEXTAREA, minHeight: '80px' }} placeholder="Did anything slow you down?" value={draftBlockers} onChange={(e) => setDraftBlockers(e.target.value)} />
+                    </div>
 
-                  {/* Achievements */}
-                  <div>
-                    <label style={LABEL}>Key Achievements (optional)</label>
-                    <textarea style={{ ...TEXTAREA, minHeight: '60px' }} placeholder="Proud moments from this session..." value={draftAchievements} onChange={(e) => setDraftAchievements(e.target.value)} />
+                    {/* Achievements */}
+                    <div style={{ flex: 1 }}>
+                      <label style={LABEL}>Key Achievements <span style={{ fontWeight: 400, color: '#6b7280' }}>(optional)</span></label>
+                      <textarea style={{ ...TEXTAREA, minHeight: '80px' }} placeholder="Any proud moments to highlight?" value={draftAchievements} onChange={(e) => setDraftAchievements(e.target.value)} />
+                    </div>
                   </div>
 
                   {submitError && (
-                    <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '10px 14px', color: '#ef4444', fontSize: '13px' }}>
-                      {submitError}
+                    <div style={{ 
+                      background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', 
+                      borderRadius: '12px', padding: '14px 20px', color: '#fca5a5', fontSize: '14px',
+                      display: 'flex', alignItems: 'center', gap: '8px'
+                    }}>
+                      ⚠️ {submitError}
                     </div>
                   )}
 
-                  {isWorking && (
-                    <button onClick={handleClockOut} style={{ width: '100%', padding: '13px', borderRadius: '10px', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '15px' }}>
-                      ⏹️ Clock Out First
-                    </button>
-                  )}
+                  <div style={{ marginTop: '16px' }}>
+                    {isWorking && (
+                      <button onClick={handleClockOut} style={{ 
+                        width: '100%', padding: '16px', borderRadius: '12px', border: 'none', 
+                        background: '#ef4444', color: '#fff', cursor: 'pointer', fontWeight: 700, 
+                        fontSize: '16px', marginBottom: '12px', transition: 'background 0.2s',
+                        boxShadow: '0 4px 12px rgba(239,68,68,0.2)'
+                      }}>
+                        ⏹️ Clock Out First
+                      </button>
+                    )}
 
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || isWorking}
-                    style={{ width: '100%', padding: '13px', borderRadius: '10px', border: 'none', background: isWorking ? '#1a1a1a' : '#fff', color: isWorking ? '#333' : '#000', cursor: isWorking ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '15px' }}
-                  >
-                    {submitting ? 'Submitting...' : isWorking ? 'Clock out first to submit' : '✅ Submit Work Log'}
-                  </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={submitting || isWorking}
+                      style={{ 
+                        width: '100%', padding: '16px', borderRadius: '12px', border: 'none', 
+                        background: isWorking ? 'rgba(255,255,255,0.05)' : '#fff', 
+                        color: isWorking ? '#6b7280' : '#000', 
+                        cursor: isWorking ? 'not-allowed' : 'pointer', 
+                        fontWeight: 700, fontSize: '16px', transition: 'all 0.2s',
+                        boxShadow: isWorking ? 'none' : '0 4px 20px rgba(255,255,255,0.15)'
+                      }}
+                    >
+                      {submitting ? 'Submitting...' : isWorking ? 'Clock out first to submit' : '✅ Submit Work Log'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
