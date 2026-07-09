@@ -73,7 +73,10 @@ export default function DashboardPage() {
   const [remarkComment, setRemarkComment]    = useState('');
   const [savingRemark, setSavingRemark]      = useState(false);
 
-  const loadSessions = () => getAllSessions().then(setAllSessions);
+  const loadSessions = () =>
+    getAllSessions()
+      .then(setAllSessions)
+      .catch((e) => console.warn('Could not load team sessions:', e.message));
 
   useEffect(() => {
     if (!mimoUser) return;
