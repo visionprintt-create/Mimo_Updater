@@ -22,25 +22,25 @@
   --mimo-accent-light: #9CA3AF;
 
   /* Background */
-  --bg-primary: #F9FAFB;
-  --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F3F4F6;
-  --bg-glass: #FFFFFF;
-  --bg-glass-hover: #F3F4F6;
-  --bg-input: #FFFFFF;
-  --bg-input-focus: #F9FAFB;
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #141414;
+  --bg-card: #141414;
+  --bg-card-hover: #1E1E1E;
+  --bg-glass: rgba(20, 20, 20, 0.6);
+  --bg-glass-hover: rgba(30, 30, 30, 0.8);
+  --bg-input: #1A1A1A;
+  --bg-input-focus: #222222;
 
   /* Text */
-  --text-primary: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #9CA3AF;
-  --text-inverse: #FFFFFF;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+  --text-muted: #6B7280;
+  --text-inverse: #000000;
 
   /* Borders */
-  --border-color: #E5E7EB;
-  --border-color-hover: #D1D5DB;
-  --border-color-focus: #111827;
+  --border-color: #2A2A2A;
+  --border-color-hover: #3A3A3A;
+  --border-color-focus: #FFFFFF;
 
   /* Status Colors */
   --status-active: #059669;

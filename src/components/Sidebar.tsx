@@ -4,159 +4,117 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { signOutUser, isAdmin } from '@/lib/auth';
-
-const DEPT_COLORS: Record<string, string> = {
-  'Marketing': 'var(--dept-marketing)',
-  'Technical Team': 'var(--dept-technical)',
-  'Hardware Team': 'var(--dept-hardware)',
-  'Finance': 'var(--dept-finance)',
-  'Design': 'var(--dept-design)',
-};
+import { isAdmin } from '@/lib/auth';
+import { DEPARTMENTS, Department } from '@/types';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { mimoUser } = useAuthStore();
-  const { isMobileSidebarOpen, closeSidebar } = useUIStore();
+  const { isMobileSidebarOpen, closeSidebar, deptFilter, setDeptFilter } = useUIStore();
   const admin = mimoUser && isAdmin(mimoUser.role);
 
-  const handleSignOut = async () => {
-    await signOutUser();
-    router.push('/login');
+  const C = {
+    bg: '#0A0A0A',
+    surface: '#141414',
+    border: '#2A2A2A',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#A0A0A0',
+    accent: '#FFFFFF',
   };
 
-  const avatarColor = mimoUser ? DEPT_COLORS[mimoUser.department] || 'var(--mimo-primary)' : 'var(--mimo-primary)';
-  const initials = mimoUser?.displayName
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || '?';
+  const btnStyle = (active: boolean): React.CSSProperties => ({
+    background: active ? C.accent : 'transparent',
+    color: active ? '#000' : C.textSecondary,
+    border: `1px solid ${active ? C.accent : C.border}`,
+    borderRadius: '16px', // Pill shaped
+    padding: '10px 16px',
+    cursor: 'pointer',
+    fontWeight: active ? 600 : 400,
+    fontSize: '13px',
+    textAlign: 'left',
+    width: '100%',
+    transition: 'all 0.15s',
+    display: 'block',
+    textDecoration: 'none'
+  });
 
   return (
     <>
-      {/* Mobile overlay */}
       {isMobileSidebarOpen && (
-        <div className="sidebar-overlay" onClick={closeSidebar} />
+        <div className="sidebar-overlay" onClick={closeSidebar} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:40 }} />
       )}
       
-      <aside className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div>
-            <div className="sidebar-logo">Mimo</div>
-            <div className="sidebar-subtitle">WorkTracker</div>
+      <aside 
+        className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}
+        style={{ 
+          background: C.bg, 
+          borderRight: `1px solid ${C.border}`,
+          width: '240px',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '32px',
+          height: '100vh',
+          overflowY: 'auto'
+        }}
+      >
+        {/* Departments Section */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ fontSize: '11px', color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '8px' }}>
+            Departments
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {DEPARTMENTS.map(d => (
+              <button
+                key={d}
+                onClick={() => {
+                  if (pathname !== '/dashboard') router.push('/dashboard');
+                  setDeptFilter(deptFilter === d ? null : d);
+                  closeSidebar();
+                }}
+                style={btnStyle(deptFilter === d)}
+              >
+                {d}
+              </button>
+            ))}
+            {deptFilter && (
+              <button 
+                onClick={() => setDeptFilter(null)} 
+                style={{ ...btnStyle(false), border:'none', color:C.textSecondary, fontSize:'12px', textAlign:'center', marginTop:'4px' }}
+              >
+                Clear filter
+              </button>
+            )}
           </div>
         </div>
 
-        <nav className="sidebar-nav" onClick={closeSidebar}>
-          {admin ? (
-          <>
-            <div className="sidebar-section-title">Admin</div>
-            <Link
-              href="/admin"
-              className={`nav-link ${pathname === '/admin' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">📊</span>
-              Overview
-            </Link>
-            <Link
-              href="/admin/approvals"
-              className={`nav-link ${pathname === '/admin/approvals' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">✅</span>
-              Approvals
-            </Link>
-            <Link
-              href="/admin/reviews"
-              className={`nav-link ${pathname === '/admin/reviews' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">📋</span>
-              Work Reviews
-            </Link>
-            <Link
-              href="/admin/analytics"
-              className={`nav-link ${pathname === '/admin/analytics' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">📈</span>
-              Analytics
-            </Link>
-            <Link
-              href="/admin/team"
-              className={`nav-link ${pathname === '/admin/team' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">👥</span>
-              Team
-            </Link>
-
-            <div className="sidebar-section-title" style={{ marginTop: '8px' }}>
-              My Work
+        {/* Admin Navigation Section */}
+        {admin && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
+            <div style={{ fontSize: '11px', color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '8px' }}>
+              Admin
             </div>
-            <Link
-              href="/dashboard"
-              className={`nav-link ${pathname === '/dashboard' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">⏱️</span>
-              My Dashboard
-            </Link>
-          </>
-        ) : (
-          <>
-            <div className="sidebar-section-title">Workspace</div>
-            <Link
-              href="/dashboard"
-              className={`nav-link ${pathname === '/dashboard' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">⏱️</span>
-              Dashboard
-            </Link>
-            <Link
-              href="/dashboard/history"
-              className={`nav-link ${pathname === '/dashboard/history' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">📅</span>
-              Work History
-            </Link>
-            <Link
-              href="/dashboard/notifications"
-              className={`nav-link ${pathname === '/dashboard/notifications' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">🔔</span>
-              Notifications
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className={`nav-link ${pathname === '/dashboard/profile' ? 'active' : ''}`}
-            >
-              <span className="nav-icon">👤</span>
-              Profile
-            </Link>
-          </>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Link href="/admin" onClick={closeSidebar} style={btnStyle(pathname === '/admin')}>
+                Overview
+              </Link>
+              <Link href="/admin/approvals" onClick={closeSidebar} style={btnStyle(pathname === '/admin/approvals')}>
+                Approvals
+              </Link>
+              <Link href="/admin/reviews" onClick={closeSidebar} style={btnStyle(pathname === '/admin/reviews')}>
+                Work Reviews
+              </Link>
+              <Link href="/admin/analytics" onClick={closeSidebar} style={btnStyle(pathname === '/admin/analytics')}>
+                Analytics
+              </Link>
+              <Link href="/admin/team" onClick={closeSidebar} style={btnStyle(pathname === '/admin/team')}>
+                Team
+              </Link>
+            </div>
+          </div>
         )}
-      </nav>
-
-      <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div
-            className="avatar"
-            style={{ background: avatarColor }}
-          >
-            {initials}
-          </div>
-          <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{mimoUser?.displayName || 'User'}</div>
-            <div className="sidebar-user-role">{mimoUser?.role || 'Intern'}</div>
-          </div>
-        </div>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={handleSignOut}
-          style={{ width: '100%', marginTop: '8px' }}
-        >
-          Sign Out
-        </button>
-      </div>
-    </aside>
+      </aside>
     </>
   );
 }

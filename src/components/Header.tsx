@@ -1,144 +1,124 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { onUserNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/firestore';
-import type { MimoNotification } from '@/types';
+import { useSessionStore } from '@/store/sessionStore';
+import { signOutUser } from '@/lib/auth';
 
-function timeAgo(dateStr: string): string {
-  const now = new Date().getTime();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHr = Math.floor(diffMs / 3600000);
-  const diffDay = Math.floor(diffMs / 86400000);
-
-  if (diffMin < 1) return 'Just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHr < 24) return `${diffHr}h ago`;
-  return `${diffDay}d ago`;
+function formatTime(ms: number) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
 export default function Header() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { mimoUser } = useAuthStore();
-  const { toggleSidebar } = useUIStore();
-  const [notifications, setNotifications] = useState<MimoNotification[]>([]);
-  const [showNotifs, setShowNotifs] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { dashboardTab, setDashboardTab } = useUIStore();
+  const { remainingMs, isWorking, isOnBreak } = useSessionStore();
+  const [showSignOut, setShowSignOut] = useState(false);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  useEffect(() => {
-    if (!mimoUser) return;
-    const unsub = onUserNotifications(mimoUser.uid, setNotifications);
-    return () => unsub();
-  }, [mimoUser]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowNotifs(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleMarkAllRead = async () => {
-    if (mimoUser) {
-      await markAllNotificationsRead(mimoUser.uid);
-    }
+  const C = {
+    bg: '#0A0A0A',
+    surface: '#141414',
+    border: '#2A2A2A',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#A0A0A0',
+    accent: '#FFFFFF',
   };
 
-  const handleNotifClick = async (notif: MimoNotification) => {
-    if (!notif.read) {
-      await markNotificationRead(notif.id);
+  const TABS = ['Today', 'History', 'Tasks'] as const;
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    router.push('/login');
+  };
+
+  const handleTabClick = (tab: 'Today' | 'History' | 'Tasks') => {
+    setDashboardTab(tab);
+    if (pathname !== '/dashboard') {
+      router.push('/dashboard');
     }
   };
 
   return (
-    <header className="header">
-      <div className="header-left">
-        <button 
-          className="mobile-menu-btn" 
-          onClick={toggleSidebar}
-          aria-label="Toggle Sidebar"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        </button>
-        <h4 style={{ fontSize: 'var(--font-size-md)', fontWeight: 500, color: 'var(--text-secondary)' }} className="header-dept">
-          {mimoUser?.department || ''}
-        </h4>
+    <div style={{ 
+      display:'flex', 
+      alignItems:'center', 
+      padding:'14px 24px', 
+      borderBottom:`1px solid ${C.border}`, 
+      gap:'20px', 
+      flexShrink:0,
+      background: C.bg 
+    }}>
+      {/* ═══ LEFT: Profile ═══ */}
+      <div style={{ position:'relative', minWidth:'180px' }}>
+        <div onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer' }}>
+          <div style={{ fontWeight:700, fontSize:'15px', color: C.textPrimary }}>
+            {mimoUser?.displayName || 'User'}
+          </div>
+          <div style={{ fontSize:'11px', color: C.textSecondary, textTransform:'capitalize', marginTop:'2px' }}>
+            {mimoUser?.role} - {mimoUser?.department}
+          </div>
+        </div>
+        {showSignOut && (
+          <div style={{ 
+            position:'absolute', top:'100%', left:0, marginTop:'8px', 
+            background:C.surface, border:`1px solid ${C.border}`, borderRadius:'8px', 
+            padding:'6px', zIndex:50, minWidth:'120px', boxShadow:'0 10px 25px rgba(0,0,0,0.5)'
+          }}>
+            <button 
+              onClick={handleSignOut}
+              style={{
+                width:'100%', padding:'8px 12px', background:'transparent', border:'none',
+                color:'#ef4444', textAlign:'left', cursor:'pointer', fontSize:'13px',
+                borderRadius:'6px'
+              }}
+            >
+              Sign Out
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="header-right" ref={dropdownRef}>
-        <div style={{ position: 'relative' }}>
-          <button
-            className="notif-btn"
-            onClick={() => setShowNotifs(!showNotifs)}
-            aria-label="Notifications"
-          >
-            🔔
-            {unreadCount > 0 && <span className="notif-count">{unreadCount}</span>}
-          </button>
-
-          {showNotifs && (
-            <div className="notif-dropdown animate-in">
-              <div
-                style={{
-                  padding: '12px 16px',
-                  borderBottom: '1px solid var(--border-color)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
-                  Notifications
-                </span>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={handleMarkAllRead}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--mimo-primary-light)',
-                      cursor: 'pointer',
-                      fontSize: 'var(--font-size-xs)',
-                    }}
-                  >
-                    Mark all read
-                  </button>
-                )}
-              </div>
-
-              {notifications.length === 0 ? (
-                <div className="empty-state" style={{ padding: '32px' }}>
-                  <div className="empty-icon">🔕</div>
-                  <p>No notifications yet</p>
-                </div>
-              ) : (
-                notifications.slice(0, 10).map((notif) => (
-                  <div
-                    key={notif.id}
-                    className={`notif-item ${!notif.read ? 'unread' : ''}`}
-                    onClick={() => handleNotifClick(notif)}
-                  >
-                    <div className="notif-item-title">{notif.title}</div>
-                    <div className="notif-item-message">{notif.message}</div>
-                    <div className="notif-item-time">{timeAgo(notif.createdAt)}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
+      {/* ═══ CENTER: Tabs ═══ */}
+      <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
+        <div style={{ display:'flex', gap:'4px', background:C.surface, padding:'4px', borderRadius:'12px', border:`1px solid ${C.border}` }}>
+          {TABS.map(t => (
+            <button
+              key={t}
+              onClick={() => handleTabClick(t)}
+              style={{
+                background: (dashboardTab === t && pathname === '/dashboard') ? '#333' : 'transparent',
+                color: (dashboardTab === t && pathname === '/dashboard') ? C.textPrimary : C.textSecondary,
+                border: 'none', padding: '6px 20px', borderRadius: '8px', cursor: 'pointer',
+                fontWeight: (dashboardTab === t && pathname === '/dashboard') ? 600 : 400, fontSize: '13px',
+                transition: 'all 0.2s'
+              }}
+            >
+              {t}
+            </button>
+          ))}
         </div>
       </div>
-    </header>
+
+      {/* ═══ RIGHT: Timer ═══ */}
+      <div style={{ minWidth:'180px', display:'flex', justifyContent:'flex-end', alignItems:'center' }}>
+        <div style={{
+          background: isOnBreak ? '#3f3f46' : (isWorking ? '#1e293b' : C.surface),
+          color: isOnBreak ? '#d4d4d8' : (isWorking ? '#f8fafc' : C.textPrimary),
+          padding: '8px 16px', borderRadius: '8px', fontFamily: 'monospace',
+          fontSize: '18px', fontWeight: 700, border: `1px solid ${C.border}`,
+          letterSpacing: '1px'
+        }}>
+          {formatTime(remainingMs)}
+        </div>
+      </div>
+    </div>
   );
 }

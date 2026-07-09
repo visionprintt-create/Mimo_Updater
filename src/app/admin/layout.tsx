@@ -13,10 +13,12 @@ export default function AdminLayout({
   return (
     <AuthProvider>
       <AuthGuard requireAdmin>
-        <div className="app-layout">
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
           <Sidebar />
-          <Header />
-          <main className="main-content">{children}</main>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <Header />
+            <main style={{ flex: 1, overflow: 'auto' }}>{children}</main>
+          </div>
         </div>
       </AuthGuard>
     </AuthProvider>
