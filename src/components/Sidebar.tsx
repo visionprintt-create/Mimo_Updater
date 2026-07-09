@@ -49,13 +49,8 @@ export default function Sidebar() {
         className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}
         style={{ 
           background: C.bg, 
-          borderRight: `1px solid ${C.border}`,
-          width: '240px',
           padding: '24px 16px',
-          display: 'flex',
-          flexDirection: 'column',
           gap: '32px',
-          height: '100vh',
           overflowY: 'auto'
         }}
       >

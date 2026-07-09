@@ -47,7 +47,7 @@ export default function Header() {
   };
 
   return (
-    <div style={{ 
+    <div className="header" style={{ 
       display:'flex', 
       alignItems:'center', 
       padding:'14px 24px', 
