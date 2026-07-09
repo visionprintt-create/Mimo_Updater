@@ -102,7 +102,9 @@ export async function getActiveSession(userId: string): Promise<WorkSession | nu
   );
   const snap = await getDocs(q);
   if (snap.empty) return null;
-  return snap.docs[0].data() as WorkSession;
+  const d = snap.docs[0];
+  return { ...d.data(), id: d.id } as WorkSession;
+
 }
 
 export async function getAllSessions(
@@ -119,7 +121,8 @@ export async function getAllSessions(
     q = query(collection(db, 'sessions'), orderBy('clockInTime', 'desc'));
   }
   const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as WorkSession);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession));
+
 }
 
 export async function getUnreviewedSessions(): Promise<WorkSession[]> {
