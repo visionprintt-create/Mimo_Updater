@@ -40,16 +40,15 @@ service cloud.firestore {
 
     // ─── Sessions Collection ─────────────────────────────────
     match /sessions/{sessionId} {
-      // Users can read their own sessions, admins can read all
-      allow read: if isAuthenticated() && 
-        (resource.data.userId == request.auth.uid || isAdmin());
+      // All authenticated users can read all sessions (interns can see team-wide history)
+      allow read: if isAuthenticated();
       
       // Users can create their own sessions
       allow create: if isAuthenticated() && 
         request.resource.data.userId == request.auth.uid;
       
       // Users can update their own active sessions (clock out, add tasks)
-      // Admins can update any session (for reviews)
+      // Admins can update any session (for reviews/remarks)
       allow update: if isAuthenticated() && 
         (resource.data.userId == request.auth.uid || isAdmin());
     }
