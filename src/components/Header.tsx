@@ -20,7 +20,7 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { mimoUser } = useAuthStore();
-  const { dashboardTab, setDashboardTab } = useUIStore();
+  const { dashboardTab, setDashboardTab, toggleSidebar } = useUIStore();
   const { remainingMs, isWorking, isOnBreak, isClockingIn, clockIn, clockOut } = useSessionStore();
   const [showSignOut, setShowSignOut] = useState(false);
 
@@ -55,12 +55,15 @@ export default function Header() {
         borderBottom: `1px solid ${C.borderLight}`
       }}>
       {/* ═══ LEFT: Profile ═══ */}
-      <div style={{ position:'relative', minWidth:'200px' }}>
+      <div className="header-left" style={{ position:'relative', display: 'flex', alignItems: 'center' }}>
+        <button className="mobile-menu-btn" onClick={toggleSidebar} aria-label="Menu">
+          ☰
+        </button>
         <div onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontWeight:800, fontSize:'16px', color: C.textPrimary, letterSpacing: '-0.02em' }}>
             {mimoUser?.displayName || 'User'}
           </div>
-          <div style={{ fontSize:'12px', color: C.textSecondary, fontWeight: 500, marginTop:'2px' }}>
+          <div className="header-dept" style={{ fontSize:'12px', color: C.textSecondary, fontWeight: 500, marginTop:'2px' }}>
             {mimoUser?.role} • <span style={{ color: C.accent }}>{mimoUser?.department}</span>
           </div>
         </div>
@@ -112,7 +115,7 @@ export default function Header() {
       </div>
 
       {/* ═══ RIGHT: Timer & Actions ═══ */}
-      <div style={{ minWidth:'200px', display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'16px' }}>
+      <div className="header-right" style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'16px' }}>
         {!isAdminRoute && (
           <>
             <div style={{
