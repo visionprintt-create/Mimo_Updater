@@ -23,9 +23,8 @@ service cloud.firestore {
 
     // ─── Users Collection ────────────────────────────────────
     match /users/{userId} {
-      // Anyone authenticated can read their own profile
-      // Admins can read all profiles
-      allow read: if isOwner(userId) || isAdmin();
+      // All authenticated users can read profiles (interns need this to view teammates)
+      allow read: if isAuthenticated();
       
       // Users can create their own profile on registration
       allow create: if isOwner(userId);
@@ -51,6 +50,13 @@ service cloud.firestore {
       // Admins can update any session (for reviews/remarks)
       allow update: if isAuthenticated() && 
         (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // ─── Weekly Tasks Collection ─────────────────────────────
+    match /weekly_tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(request.resource.data.userId);
+      allow update, delete: if isOwner(resource.data.userId);
     }
 
     // ─── Notifications Collection ────────────────────────────

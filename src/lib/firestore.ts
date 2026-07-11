@@ -267,3 +267,35 @@ export async function getTodaysSessions(): Promise<WorkSession[]> {
 
   return getSessionsInRange(today.toISOString(), tomorrow.toISOString());
 }
+// ─── Weekly Tasks ─────────────────────────────────────────────
+
+export async function getWeeklyTasks(userId: string): Promise<import('@/types').WeeklyTask[]> {
+  const q = query(
+    collection(db, 'weekly_tasks'),
+    where('userId', '==', userId)
+  );
+  const snap = await getDocs(q);
+  const tasks = snap.docs.map(d => ({ id: d.id, ...d.data() } as import('@/types').WeeklyTask));
+  
+  // Sort on the client side to avoid needing a Firestore composite index
+  return tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function addWeeklyTask(userId: string, title: string): Promise<string> {
+  const ref = doc(collection(db, 'weekly_tasks'));
+  await setDoc(ref, {
+    userId,
+    title,
+    completed: false,
+    createdAt: new Date().toISOString()
+  });
+  return ref.id;
+}
+
+export async function updateWeeklyTask(taskId: string, updates: Partial<import('@/types').WeeklyTask>): Promise<void> {
+  await updateDoc(doc(db, 'weekly_tasks', taskId), updates);
+}
+
+export async function deleteWeeklyTask(taskId: string): Promise<void> {
+  await deleteDoc(doc(db, 'weekly_tasks', taskId));
+}

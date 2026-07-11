@@ -5,21 +5,7 @@ import { onActiveSessions, getAllUsers, getPendingUsers, getUnreviewedSessions, 
 import type { WorkSession, MimoUser } from '@/types';
 import { DEPARTMENTS } from '@/types';
 
-const DEPT_COLORS: Record<string, string> = {
-  'Marketing': 'var(--dept-marketing)',
-  'Technical Team': 'var(--dept-technical)',
-  'Hardware Team': 'var(--dept-hardware)',
-  'Finance': 'var(--dept-finance)',
-  'Design': 'var(--dept-design)',
-};
-
-const DEPT_BG: Record<string, string> = {
-  'Marketing': 'rgba(220,38,38,0.08)',
-  'Technical Team': 'rgba(79,70,229,0.08)',
-  'Hardware Team': 'rgba(13,148,136,0.08)',
-  'Finance': 'rgba(217,119,6,0.08)',
-  'Design': 'rgba(219,39,119,0.08)',
-};
+import { getTheme } from '@/lib/theme';
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -92,6 +78,19 @@ export default function AdminOverviewPage() {
     return map;
   }, [activeSessions]);
 
+  const allTimeDeptStats = useMemo(() => {
+    const map: Record<string, { totalMs: number }> = {};
+    for (const dept of DEPARTMENTS) map[dept] = { totalMs: 0 };
+    for (const s of recentSessions) {
+      if (map[s.userDepartment]) {
+        map[s.userDepartment].totalMs += s.totalDurationMs;
+      }
+    }
+    return map;
+  }, [recentSessions]);
+
+  const maxAllTimeDeptHours = Math.max(...Object.values(allTimeDeptStats).map((d) => d.totalMs), 1);
+
   return (
     <div className="animate-in">
       <div className="page-header">
@@ -134,6 +133,28 @@ export default function AdminOverviewPage() {
           <div className="stat-trend" style={{ color: unreviewedCount > 0 ? 'var(--status-break)' : 'var(--text-muted)' }}>
             {unreviewedCount > 0 ? '📋 Action needed' : '✅ All reviewed'}
           </div>
+        </div>
+      </div>
+
+      {/* All-Time Hours by Department */}
+      <div className="glass-card-static" style={{ marginBottom: '32px' }}>
+        <h4 style={{ marginBottom: '20px' }}>Hours by Department</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {DEPARTMENTS.map((dept) => {
+            const hours = allTimeDeptStats[dept]?.totalMs ?? 0;
+            const pct = (hours / maxAllTimeDeptHours) * 100;
+            return (
+              <div key={dept}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>{dept}</span>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>{formatDuration(hours)}</span>
+                </div>
+                <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: getTheme(dept).accent, borderRadius: '4px', transition: 'width 0.5s ease' }} />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -181,7 +202,8 @@ export default function AdminOverviewPage() {
                   adjustedElapsed = elapsed - (now - new Date(lastBreak.startedAt).getTime());
                 }
                 const remaining = Math.max(0, 3 * 60 * 60 * 1000 - adjustedElapsed);
-                const avatarColor = DEPT_COLORS[session.userDepartment] || 'var(--mimo-primary)';
+                const theme = getTheme(session.userDepartment);
+                const avatarColor = theme.accent;
                 const initials = session.userName?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
                 return (
@@ -232,7 +254,7 @@ export default function AdminOverviewPage() {
                   <div key={dept}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: DEPT_COLORS[dept], flexShrink: 0 }} />
+                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: getTheme(dept).accent, flexShrink: 0 }} />
                         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>{dept}</span>
                         {data.active > 0 && (
                           <span style={{ fontSize: '10px', background: 'rgba(5,150,105,0.15)', color: 'var(--status-active)', padding: '2px 7px', borderRadius: '99px', fontWeight: 700 }}>
@@ -248,8 +270,9 @@ export default function AdminOverviewPage() {
                     <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{
                         height: '100%', width: `${pct}%`,
-                        background: DEPT_COLORS[dept],
+                        background: getTheme(dept).accent,
                         borderRadius: '4px', transition: 'width 0.5s ease',
+                        boxShadow: 'none'
                       }} />
                     </div>
                   </div>
@@ -262,7 +285,7 @@ export default function AdminOverviewPage() {
           {DEPARTMENTS.filter((dept) => (activeByDept[dept]?.length ?? 0) > 0).map((dept) => (
             <div key={dept}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: DEPT_COLORS[dept] }} />
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: getTheme(dept).accent }} />
                 <h4 style={{ fontSize: 'var(--font-size-lg)' }}>{dept}</h4>
                 <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>({activeByDept[dept].length} active)</span>
               </div>
@@ -276,9 +299,9 @@ export default function AdminOverviewPage() {
                   const remaining = Math.max(0, 3 * 60 * 60 * 1000 - adjustedElapsed);
                   const initials = session.userName?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || '?';
                   return (
-                    <div key={session.id} className={`team-member-card ${onBreak ? 'on-break' : 'working'}`} style={{ background: DEPT_BG[dept] }}>
+                    <div key={session.id} className={`team-member-card ${onBreak ? 'on-break' : 'working'}`} style={{ background: getTheme(dept).surface, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: `1px solid ${getTheme(dept).border}` }}>
                       <div className="team-member-header">
-                        <div className="avatar" style={{ background: DEPT_COLORS[dept] }}>{initials}</div>
+                        <div className="avatar" style={{ background: getTheme(dept).accent, color: '#ffffff' }}>{initials}</div>
                         <div>
                           <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>{session.userName}</div>
                           <span className={`badge ${onBreak ? 'badge-break' : 'badge-active'}`} style={{ marginTop: '4px' }}>

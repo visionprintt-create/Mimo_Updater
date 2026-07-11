@@ -101,7 +101,23 @@ export const MOODS: { value: Mood; emoji: string; label: string }[] = [
   { value: 'fire', emoji: '🔥', label: 'On Fire' },
 ];
 
-// ─── Review & Feedback Types ───────────────────────────────────────
+// ─── UI State & Preferences ────────────────────────────────────────
+
+export interface UIPreferences {
+  theme: 'dark' | 'light' | 'system';
+  compactMode: boolean;
+  accentColor: string;
+}
+
+// ─── Weekly Task ────────────────────────────────────────
+
+export interface WeeklyTask {
+  id: string;
+  userId: string;
+  title: string;
+  completed: boolean;
+  createdAt: string;
+}
 export type ReviewAction = 'approved' | 'noted' | 'flagged' | 'starred';
 
 export interface SessionReview {

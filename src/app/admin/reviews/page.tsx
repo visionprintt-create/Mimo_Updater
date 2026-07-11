@@ -12,13 +12,7 @@ function formatDuration(ms: number): string {
   return `${minutes}m`;
 }
 
-const DEPT_COLORS: Record<string, string> = {
-  'Marketing': 'var(--dept-marketing)',
-  'Technical Team': 'var(--dept-technical)',
-  'Hardware Team': 'var(--dept-hardware)',
-  'Finance': 'var(--dept-finance)',
-  'Design': 'var(--dept-design)',
-};
+import { getTheme } from '@/lib/theme';
 
 export default function ReviewsPage() {
   const { mimoUser } = useAuthStore();
@@ -152,15 +146,16 @@ export default function ReviewsPage() {
               .toUpperCase()
               .slice(0, 2) || '?';
 
-            const avatarColor = DEPT_COLORS[session.userDepartment] || 'var(--mimo-primary)';
+            const theme = getTheme(session.userDepartment);
+            const avatarColor = theme.accent;
 
             return (
               <div key={session.id} className="session-review-card">
                 {/* Header */}
                 <div className="session-meta">
-                  <div className="avatar" style={{ background: avatarColor }}>
-                    {initials}
-                  </div>
+                      <div className="avatar avatar-lg" style={{ background: avatarColor, color: '#ffffff' }}>
+                        {initials}
+                      </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600 }}>{session.userName}</div>
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>

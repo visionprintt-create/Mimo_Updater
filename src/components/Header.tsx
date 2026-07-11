@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { signOutUser } from '@/lib/auth';
+import { getTheme } from '@/lib/theme';
 
 function formatTime(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -20,17 +21,12 @@ export default function Header() {
   const pathname = usePathname();
   const { mimoUser } = useAuthStore();
   const { dashboardTab, setDashboardTab } = useUIStore();
-  const { remainingMs, isWorking, isOnBreak } = useSessionStore();
+  const { remainingMs, isWorking, isOnBreak, clockIn, clockOut } = useSessionStore();
   const [showSignOut, setShowSignOut] = useState(false);
 
-  const C = {
-    bg: '#0A0A0A',
-    surface: '#141414',
-    border: '#2A2A2A',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#A0A0A0',
-    accent: '#FFFFFF',
-  };
+  const { deptFilter } = useUIStore();
+  const activeDept = deptFilter || mimoUser?.department;
+  const C = getTheme(activeDept);
 
   const TABS = ['Today', 'History', 'Tasks'] as const;
 
@@ -46,24 +42,23 @@ export default function Header() {
     }
   };
 
+  const isAdminRoute = pathname.startsWith('/admin');
+
   return (
-    <div className="header" style={{ 
-      display:'flex', 
-      alignItems:'center', 
-      padding:'14px 24px', 
-      borderBottom:`1px solid ${C.border}`, 
-      gap:'20px', 
-      flexShrink:0,
-      background: C.bg 
-    }}>
+    <header className="header" style={{ 
+        display:'flex', alignItems:'center', justifyContent:'space-between', 
+        padding:'0 24px',
+        flexShrink:0,
+        background: 'transparent'
+      }}>
       {/* ═══ LEFT: Profile ═══ */}
-      <div style={{ position:'relative', minWidth:'180px' }}>
-        <div onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer' }}>
-          <div style={{ fontWeight:700, fontSize:'15px', color: C.textPrimary }}>
+      <div style={{ position:'relative', minWidth:'200px' }}>
+        <div onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ fontWeight:800, fontSize:'16px', color: C.textPrimary, letterSpacing: '-0.02em' }}>
             {mimoUser?.displayName || 'User'}
           </div>
-          <div style={{ fontSize:'11px', color: C.textSecondary, textTransform:'capitalize', marginTop:'2px' }}>
-            {mimoUser?.role} - {mimoUser?.department}
+          <div style={{ fontSize:'12px', color: C.textSecondary, fontWeight: 500, marginTop:'2px' }}>
+            {mimoUser?.role} • <span style={{ color: C.accent }}>{mimoUser?.department}</span>
           </div>
         </div>
         {showSignOut && (
@@ -88,37 +83,62 @@ export default function Header() {
 
       {/* ═══ CENTER: Tabs ═══ */}
       <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
-        <div style={{ display:'flex', gap:'4px', background:C.surface, padding:'4px', borderRadius:'12px', border:`1px solid ${C.border}` }}>
-          {TABS.map(t => (
-            <button
-              key={t}
-              onClick={() => handleTabClick(t)}
-              style={{
-                background: (dashboardTab === t && pathname === '/dashboard') ? '#333' : 'transparent',
-                color: (dashboardTab === t && pathname === '/dashboard') ? C.textPrimary : C.textSecondary,
-                border: 'none', padding: '6px 20px', borderRadius: '8px', cursor: 'pointer',
-                fontWeight: (dashboardTab === t && pathname === '/dashboard') ? 600 : 400, fontSize: '13px',
-                transition: 'all 0.2s'
-              }}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        {!isAdminRoute && (
+          <div style={{ display:'flex', gap:'8px', background: 'rgba(0,0,0,0.03)', padding:'6px', borderRadius:'14px' }}>
+            {TABS.map(t => {
+              const active = dashboardTab === t && pathname === '/dashboard';
+              return (
+                <button
+                  key={t}
+                  onClick={() => handleTabClick(t)}
+                  style={{
+                    background: active ? '#ffffff' : 'transparent',
+                    color: active ? C.textPrimary : C.textSecondary,
+                    border: 'none', padding: '6px 24px', borderRadius: '10px', cursor: 'pointer',
+                    fontWeight: active ? 600 : 500, fontSize: '13px',
+                    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' : 'none',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* ═══ RIGHT: Timer ═══ */}
-      <div style={{ minWidth:'180px', display:'flex', justifyContent:'flex-end', alignItems:'center' }}>
-        <div style={{
-          background: isOnBreak ? '#3f3f46' : (isWorking ? '#1e293b' : C.surface),
-          color: isOnBreak ? '#d4d4d8' : (isWorking ? '#f8fafc' : C.textPrimary),
-          padding: '8px 16px', borderRadius: '8px', fontFamily: 'monospace',
-          fontSize: '18px', fontWeight: 700, border: `1px solid ${C.border}`,
-          letterSpacing: '1px'
-        }}>
-          {formatTime(remainingMs)}
-        </div>
+      {/* ═══ RIGHT: Timer & Actions ═══ */}
+      <div style={{ minWidth:'200px', display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'16px' }}>
+        {!isAdminRoute && (
+          <>
+            <div style={{
+              background: isOnBreak ? '#fffbeb' : (isWorking ? '#f0fdf4' : 'transparent'),
+              color: isOnBreak ? '#b45309' : (isWorking ? '#166534' : C.textPrimary),
+              padding: '6px 12px', borderRadius: '8px', fontFamily: 'monospace',
+              fontSize: '16px', fontWeight: 700, letterSpacing: '1px',
+              border: isOnBreak ? '1px solid #fde68a' : (isWorking ? '1px solid #bbf7d0' : 'none'),
+            }}>
+              {formatTime(remainingMs)}
+            </div>
+            {!isWorking ? (
+              <button 
+                onClick={() => mimoUser && clockIn(mimoUser.uid, mimoUser.displayName, mimoUser.department)}
+                style={{ background: C.gradient, color: '#ffffff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor:'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+              >
+                Start Session
+              </button>
+            ) : (
+              <button 
+                onClick={() => clockOut()}
+                style={{ background: '#ef4444', color:'#fff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor:'pointer', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.2)' }}
+              >
+                End Session
+              </button>
+            )}
+          </>
+        )}
       </div>
-    </div>
+    </header>
   );
 }

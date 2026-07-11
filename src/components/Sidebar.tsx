@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { isAdmin } from '@/lib/auth';
 import { DEPARTMENTS, Department } from '@/types';
+import { getTheme } from '@/lib/theme';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -14,30 +15,27 @@ export default function Sidebar() {
   const { isMobileSidebarOpen, closeSidebar, deptFilter, setDeptFilter } = useUIStore();
   const admin = mimoUser && isAdmin(mimoUser.role);
 
-  const C = {
-    bg: '#0A0A0A',
-    surface: '#141414',
-    border: '#2A2A2A',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#A0A0A0',
-    accent: '#FFFFFF',
-  };
+  const activeDept = deptFilter || mimoUser?.department;
+  const C = getTheme(activeDept);
 
-  const btnStyle = (active: boolean): React.CSSProperties => ({
-    background: active ? C.accent : 'transparent',
-    color: active ? '#000' : C.textSecondary,
-    border: `1px solid ${active ? C.accent : C.border}`,
-    borderRadius: '16px', // Pill shaped
-    padding: '10px 16px',
-    cursor: 'pointer',
-    fontWeight: active ? 600 : 400,
-    fontSize: '13px',
-    textAlign: 'left',
-    width: '100%',
-    transition: 'all 0.15s',
-    display: 'block',
-    textDecoration: 'none'
-  });
+  const btnStyle = (active: boolean, specificDept?: string): React.CSSProperties => {
+    const theme = specificDept ? getTheme(specificDept) : C;
+    return {
+      background: active ? theme.gradient : 'transparent',
+      color: active ? '#ffffff' : C.textSecondary,
+      border: 'none',
+      borderRadius: '12px',
+      padding: '12px 16px',
+      cursor: 'pointer',
+      fontWeight: active ? 600 : 400,
+      fontSize: '13px',
+      textAlign: 'left',
+      width: '100%',
+      transition: 'all 0.3s ease',
+      display: 'block',
+      textDecoration: 'none'
+    };
+  };
 
   return (
     <>
@@ -47,11 +45,12 @@ export default function Sidebar() {
       
       <aside 
         className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}
-        style={{ 
-          background: C.bg, 
+        style={{
+          background: 'transparent', 
           padding: '24px 16px',
           gap: '32px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          borderRight: `1px solid ${C.borderLight}`
         }}
       >
         {/* Departments Section */}
@@ -68,7 +67,7 @@ export default function Sidebar() {
                   setDeptFilter(deptFilter === d ? null : d);
                   closeSidebar();
                 }}
-                style={btnStyle(deptFilter === d)}
+                style={btnStyle(deptFilter === d, d)}
               >
                 {d}
               </button>
@@ -95,16 +94,10 @@ export default function Sidebar() {
                 Overview
               </Link>
               <Link href="/admin/approvals" onClick={closeSidebar} style={btnStyle(pathname === '/admin/approvals')}>
-                Approvals
+                Team & Approvals
               </Link>
               <Link href="/admin/reviews" onClick={closeSidebar} style={btnStyle(pathname === '/admin/reviews')}>
                 Work Reviews
-              </Link>
-              <Link href="/admin/analytics" onClick={closeSidebar} style={btnStyle(pathname === '/admin/analytics')}>
-                Analytics
-              </Link>
-              <Link href="/admin/team" onClick={closeSidebar} style={btnStyle(pathname === '/admin/team')}>
-                Team
               </Link>
             </div>
           </div>
