@@ -49,7 +49,10 @@ export default function Header() {
         display:'flex', alignItems:'center', justifyContent:'space-between', 
         padding:'0 24px',
         flexShrink:0,
-        background: 'transparent'
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: `1px solid ${C.borderLight}`
       }}>
       {/* ═══ LEFT: Profile ═══ */}
       <div style={{ position:'relative', minWidth:'200px' }}>
