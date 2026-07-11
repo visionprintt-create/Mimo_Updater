@@ -21,7 +21,7 @@ export default function Header() {
   const pathname = usePathname();
   const { mimoUser } = useAuthStore();
   const { dashboardTab, setDashboardTab } = useUIStore();
-  const { remainingMs, isWorking, isOnBreak, clockIn, clockOut } = useSessionStore();
+  const { remainingMs, isWorking, isOnBreak, isClockingIn, clockIn, clockOut } = useSessionStore();
   const [showSignOut, setShowSignOut] = useState(false);
 
   const { deptFilter } = useUIStore();
@@ -123,10 +123,11 @@ export default function Header() {
             </div>
             {!isWorking ? (
               <button 
-                onClick={() => mimoUser && clockIn(mimoUser.uid, mimoUser.displayName, mimoUser.department)}
-                style={{ background: C.gradient, color: '#ffffff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor:'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                onClick={() => mimoUser && !isClockingIn && clockIn(mimoUser.uid, mimoUser.displayName, mimoUser.department)}
+                disabled={isClockingIn}
+                style={{ background: isClockingIn ? C.border : C.gradient, color: isClockingIn ? C.textSecondary : '#ffffff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor: isClockingIn ? 'wait' : 'pointer', transition: 'all 0.3s ease', boxShadow: isClockingIn ? 'none' : '0 4px 6px rgba(0,0,0,0.1)' }}
               >
-                Start Session
+                {isClockingIn ? 'Starting...' : 'Start Session'}
               </button>
             ) : (
               <button 

@@ -15,6 +15,7 @@ interface SessionState {
   activeSession: WorkSession | null;
   isWorking: boolean;
   isOnBreak: boolean;
+  isClockingIn: boolean;
 
   // Timer
   remainingMs: number;
@@ -60,29 +61,38 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   draftBlockers: '',
   draftAchievements: '',
 
+  isClockingIn: false,
+
   clockIn: async (userId, userName, department) => {
-    const session: Omit<WorkSession, 'id'> = {
-      userId,
-      userName,
-      userDepartment: department as WorkSession['userDepartment'],
-      clockInTime: new Date().toISOString(),
-      totalDurationMs: 0,
-      breakDurationMs: 0,
-      breaks: [],
-      status: 'active',
-      tasks: [],
-    };
+    if (get().isClockingIn || get().activeSession || get().isWorking) return;
+    set({ isClockingIn: true });
 
-    const sessionId = await createSession(session);
+    try {
+      const session: Omit<WorkSession, 'id'> = {
+        userId,
+        userName,
+        userDepartment: department as WorkSession['userDepartment'],
+        clockInTime: new Date().toISOString(),
+        totalDurationMs: 0,
+        breakDurationMs: 0,
+        breaks: [],
+        status: 'active',
+        tasks: [],
+      };
 
-    set({
-      activeSession: { ...session, id: sessionId },
-      isWorking: true,
-      isOnBreak: false,
-      remainingMs: SESSION_DURATION_MS,
-    });
+      const sessionId = await createSession(session);
 
-    get().startTimer();
+      set({
+        activeSession: { ...session, id: sessionId },
+        isWorking: true,
+        isOnBreak: false,
+        remainingMs: SESSION_DURATION_MS,
+      });
+
+      get().startTimer();
+    } finally {
+      set({ isClockingIn: false });
+    }
   },
 
   clockOut: async () => {
