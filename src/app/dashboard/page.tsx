@@ -41,7 +41,7 @@ export default function DashboardPage() {
 
   const {
     activeSession, isWorking, isOnBreak, remainingMs,
-    clockIn, clockOut, submitWorkLog,
+    clockIn, clockOut, submitWorkLog, startBreak, endBreak,
     loadActiveSession,
     draftTasks, draftSummary, draftMood, draftBlockers, draftAchievements,
     setDraftTasks, setDraftSummary, setDraftMood, setDraftBlockers, setDraftAchievements,
@@ -87,11 +87,11 @@ export default function DashboardPage() {
     }
   }, [deptFilter]);
 
-  const viewingUser = deptFilter && deptUsers.length > 0 
-    ? deptUsers[viewingUserIdx] 
+  const viewingUser = deptFilter 
+    ? (deptUsers.length > 0 ? deptUsers[viewingUserIdx] : null) 
     : mimoUser;
 
-  const C = getTheme(viewingUser?.department);
+  const C = getTheme(deptFilter || viewingUser?.department);
 
   // Load weekly tasks for the viewingUser
   useEffect(() => {
@@ -320,6 +320,14 @@ export default function DashboardPage() {
             <div style={{ fontSize:'13px', fontWeight:600, color:C.textSecondary, marginTop:'4px' }}>{viewingUser?.department} • <span style={{color:C.accent}}>{viewingUser?.role}</span></div>
           </div>
           <button onClick={nextUser} style={{ background:'transparent', border:'none', color:C.textPrimary, fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'>'}</button>
+        </div>
+      )}
+
+      {/* ══ EMPTY STATE FOR DEPARTMENTS WITH NO USERS ══ */}
+      {deptFilter && deptUsers.length === 0 && (
+        <div style={{ textAlign:'center', padding:'48px 24px', background:'rgba(255,255,255,0.4)', borderRadius:'16px', border:`1px solid ${C.border}`, marginBottom:'32px', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize:'24px', fontWeight:700, color:C.textPrimary, letterSpacing:'-0.02em' }}>No Users Found</div>
+          <div style={{ fontSize:'15px', color:C.textSecondary, marginTop:'8px', fontWeight:500 }}>There are currently no users assigned to the {deptFilter}.</div>
         </div>
       )}
 

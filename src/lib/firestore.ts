@@ -9,6 +9,8 @@ import {
   orderBy,
   onSnapshot,
   addDoc,
+  setDoc,
+  deleteDoc,
   limit,
 } from 'firebase/firestore';
 import { db } from './firebase';
