@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getUnreviewedSessions, getAllSessions, reviewSession, createNotification } from '@/lib/firestore';
-import type { WorkSession, ReviewAction } from '@/types';
+import { getAllSessions } from '@/lib/firestore';
+import type { WorkSession } from '@/types';
 
 function formatDuration(ms: number): string {
   const hours = Math.floor(ms / 3600000);
@@ -18,85 +18,24 @@ export default function ReviewsPage() {
   const { mimoUser } = useAuthStore();
   const [sessions, setSessions] = useState<WorkSession[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'unreviewed' | 'all'>('unreviewed');
-  const [reviewComment, setReviewComment] = useState<Record<string, string>>({});
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     loadSessions();
-  }, [filter]);
+  }, []);
 
   const loadSessions = async () => {
     setLoading(true);
-    if (filter === 'unreviewed') {
-      const s = await getUnreviewedSessions();
-      setSessions(s);
-    } else {
-      const s = await getAllSessions();
-      setSessions(s.filter((s) => s.status !== 'active'));
-    }
-    setLoading(false);
-  };
-
-  const handleReview = async (session: WorkSession, action: ReviewAction) => {
-    if (!mimoUser) return;
-    setActionLoading(session.id);
-
-    const review = {
-      reviewedBy: mimoUser.uid,
-      reviewerName: mimoUser.displayName,
-      action,
-      comment: reviewComment[session.id] || undefined,
-      reviewedAt: new Date().toISOString(),
-    };
-
-    await reviewSession(session.id, review);
-
-    // Send notification to employee
-    const notifMap: Record<ReviewAction, { type: string; title: string; message: string }> = {
-      approved: {
-        type: 'session_noted',
-        title: 'Session Approved ✅',
-        message: `Your work session has been approved by ${mimoUser.displayName}.${review.comment ? ` Comment: "${review.comment}"` : ''}`,
-      },
-      noted: {
-        type: 'session_noted',
-        title: 'Feedback on Your Session 🟡',
-        message: `${mimoUser.displayName} left a note on your session: "${review.comment || 'No comment'}"`,
-      },
-      flagged: {
-        type: 'session_flagged',
-        title: 'Session Flagged — Action Required 🔴',
-        message: `Your work session has been flagged by ${mimoUser.displayName}. You may need to redo or improve this work.${review.comment ? ` Reason: "${review.comment}"` : ''}`,
-      },
-      starred: {
-        type: 'session_starred',
-        title: 'Exceptional Work! ⭐',
-        message: `${mimoUser.displayName} starred your session for exceptional work!${review.comment ? ` Comment: "${review.comment}"` : ''}`,
-      },
-    };
-
-    const notifData = notifMap[action];
-    await createNotification({
-      userId: session.userId,
-      type: notifData.type as never,
-      title: notifData.title,
-      message: notifData.message,
-      read: false,
-      createdAt: new Date().toISOString(),
+    const s = await getAllSessions();
+    const completed = s.filter((x) => x.status !== 'active');
+    completed.sort((a, b) => {
+      const deptA = a.userDepartment || '';
+      const deptB = b.userDepartment || '';
+      if (deptA < deptB) return -1;
+      if (deptA > deptB) return 1;
+      return new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime();
     });
-
-    // Remove from list if unreviewed filter
-    if (filter === 'unreviewed') {
-      setSessions((prev) => prev.filter((s) => s.id !== session.id));
-    } else {
-      setSessions((prev) =>
-        prev.map((s) => (s.id === session.id ? { ...s, review, status: action === 'flagged' ? 'flagged' : s.status } : s))
-      );
-    }
-
-    setActionLoading(null);
-    setReviewComment((prev) => ({ ...prev, [session.id]: '' }));
+    setSessions(completed);
+    setLoading(false);
   };
 
   if (loading) {
@@ -114,27 +53,13 @@ export default function ReviewsPage() {
         <p>Review and provide feedback on completed work sessions</p>
       </div>
 
-      {/* Filter */}
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '8px' }}>
-        <button
-          className={`btn btn-sm ${filter === 'unreviewed' ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => setFilter('unreviewed')}
-        >
-          Unreviewed ({sessions.length})
-        </button>
-        <button
-          className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => setFilter('all')}
-        >
-          All Sessions
-        </button>
-      </div>
+      {/* No filters needed as it shows all completed sessions */}
 
       {sessions.length === 0 ? (
         <div className="empty-state glass-card-static">
           <div className="empty-icon">✅</div>
-          <h3>All reviewed!</h3>
-          <p>No pending sessions to review.</p>
+          <h3>No work found</h3>
+          <p>There are currently no completed sessions.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -289,50 +214,6 @@ export default function ReviewsPage() {
                   </div>
                 )}
 
-                {/* Review Actions (only if not yet reviewed) */}
-                {!session.review && (
-                  <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-                    <input
-                      className="form-input"
-                      placeholder="Add a comment (optional)..."
-                      value={reviewComment[session.id] || ''}
-                      onChange={(e) =>
-                        setReviewComment({ ...reviewComment, [session.id]: e.target.value })
-                      }
-                      style={{ marginBottom: '12px' }}
-                    />
-                    <div className="review-actions">
-                      <button
-                        className="review-btn approve"
-                        onClick={() => handleReview(session, 'approved')}
-                        disabled={actionLoading === session.id}
-                      >
-                        ✅ Approve
-                      </button>
-                      <button
-                        className="review-btn note"
-                        onClick={() => handleReview(session, 'noted')}
-                        disabled={actionLoading === session.id}
-                      >
-                        🟡 Note
-                      </button>
-                      <button
-                        className="review-btn flag"
-                        onClick={() => handleReview(session, 'flagged')}
-                        disabled={actionLoading === session.id}
-                      >
-                        🔴 Red Flag
-                      </button>
-                      <button
-                        className="review-btn star"
-                        onClick={() => handleReview(session, 'starred')}
-                        disabled={actionLoading === session.id}
-                      >
-                        ⭐ Star
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
