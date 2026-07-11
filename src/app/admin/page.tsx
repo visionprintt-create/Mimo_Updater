@@ -29,7 +29,7 @@ export default function AdminOverviewPage() {
   const [unreviewedCount, setUnreviewedCount] = useState(0);
   const [todaysSessions, setTodaysSessions] = useState<WorkSession[]>([]);
   const [recentSessions, setRecentSessions] = useState<WorkSession[]>([]);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [activeTab, setActiveTab] = useState<'live' | 'departments'>('live');
 
   useEffect(() => {
@@ -111,12 +111,12 @@ export default function AdminOverviewPage() {
           <div className="stat-trend" style={{ color: 'var(--text-muted)' }}>Approved</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Today's Sessions</div>
+          <div className="stat-label">Today&apos;s Sessions</div>
           <div className="stat-value">{todaysSessions.length}</div>
           <div className="stat-trend" style={{ color: 'var(--text-muted)' }}>Completed</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Today's Hours</div>
+          <div className="stat-label">Today&apos;s Hours</div>
           <div className="stat-value">{formatDuration(todayTotalHours)}</div>
           <div className="stat-trend" style={{ color: 'var(--text-muted)' }}>Avg {formatDuration(avgSessionMs)}</div>
         </div>
@@ -245,7 +245,7 @@ export default function AdminOverviewPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Department Progress Overview */}
           <div className="glass-card-static">
-            <h4 style={{ marginBottom: '20px' }}>Today's Hours by Department</h4>
+            <h4 style={{ marginBottom: '20px' }}>Today&apos;s Hours by Department</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {DEPARTMENTS.map((dept) => {
                 const data = deptBreakdown[dept];
@@ -326,7 +326,7 @@ export default function AdminOverviewPage() {
             <div className="empty-state glass-card-static">
               <div className="empty-icon">😴</div>
               <h3>No active sessions</h3>
-              <p>When interns clock in, they'll appear here grouped by department.</p>
+              <p>When interns clock in, they&apos;ll appear here grouped by department.</p>
             </div>
           )}
         </div>

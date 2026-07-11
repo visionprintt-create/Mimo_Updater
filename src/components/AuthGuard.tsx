@@ -56,6 +56,7 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setChecked(true);
   }, [firebaseUser, mimoUser, loading, requireAdmin, router]);
 

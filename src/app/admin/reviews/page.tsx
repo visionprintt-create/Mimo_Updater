@@ -15,13 +15,8 @@ function formatDuration(ms: number): string {
 import { getTheme } from '@/lib/theme';
 
 export default function ReviewsPage() {
-  const { mimoUser } = useAuthStore();
   const [sessions, setSessions] = useState<WorkSession[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadSessions();
-  }, []);
 
   const loadSessions = async () => {
     setLoading(true);
@@ -37,6 +32,10 @@ export default function ReviewsPage() {
     setSessions(completed);
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadSessions();
+  }, []);
 
   if (loading) {
     return (

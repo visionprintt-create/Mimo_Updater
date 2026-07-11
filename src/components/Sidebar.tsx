@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { isAdmin } from '@/lib/auth';
-import { DEPARTMENTS, Department } from '@/types';
+import { DEPARTMENTS } from '@/types';
 import { getTheme } from '@/lib/theme';
 
 export default function Sidebar() {
