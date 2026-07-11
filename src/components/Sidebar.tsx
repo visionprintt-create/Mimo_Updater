@@ -46,7 +46,6 @@ export default function Sidebar() {
       <aside 
         className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}
         style={{
-          background: 'transparent', 
           padding: '24px 16px',
           gap: '32px',
           overflowY: 'auto',

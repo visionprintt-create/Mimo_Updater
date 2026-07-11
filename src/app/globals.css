@@ -510,6 +510,19 @@ a:hover {
   transition: left var(--transition-base);
 }
 
+.sidebar {
+  width: var(--sidebar-width);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-base);
+}
+
 .header-left,
 .header-right {
   min-width: 200px;
@@ -1504,6 +1517,7 @@ a:hover {
   .sidebar {
     transform: translateX(-100%);
     z-index: 200;
+    background: var(--bg-card) !important;
   }
 
   .sidebar.open {
