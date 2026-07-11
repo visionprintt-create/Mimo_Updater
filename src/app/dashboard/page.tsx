@@ -242,16 +242,29 @@ export default function DashboardPage() {
         ) : (
            <div style={{ fontSize:'13px', color:C.textMuted }}>No remarks yet.</div>
         )}
-        {isAdmin && (
+        {isAdmin && !s.review && (
           <div style={{ marginTop:'16px', display:'flex', gap:'12px', alignItems:'center', borderTop:`1px solid ${C.borderLight}`, paddingTop:'16px' }}>
-            <select value={remarkAction} onChange={e=>setRemarkAction(e.target.value as ReviewAction)} style={{ ...INPUT, padding:'8px', width:'140px' }}>
-              <option value="approved">Approved</option>
-              <option value="starred">Starred</option>
-              <option value="flagged">Flagged</option>
-              <option value="noted">Noted</option>
-            </select>
-            <input value={remarkComment} onChange={e=>setRemarkComment(e.target.value)} placeholder="Add a remark..." style={{ ...INPUT, padding:'8px' }} />
-            <button onClick={() => { setRemarkingOn(s.id); handleRemark(); }} style={{ background:C.accent, color:'#000', padding:'8px 16px', borderRadius:'8px', border:'none', cursor:'pointer', fontWeight:700, fontSize:'13px' }}>Save</button>
+            <div style={{ position: 'relative' }}>
+              <select 
+                value={remarkAction} 
+                onChange={e=>setRemarkAction(e.target.value as ReviewAction)} 
+                style={{ 
+                  ...INPUT, padding:'10px 32px 10px 14px', width:'140px', cursor:'pointer',
+                  appearance: 'none', WebkitAppearance: 'none',
+                  background: `${C.surface} url('data:image/svg+xml;utf8,<svg fill="%23${C.textSecondary.replace('#','')}" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 8px center`,
+                  border: `1px solid ${C.border}`, borderRadius: '10px',
+                  color: C.textPrimary, fontWeight: 600, fontSize: '13px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                }}
+              >
+                <option value="approved">Approved</option>
+                <option value="starred">Starred</option>
+                <option value="flagged">Flagged</option>
+                <option value="noted">Noted</option>
+              </select>
+            </div>
+            <input value={remarkComment} onChange={e=>setRemarkComment(e.target.value)} placeholder="Add a remark..." style={{ ...INPUT, padding:'10px 14px', flex:1, borderRadius:'10px', border:`1px solid ${C.border}`, background: C.surface, fontSize:'13px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} />
+            <button onClick={() => { setRemarkingOn(s.id); handleRemark(); }} style={{ background:C.accent, color:'#000', padding:'10px 20px', borderRadius:'10px', border:'none', cursor:'pointer', fontWeight:700, fontSize:'13px', boxShadow: `0 2px 4px ${C.accent}40`, transition: 'all 0.2s' }}>Save</button>
           </div>
         )}
       </div>
