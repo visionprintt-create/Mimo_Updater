@@ -18,66 +18,63 @@ export interface AppTheme {
   green: string;
   red: string;
   yellow: string;
-  indigo: string;
-}
-
-// Nomiki Palette
-const BG_SAND = '#D8C4AC'; // SAND (Main background)
-const SURFACE_CREME = '#EEE4DA'; // CREME (Floating islands/cards)
-const BORDER_PINK = '#C8A49F'; // DUSTY PINK
-const BORDER_LIGHT = 'rgba(200, 164, 159, 0.4)';
-const TEXT_BURGENDY = '#4D0E13'; // BURGENDY
-const TEXT_MUTED = '#7A5B57'; // Dark dusty pink/brown
+// Olive & Rose Palette
+const BG_WARM_BEIGE = '#E8DECE'; // Warm Beige (Main background)
+const BG_LIGHT_BEIGE = '#F5F0E6'; // Light Beige (Floating islands)
+const BORDER_SOFT = '#D3CABC'; 
+const BORDER_LIGHT = 'rgba(211, 202, 188, 0.4)';
+const TEXT_OLIVE_DARK = '#3F4238'; // Dark Olive/Charcoal
+const TEXT_MUTED = '#9BA38C';
 
 const defaultTheme: AppTheme = {
   name: 'Default',
-  bg: BG_SAND,
-  surface: SURFACE_CREME,
-  border: BORDER_PINK,
+  bg: BG_WARM_BEIGE,
+  surface: BG_LIGHT_BEIGE,
+  border: BORDER_SOFT,
   borderLight: BORDER_LIGHT,
-  textPrimary: TEXT_BURGENDY,
-  textSecondary: TEXT_MUTED,
+  textPrimary: TEXT_OLIVE_DARK,
+  textSecondary: '#768063', // Olive
   textMuted: TEXT_MUTED,
-  accent: '#C8A49F', // DUSTY PINK
+  accent: '#B5838D', // Rose
   accentGlow: 'transparent',
   radialGlow: 'transparent',
-  gradient: 'linear-gradient(135deg, #C8A49F 0%, #B88B85 100%)', // Soft Pink Gradient
+  gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)', // Soft Rose Gradient
   green: '#8A9A86', // Sage Green
-  red: '#4D0E13', // BURGENDY
-  yellow: '#D8C4AC', // SAND
-  indigo: '#C8A49F', // DUSTY PINK
+  red: '#B5838D', // Rose
+  yellow: '#D3CABC', // Beige
+  indigo: '#768063', // Olive
 };
 
 const themes: Record<string, AppTheme> = {
   'Technical Team': {
     ...defaultTheme,
     name: 'Technical',
-    accent: '#A86C66', // Muted dark pink
-    gradient: 'linear-gradient(135deg, #A86C66 0%, #875549 100%)', 
+    accent: '#768063', // Olive
+    gradient: 'linear-gradient(135deg, #768063 0%, #5E664E 100%)', 
   },
   'Marketing': {
     ...defaultTheme,
     name: 'Marketing',
-    accent: '#C8A49F', // DUSTY PINK
-    gradient: 'linear-gradient(135deg, #C8A49F 0%, #B88B85 100%)',
+    accent: '#B5838D', // Rose
+    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)',
   },
   'Hardware Team': {
     ...defaultTheme,
     name: 'Hardware',
-    accent: '#C8A49F', // DUSTY PINK
-    gradient: 'linear-gradient(135deg, #C8A49F 0%, #B88B85 100%)',
+    accent: '#CB997E', // Warm Rose/Terracotta
+    gradient: 'linear-gradient(135deg, #CB997E 0%, #B8856A 100%)',
   },
   'Finance': {
     ...defaultTheme,
     name: 'Finance',
-    accent: '#B88B85', // Slightly darker pink
-    gradient: 'linear-gradient(135deg, #B88B85 0%, #A86C66 100%)',
+    accent: '#6B705C', // Deep Olive
+    gradient: 'linear-gradient(135deg, #6B705C 0%, #525646 100%)',
   },
   'Design': {
     ...defaultTheme,
     name: 'Design',
-    accent: '#C8A49F', // DUSTY PINK
-    gradient: 'linear-gradient(135deg, #C8A49F 0%, #B88B85 100%)',
+    accent: '#E5989B', // Light Rose
+    gradient: 'linear-gradient(135deg, #E5989B 0%, #C98285 100%)',
   }
 };
 

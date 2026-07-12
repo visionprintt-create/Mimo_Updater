@@ -21,26 +21,26 @@
   --mimo-accent: #C8A49F; /* DUSTY PINK */
   --mimo-accent-light: #E2C8C4;
 
-  /* Background */
-  --bg-primary: #D8C4AC; /* SAND */
-  --bg-secondary: #EEE4DA; /* CREME */
-  --bg-card: #EEE4DA; /* CREME */
-  --bg-card-hover: #E8DECE;
-  --bg-glass: rgba(238, 228, 218, 0.85); /* CREME glass */
-  --bg-glass-hover: rgba(238, 228, 218, 0.95);
-  --bg-input: #ffffff; /* White inputs for contrast inside CREME */
-  --bg-input-focus: #F5EEE8;
+  /* Background - Beige */
+  --bg-primary: #E8DECE; /* Warm Beige (Main Background) */
+  --bg-secondary: #F5F0E6; /* Light Beige (Cards/Sidebar) */
+  --bg-card: #F5F0E6; /* Light Beige */
+  --bg-card-hover: #EBE4D8;
+  --bg-glass: rgba(245, 240, 230, 0.85); /* Light Beige Glass */
+  --bg-glass-hover: rgba(245, 240, 230, 0.95);
+  --bg-input: #FFFFFF;
+  --bg-input-focus: #F5F0E6;
 
   /* Text */
-  --text-primary: #4D0E13; /* BURGENDY */
-  --text-secondary: #7A5B57; /* Darker dusty pink/brown */
-  --text-muted: #A38C88;
-  --text-inverse: #EEE4DA; /* CREME text for dark backgrounds */
+  --text-primary: #3F4238; /* Dark Olive / Charcoal */
+  --text-secondary: #768063; /* Olive */
+  --text-muted: #9BA38C;
+  --text-inverse: #F5F0E6; /* Light Beige */
 
   /* Borders */
-  --border-color: #C8A49F; /* DUSTY PINK */
-  --border-color-hover: #4D0E13; /* BURGENDY */
-  --border-color-focus: #4D0E13;
+  --border-color: #D3CABC; /* Soft Beige border */
+  --border-color-hover: #768063; /* Olive */
+  --border-color-focus: #B5838D; /* Rose */
 
   /* Status Colors */
   --status-active: #8A9A86;
@@ -53,11 +53,11 @@
   --status-rejected: #4D0E13;
 
   /* Department Colors */
-  --dept-marketing: #C8A49F; /* DUSTY PINK */
-  --dept-technical: #A86C66; /* MUTED DARK PINK */
-  --dept-hardware: #C8A49F; /* DUSTY PINK */
-  --dept-finance: #B88B85; /* SLIGHTLY DARKER PINK */
-  --dept-design: #C8A49F; /* DUSTY PINK */
+  --dept-marketing: #B5838D; /* Rose */
+  --dept-technical: #768063; /* Olive */
+  --dept-hardware: #CB997E; /* Warm Terracotta/Rose */
+  --dept-finance: #6B705C; /* Deep Olive */
+  --dept-design: #E5989B; /* Light Rose */
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -509,7 +509,7 @@ a:hover {
   z-index: 50;
   transition: left var(--transition-base);
   border-radius: 24px;
-  box-shadow: 0 4px 25px rgba(77, 14, 19, 0.08); /* Warm shadow */
+  box-shadow: 0 4px 25px rgba(107, 112, 92, 0.08); /* Olive shadow */
 }
 
 .sidebar {
@@ -524,7 +524,7 @@ a:hover {
   flex-direction: column;
   transition: transform var(--transition-base);
   border-radius: 24px;
-  box-shadow: 0 4px 25px rgba(77, 14, 19, 0.08); /* Warm shadow */
+  box-shadow: 0 4px 25px rgba(107, 112, 92, 0.08); /* Olive shadow */
 }
 
 .header-left,

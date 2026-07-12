@@ -99,7 +99,7 @@ export default function Header() {
                   onClick={() => handleTabClick(t)}
                   style={{
                     background: active ? C.accent : 'transparent',
-                    color: active ? '#4D0E13' : C.textSecondary,
+                    color: active ? '#FFFFFF' : C.textSecondary,
                     border: 'none', padding: '6px 24px', borderRadius: '10px', cursor: 'pointer',
                     fontWeight: active ? 600 : 500, fontSize: '13px',
                     boxShadow: active ? '0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' : 'none',
