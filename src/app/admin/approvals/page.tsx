@@ -5,13 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { getPendingUsers, getAllUsers, getUserSessions, updateUserStatus, createNotification } from '@/lib/firestore';
 import { ADMIN_ROLES } from '@/types';
 import type { MimoUser, WorkSession } from '@/types';
-
-function formatDuration(ms: number): string {
-  const hours = Math.floor(ms / 3600000);
-  const minutes = Math.floor((ms % 3600000) / 60000);
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-}
+import { fmtDur } from '@/lib/utils';
 
 import { getTheme } from '@/lib/theme';
 
@@ -372,7 +366,7 @@ export default function TeamAndApprovalsPage() {
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>Hours</div>
-                        <div style={{ fontWeight: 600 }}>{formatDuration(totalHours)}</div>
+                        <div style={{ fontWeight: 600 }}>{fmtDur(totalHours)}</div>
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>⭐</div>
@@ -417,7 +411,7 @@ export default function TeamAndApprovalsPage() {
                               }}
                             >
                               <span>{new Date(s.clockInTime).toLocaleDateString()}</span>
-                              <span style={{ color: 'var(--mimo-accent)' }}>{formatDuration(s.totalDurationMs)}</span>
+                              <span style={{ color: 'var(--mimo-accent)' }}>{fmtDur(s.totalDurationMs)}</span>
                               <span>{s.tasks.length} tasks</span>
                               <span
                                 className={`badge badge-${

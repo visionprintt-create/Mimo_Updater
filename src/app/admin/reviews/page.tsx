@@ -5,13 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { getAllSessions } from '@/lib/firestore';
 import type { WorkSession } from '@/types';
 
-function formatDuration(ms: number): string {
-  const hours = Math.floor(ms / 3600000);
-  const minutes = Math.floor((ms % 3600000) / 60000);
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-}
-
+import { fmtDur } from '@/lib/utils';
 import { getTheme } from '@/lib/theme';
 
 export default function ReviewsPage() {
@@ -100,7 +94,7 @@ export default function ReviewsPage() {
                         })}`}
                     </div>
                   </div>
-                  <span className="session-duration">{formatDuration(session.totalDurationMs)}</span>
+                  <span className="session-duration">{fmtDur(session.totalDurationMs)}</span>
                   <span className={`badge badge-dept-${session.userDepartment.toLowerCase().replace(/\s+/g, '-')}`}>
                     {session.userDepartment}
                   </span>
@@ -157,7 +151,7 @@ export default function ReviewsPage() {
                   )}
                   {session.breaks.length > 0 && (
                     <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                      Breaks: {session.breaks.length} ({formatDuration(session.breakDurationMs)})
+                      Breaks: {session.breaks.length} ({fmtDur(session.breakDurationMs)})
                     </span>
                   )}
                 </div>

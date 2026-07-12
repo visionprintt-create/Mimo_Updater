@@ -11,24 +11,7 @@ import { SESSION_DURATION_MS, DEPARTMENTS, ADMIN_ROLES } from '@/types';
 import type { WorkSession, TaskEntry, Department, ReviewAction } from '@/types';
 import { TASK_CATEGORIES, MOODS } from '@/types';
 
-/* ─── Helpers ─── */
-function fmt(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-}
-function fmtDur(ms: number): string {
-  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-function shortDate(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getDate()}/${d.getMonth()+1}/${String(d.getFullYear()).slice(2)}`;
-}
-function shortTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-}
-function genId(): string { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+import { fmt, fmtDur, shortDate, shortTime, genId } from '@/lib/utils';
 
 type Tab = 'Today' | 'History' | 'Tasks';
 
@@ -360,21 +343,21 @@ export default function DashboardPage() {
     >
       {/* ══ USER HEADER & SWIPE ARROWS ══ */}
       {deptFilter && deptUsers.length > 0 && (
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: '32px', background: '#ffffff', padding:'16px 24px', borderRadius:'16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-          <button onClick={prevUser} style={{ background:'transparent', border:'none', color:C.textPrimary, fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'<'}</button>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: '32px', background: C.accent, padding:'16px 24px', borderRadius:'16px', border: 'none', boxShadow: `0 4px 20px ${C.accent}40` }}>
+          <button onClick={prevUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'<'}</button>
           <div style={{ textAlign:'center' }}>
-            <div style={{ fontSize:'22px', fontWeight:800, letterSpacing:'-0.02em', color: C.textPrimary }}>{viewingUser?.displayName}</div>
-            <div style={{ fontSize:'13px', fontWeight:600, color:C.textSecondary, marginTop:'4px' }}>{viewingUser?.department} • <span style={{color:C.accent}}>{viewingUser?.role}</span></div>
+            <div style={{ fontSize:'22px', fontWeight:800, letterSpacing:'-0.02em', color: '#ffffff' }}>{viewingUser?.displayName}</div>
+            <div style={{ fontSize:'13px', fontWeight:600, color:'rgba(255,255,255,0.8)', marginTop:'4px' }}>{viewingUser?.department} • <span style={{color:'#ffffff'}}>{viewingUser?.role}</span></div>
           </div>
-          <button onClick={nextUser} style={{ background:'transparent', border:'none', color:C.textPrimary, fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'>'}</button>
+          <button onClick={nextUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'>'}</button>
         </div>
       )}
 
       {/* ══ EMPTY STATE FOR DEPARTMENTS WITH NO USERS ══ */}
       {deptFilter && deptUsers.length === 0 && (
-        <div style={{ textAlign:'center', padding:'48px 24px', background:'#ffffff', borderRadius:'16px', border:'none', marginBottom:'32px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-          <div style={{ fontSize:'24px', fontWeight:700, color:C.textPrimary, letterSpacing:'-0.02em' }}>No Users Found</div>
-          <div style={{ fontSize:'15px', color:C.textSecondary, marginTop:'8px', fontWeight:500 }}>There are currently no users assigned to the {deptFilter}.</div>
+        <div style={{ textAlign:'center', padding:'48px 24px', background: C.accent, borderRadius:'16px', border:'none', marginBottom:'32px', boxShadow: `0 4px 20px ${C.accent}40` }}>
+          <div style={{ fontSize:'24px', fontWeight:700, color:'#ffffff', letterSpacing:'-0.02em' }}>No Users Found</div>
+          <div style={{ fontSize:'15px', color:'rgba(255,255,255,0.8)', marginTop:'8px', fontWeight:500 }}>There are currently no users assigned to the {deptFilter}.</div>
         </div>
       )}
 

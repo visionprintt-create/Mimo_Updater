@@ -5,19 +5,11 @@ import { getAllSessions, getAllUsers } from '@/lib/firestore';
 import type { WorkSession, MimoUser, Department } from '@/types';
 import { DEPARTMENTS } from '@/types';
 
-function formatDuration(ms: number): string {
-  const hours = Math.floor(ms / 3600000);
-  const minutes = Math.floor((ms % 3600000) / 60000);
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-}
+import { fmtDur } from '@/lib/utils';
+import { getTheme } from '@/lib/theme';
 
-const DEPT_COLORS: Record<string, string> = {
-  'Marketing': '#E17055',
-  'Technical Team': '#6C5CE7',
-  'Hardware Team': '#00CEC9',
-  'Finance': '#FDCB6E',
-  'Design': '#E84393',
+const getDeptColor = (dept: string) => {
+  return getTheme(dept).accent;
 };
 
 const DEPT_BG: Record<string, string> = {
@@ -200,11 +192,11 @@ export default function AnalyticsPage() {
         </div>
         <div className="stat-card">
           <div className="stat-label">Total Hours</div>
-          <div className="stat-value">{formatDuration(totalHoursMs)}</div>
+          <div className="stat-value">{fmtDur(totalHoursMs)}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Avg Session</div>
-          <div className="stat-value">{formatDuration(avgSessionMs)}</div>
+          <div className="stat-value">{fmtDur(avgSessionMs)}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">⭐ Stars</div>
@@ -231,10 +223,10 @@ export default function AnalyticsPage() {
                     <div key={dept}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>{dept}</span>
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>{formatDuration(hours)}</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>{fmtDur(hours)}</span>
                       </div>
                       <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, background: DEPT_COLORS[dept] || 'var(--mimo-primary)', borderRadius: '4px', transition: 'width 0.5s ease' }} />
+                        <div style={{ height: '100%', width: `${pct}%`, background: getDeptColor(dept), borderRadius: '4px', transition: 'width 0.5s ease' }} />
                       </div>
                     </div>
                   );
@@ -275,7 +267,7 @@ export default function AnalyticsPage() {
               {dailyActivity.map((day, idx) => {
                 const heightPct = (day.hours / maxDailyHours) * 100;
                 return (
-                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', position: 'relative' }} title={`${day.date}: ${formatDuration(day.hours)} (${day.count} sessions)`}>
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', position: 'relative' }} title={`${day.date}: ${fmtDur(day.hours)} (${day.count} sessions)`}>
                     <div style={{ width: '100%', maxWidth: '24px', height: `${Math.max(heightPct, 2)}%`, background: day.hours > 0 ? 'linear-gradient(180deg, var(--mimo-primary-light), var(--mimo-primary))' : 'var(--border-color)', borderRadius: '3px 3px 0 0', transition: 'height 0.3s ease', minHeight: '2px' }} />
                     {(idx % Math.ceil(dailyActivity.length / 10) === 0 || dailyActivity.length <= 10) && (
                       <span style={{ fontSize: '9px', color: 'var(--text-muted)', position: 'absolute', bottom: '-20px', whiteSpace: 'nowrap', transform: 'rotate(-45deg)', transformOrigin: 'top left' }}>
@@ -327,7 +319,7 @@ export default function AnalyticsPage() {
                         <td style={{ fontWeight: 500 }}>{data.name}</td>
                         <td><span className={`badge badge-dept-${data.dept.toLowerCase().replace(/\s+/g, '-')}`}>{data.dept}</span></td>
                         <td>{data.sessions}</td>
-                        <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--mimo-accent)' }}>{formatDuration(data.hours)}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--mimo-accent)' }}>{fmtDur(data.hours)}</td>
                         <td style={{ color: 'var(--status-starred)' }}>{data.stars}</td>
                         <td style={{ color: 'var(--status-flagged)' }}>{data.flags}</td>
                       </tr>
@@ -354,7 +346,7 @@ export default function AnalyticsPage() {
                 {/* Department Header */}
                 <div style={{
                   background: DEPT_BG[dept],
-                  borderBottom: `3px solid ${DEPT_COLORS[dept]}`,
+                  borderBottom: `3px solid ${getDeptColor(dept)}`,
                   padding: '16px 20px',
                   display: 'flex',
                   alignItems: 'center',
@@ -363,7 +355,7 @@ export default function AnalyticsPage() {
                   gap: '12px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: DEPT_COLORS[dept] }} />
+                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: getDeptColor(dept) }} />
                     <h4 style={{ fontSize: 'var(--font-size-xl)', margin: 0 }}>{dept}</h4>
                   </div>
                   <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
@@ -372,11 +364,11 @@ export default function AnalyticsPage() {
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Sessions</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatDuration(data.totalMs)}</div>
+                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{fmtDur(data.totalMs)}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Hours</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatDuration(data.avgMs)}</div>
+                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{fmtDur(data.avgMs)}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Avg Session</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
@@ -420,7 +412,7 @@ export default function AnalyticsPage() {
                               {new Date(s.clockInTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                             </td>
                             <td style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
-                              {formatDuration(s.totalDurationMs)}
+                              {fmtDur(s.totalDurationMs)}
                             </td>
                             <td>{s.tasks.length}</td>
                             <td>
