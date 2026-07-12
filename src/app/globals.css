@@ -100,7 +100,7 @@
   --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Layout */
-  --sidebar-width: 260px;
+  --sidebar-width: 220px;
   --sidebar-collapsed: 72px;
   --header-height: 64px;
   --content-max-width: 1200px;
