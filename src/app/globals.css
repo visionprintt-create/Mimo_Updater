@@ -502,12 +502,13 @@ a:hover {
 
 .header {
   position: fixed;
-  top: 0;
-  left: var(--sidebar-width);
-  right: 0;
+  top: 16px;
+  left: calc(var(--sidebar-width) + 16px);
+  right: 16px;
   height: var(--header-height);
   z-index: 50;
   transition: left var(--transition-base);
+  border-radius: 20px;
 }
 
 .sidebar {
@@ -1533,10 +1534,13 @@ a:hover {
   }
 
   .header {
-    left: 0;
+    top: 8px;
+    left: 8px;
+    right: 8px;
     padding: 0 var(--space-md);
-    background: #ffffff !important;
     border-bottom: none !important;
+    border-radius: 16px;
+    width: auto;
   }
 
   .header-left,
