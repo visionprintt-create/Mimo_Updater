@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [remarkingOn, setRemarkingOn]        = useState<string | null>(null);
   const [remarkAction, setRemarkAction]      = useState<ReviewAction>('approved');
   const [remarkComment, setRemarkComment]    = useState('');
+  const [openDropdownId, setOpenDropdownId]  = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [savingRemark, setSavingRemark]      = useState(false);
 
@@ -252,23 +253,47 @@ export default function DashboardPage() {
         {isAdmin && !s.review && (
           <div className="session-review-actions" style={{ marginTop:'16px', display:'flex', gap:'12px', alignItems:'center', borderTop:`1px solid ${C.borderLight}`, paddingTop:'16px' }}>
             <div style={{ position: 'relative' }}>
-              <select 
-                value={remarkAction} 
-                onChange={e=>setRemarkAction(e.target.value as ReviewAction)} 
-                style={{ 
-                  ...INPUT, padding:'10px 32px 10px 14px', width:'140px', cursor:'pointer',
-                  appearance: 'none', WebkitAppearance: 'none',
-                  background: `${C.surface} url('data:image/svg+xml;utf8,<svg fill="%23${C.textSecondary.replace('#','')}" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 8px center`,
-                  border: `1px solid ${C.border}`, borderRadius: '10px',
+              <div 
+                onClick={() => setOpenDropdownId(openDropdownId === s.id ? null : s.id)}
+                style={{
+                  padding:'10px 14px', width:'130px', cursor:'pointer',
+                  background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px',
                   color: C.textPrimary, fontWeight: 600, fontSize: '13px',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                 }}
               >
-                <option value="approved">Approved</option>
-                <option value="starred">Starred</option>
-                <option value="flagged">Flagged</option>
-                <option value="noted">Noted</option>
-              </select>
+                {remarkAction.charAt(0).toUpperCase() + remarkAction.slice(1)}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.textSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              
+              {openDropdownId === s.id && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, marginTop: '6px',
+                  background: C.bg, border: `1px solid ${C.border}`,
+                  borderRadius: '10px', width: '100%', zIndex: 50,
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.08)', overflow: 'hidden'
+                }}>
+                  {(['approved', 'starred', 'flagged', 'noted'] as ReviewAction[]).map(opt => (
+                    <div 
+                      key={opt}
+                      onClick={() => {
+                        setRemarkAction(opt);
+                        setOpenDropdownId(null);
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = C.accent; e.currentTarget.style.color = '#FFF'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.textPrimary; }}
+                      style={{
+                        padding: '10px 14px', cursor: 'pointer',
+                        fontSize: '13px', fontWeight: 500, color: C.textPrimary,
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <input value={remarkComment} onChange={e=>setRemarkComment(e.target.value)} placeholder="Add a remark..." style={{ ...INPUT, padding:'10px 14px', flex:1, borderRadius:'10px', border:`1px solid ${C.border}`, background: C.surface, fontSize:'13px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} />
             <button onClick={() => { setRemarkingOn(s.id); handleRemark(); }} style={{ background:C.accent, color:'#000', padding:'10px 20px', borderRadius:'10px', border:'none', cursor:'pointer', fontWeight:700, fontSize:'13px', boxShadow: `0 2px 4px ${C.accent}40`, transition: 'all 0.2s' }}>Save</button>
