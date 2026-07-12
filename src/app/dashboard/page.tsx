@@ -206,7 +206,7 @@ export default function DashboardPage() {
 
   /* Reusable Session Card Component */
   const renderSessionCard = (s: WorkSession) => (
-    <div key={s.id} style={{ background: C.surface, border:`1px solid ${C.border}`, borderRadius:'16px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
+    <div key={s.id} className="session-card" style={{ background: C.surface, border:`1px solid ${C.border}`, borderRadius:'16px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom: `1px solid ${C.borderLight}`, paddingBottom: '16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
           <div style={{ width:'8px', height:'8px', borderRadius:'50%', background: s.status==='active' ? C.green : C.textSecondary }} />
@@ -220,7 +220,7 @@ export default function DashboardPage() {
           <div style={{ fontSize:'12px', color:C.textSecondary, textTransform:'uppercase', marginBottom:'8px', letterSpacing:'1.2px', fontWeight:700 }}>Tasks Completed</div>
           <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
             {s.tasks.map(t => (
-              <div key={t.id} style={{ fontSize:'14px', color:C.textPrimary, display:'flex', gap:'8px', alignItems:'center', background: 'rgba(0,0,0,0.02)', padding:'10px 14px', borderRadius:'8px', border: `1px solid ${C.borderLight}` }}>
+              <div key={t.id} className="session-task-item" style={{ fontSize:'14px', color:C.textPrimary, display:'flex', gap:'8px', alignItems:'center', background: 'rgba(0,0,0,0.02)', padding:'10px 14px', borderRadius:'8px', border: `1px solid ${C.borderLight}` }}>
                 <span style={{ color:C.accent }}>✓</span>
                 <span style={{ flex:1 }}>{t.title}</span>
                 <span style={{ fontSize:'12px', color:C.textSecondary, background: C.bg, padding:'2px 8px', borderRadius:'4px' }}>{t.category}</span>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div style={{ background: 'rgba(0,0,0,0.02)', padding:'16px', borderRadius:'12px', border:`1px solid ${C.borderLight}` }}>
+      <div className="session-review-box" style={{ background: 'rgba(0,0,0,0.02)', padding:'16px', borderRadius:'12px', border:`1px solid ${C.borderLight}` }}>
         <div style={{ fontSize:'12px', color:C.textSecondary, textTransform:'uppercase', marginBottom:'12px', letterSpacing:'1.2px', fontWeight:700 }}>Evaluation & Remark</div>
         {s.review ? (
            <div style={{ display:'flex', gap:'12px', alignItems:'flex-start' }}>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
            <div style={{ fontSize:'13px', color:C.textMuted }}>No remarks yet.</div>
         )}
         {isAdmin && !s.review && (
-          <div style={{ marginTop:'16px', display:'flex', gap:'12px', alignItems:'center', borderTop:`1px solid ${C.borderLight}`, paddingTop:'16px' }}>
+          <div className="session-review-actions" style={{ marginTop:'16px', display:'flex', gap:'12px', alignItems:'center', borderTop:`1px solid ${C.borderLight}`, paddingTop:'16px' }}>
             <div style={{ position: 'relative' }}>
               <select 
                 value={remarkAction} 

@@ -1541,6 +1541,34 @@ a:hover {
     min-width: auto;
   }
 
+  .header-user-info {
+    display: none !important;
+  }
+
+  .header-right {
+    gap: 8px !important;
+  }
+
+  .header-tabs {
+    gap: 4px !important;
+    padding: 4px !important;
+  }
+
+  .header-tab-btn {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+
+  .header-timer {
+    padding: 4px 8px !important;
+    font-size: 13px !important;
+  }
+
+  .header-action-btn {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+  }
+
   .header-dept {
     display: none;
   }
@@ -1577,6 +1605,35 @@ a:hover {
     right: -10px;
   }
   
+  .session-card {
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+  
+  .session-task-item {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+  
+  .session-review-box {
+    padding: 12px !important;
+  }
+  
+  .session-review-actions {
+    flex-wrap: wrap;
+  }
+  
+  .session-review-actions select,
+  .session-review-actions button {
+    flex: 1;
+    min-width: 45%;
+  }
+  
+  .session-review-actions input {
+    width: 100%;
+    order: 3;
+  }
+
   /* Make tables scrollable horizontally on mobile */
   .table-container {
     overflow-x: auto;

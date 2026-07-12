@@ -59,8 +59,8 @@ export default function Header() {
         <button className="mobile-menu-btn" onClick={toggleSidebar} aria-label="Menu">
           ☰
         </button>
-        <div onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontWeight:800, fontSize:'16px', color: C.textPrimary, letterSpacing: '-0.02em' }}>
+        <div className="header-user-info" onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer', display: 'flex', flexDirection: 'column' }}>
+          <div className="header-name" style={{ fontWeight:800, fontSize:'16px', color: C.textPrimary, letterSpacing: '-0.02em' }}>
             {mimoUser?.displayName || 'User'}
           </div>
           <div className="header-dept" style={{ fontSize:'12px', color: C.textSecondary, fontWeight: 500, marginTop:'2px' }}>
@@ -90,12 +90,13 @@ export default function Header() {
       {/* ═══ CENTER: Tabs ═══ */}
       <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
         {!isAdminRoute && (
-          <div style={{ display:'flex', gap:'8px', background: 'rgba(0,0,0,0.03)', padding:'6px', borderRadius:'14px' }}>
+          <div className="header-tabs" style={{ display:'flex', gap:'8px', background: 'rgba(0,0,0,0.03)', padding:'6px', borderRadius:'14px' }}>
             {TABS.map(t => {
               const active = dashboardTab === t && pathname === '/dashboard';
               return (
                 <button
                   key={t}
+                  className="header-tab-btn"
                   onClick={() => handleTabClick(t)}
                   style={{
                     background: active ? '#ffffff' : 'transparent',
@@ -118,7 +119,7 @@ export default function Header() {
       <div className="header-right" style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'16px' }}>
         {!isAdminRoute && (
           <>
-            <div style={{
+            <div className="header-timer" style={{
               background: isOnBreak ? '#fffbeb' : (isWorking ? '#f0fdf4' : 'transparent'),
               color: isOnBreak ? '#b45309' : (isWorking ? '#166534' : C.textPrimary),
               padding: '6px 12px', borderRadius: '8px', fontFamily: 'monospace',
@@ -129,6 +130,7 @@ export default function Header() {
             </div>
             {!isWorking ? (
               <button 
+                className="header-action-btn"
                 onClick={() => mimoUser && !isClockingIn && clockIn(mimoUser.uid, mimoUser.displayName, mimoUser.department)}
                 disabled={isClockingIn}
                 style={{ background: isClockingIn ? C.border : C.gradient, color: isClockingIn ? C.textSecondary : '#ffffff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor: isClockingIn ? 'wait' : 'pointer', transition: 'all 0.3s ease', boxShadow: isClockingIn ? 'none' : '0 4px 6px rgba(0,0,0,0.1)' }}
@@ -137,6 +139,7 @@ export default function Header() {
               </button>
             ) : (
               <button 
+                className="header-action-btn"
                 onClick={() => clockOut()}
                 style={{ background: '#ef4444', color:'#fff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor:'pointer', boxShadow: '0 4px 6px rgba(239, 68, 68, 0.2)' }}
               >
