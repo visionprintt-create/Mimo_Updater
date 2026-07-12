@@ -49,11 +49,23 @@ const defaultTheme: AppTheme = {
 };
 
 const themes: Record<string, AppTheme> = {
-  'Technical Team': {
+  'Frontend': {
     ...defaultTheme,
-    name: 'Technical',
+    name: 'Frontend',
     accent: '#768063', // Olive
     gradient: 'linear-gradient(135deg, #768063 0%, #5E664E 100%)', 
+  },
+  'Backend': {
+    ...defaultTheme,
+    name: 'Backend',
+    accent: '#6B705C', // Deep Olive
+    gradient: 'linear-gradient(135deg, #6B705C 0%, #525646 100%)', 
+  },
+  'Production': {
+    ...defaultTheme,
+    name: 'Production',
+    accent: '#A2727C', // Muted Rose
+    gradient: 'linear-gradient(135deg, #A2727C 0%, #855760 100%)', 
   },
   'Marketing': {
     ...defaultTheme,

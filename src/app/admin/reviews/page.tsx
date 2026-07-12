@@ -100,14 +100,16 @@ export default function ReviewsPage() {
                   </span>
                   <span
                     className={`badge ${
-                      session.status === 'completed'
+                      session.review?.action === 'paid'
                         ? 'badge-approved'
-                        : session.status === 'flagged'
+                        : session.review?.action === 'unpaid'
                         ? 'badge-flagged'
+                        : session.status === 'completed'
+                        ? 'badge-noted'
                         : 'badge-break'
                     }`}
                   >
-                    {session.status}
+                    {session.review?.action === 'paid' ? 'PAID' : (session.review?.action === 'unpaid' || session.status === 'completed') ? 'NOT PAID' : session.status}
                   </span>
                 </div>
 
@@ -194,7 +196,9 @@ export default function ReviewsPage() {
                       {new Date(session.review.reviewedAt).toLocaleString()}
                     </div>
                     <div style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
-                      {session.review.action === 'approved' && '✅ Approved'}
+                      {session.review.action === 'paid' && '✅ Paid'}
+                      {session.review.action === 'unpaid' && '🔴 Not Paid'}
+                      {session.review.action === 'approved' && '✅ Approved (Legacy)'}
                       {session.review.action === 'starred' && '⭐ Starred — Exceptional'}
                       {session.review.action === 'flagged' && '🔴 Flagged — Needs Redo'}
                       {session.review.action === 'noted' && '🟡 Note Added'}

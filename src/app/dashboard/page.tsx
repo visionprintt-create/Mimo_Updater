@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
   /* Admin remark state */
   const [remarkingOn, setRemarkingOn]        = useState<string | null>(null);
-  const [remarkAction, setRemarkAction]      = useState<ReviewAction>('approved');
+  const [remarkAction, setRemarkAction]      = useState<ReviewAction>('paid');
   const [remarkComment, setRemarkComment]    = useState('');
   const [openDropdownId, setOpenDropdownId]  = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -288,7 +288,7 @@ export default function DashboardPage() {
                   borderRadius: '10px', width: '100%', zIndex: 50,
                   boxShadow: '0 4px 15px rgba(0,0,0,0.08)', overflow: 'hidden'
                 }}>
-                  {(['approved', 'starred', 'flagged', 'noted'] as ReviewAction[]).map(opt => (
+                  {(['paid', 'unpaid', 'flagged', 'starred'] as ReviewAction[]).map(opt => (
                     <div 
                       key={opt}
                       onClick={() => {

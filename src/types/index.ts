@@ -3,14 +3,18 @@ export type UserRole = 'founder' | 'co-founder' | 'hr' | 'intern';
 export type UserStatus = 'pending' | 'approved' | 'suspended' | 'rejected';
 export type Department =
   | 'Marketing'
-  | 'Technical Team'
+  | 'Frontend'
+  | 'Backend'
+  | 'Production'
   | 'Hardware Team'
   | 'Finance'
   | 'Design';
 
 export const DEPARTMENTS: Department[] = [
   'Marketing',
-  'Technical Team',
+  'Frontend',
+  'Backend',
+  'Production',
   'Hardware Team',
   'Finance',
   'Design',
@@ -118,7 +122,7 @@ export interface WeeklyTask {
   completed: boolean;
   createdAt: string;
 }
-export type ReviewAction = 'approved' | 'noted' | 'flagged' | 'starred';
+export type ReviewAction = 'approved' | 'noted' | 'flagged' | 'starred' | 'paid' | 'unpaid';
 
 export interface SessionReview {
   reviewedBy: string;
