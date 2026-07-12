@@ -18,6 +18,9 @@ export interface AppTheme {
   green: string;
   red: string;
   yellow: string;
+  indigo: string;
+}
+
 // Olive & Rose Palette
 const BG_WARM_BEIGE = '#E8DECE'; // Warm Beige (Main background)
 const BG_LIGHT_BEIGE = '#F5F0E6'; // Light Beige (Floating islands)
