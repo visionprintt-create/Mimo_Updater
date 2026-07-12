@@ -11,7 +11,7 @@ export default function OnboardingPage() {
   const { firebaseUser, mimoUser, loading } = useAuthStore();
   
   const [role, setRole] = useState<UserRole>('intern');
-  const [department, setDepartment] = useState<Department>('Technical Team');
+  const [department, setDepartment] = useState<Department>('Frontend');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 

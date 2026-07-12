@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('intern');
-  const [department, setDepartment] = useState<Department>('Technical Team');
+  const [department, setDepartment] = useState<Department>('Frontend');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);

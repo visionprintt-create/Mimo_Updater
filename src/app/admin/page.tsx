@@ -14,7 +14,9 @@ const getDeptColor = (dept: string) => {
 
 const DEPT_BG: Record<string, string> = {
   'Marketing': 'rgba(225,112,85,0.07)',
-  'Technical Team': 'rgba(108,92,231,0.07)',
+  'Frontend': 'rgba(108,92,231,0.07)',
+  'Backend': 'rgba(108,92,231,0.07)',
+  'Production': 'rgba(108,92,231,0.07)',
   'Hardware Team': 'rgba(0,206,201,0.07)',
   'Finance': 'rgba(253,203,110,0.07)',
   'Design': 'rgba(232,67,147,0.07)',
