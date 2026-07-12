@@ -76,8 +76,8 @@ const themes: Record<string, AppTheme> = {
   'Design': {
     ...defaultTheme,
     name: 'Design',
-    accent: '#E5989B', // Light Rose
-    gradient: 'linear-gradient(135deg, #E5989B 0%, #C98285 100%)',
+    accent: '#B5838D', // Rose
+    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)',
   }
 };
 
