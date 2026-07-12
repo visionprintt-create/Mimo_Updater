@@ -90,7 +90,7 @@ export default function Sidebar() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Link href="/admin" onClick={closeSidebar} style={btnStyle(pathname === '/admin')}>
-                Overview
+                Analytics
               </Link>
               <Link href="/admin/approvals" onClick={closeSidebar} style={btnStyle(pathname === '/admin/approvals')}>
                 Team & Approvals

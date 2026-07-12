@@ -15,49 +15,49 @@
 /* ─── CSS Custom Properties ─────────────────────────────────────── */
 :root {
   /* Brand Colors */
-  --mimo-primary: #0F172A;
-  --mimo-primary-light: #334155;
-  --mimo-primary-dark: #020617;
-  --mimo-accent: #3b82f6;
-  --mimo-accent-light: #60a5fa;
+  --mimo-primary: #4a4036;
+  --mimo-primary-light: #7a6f62;
+  --mimo-primary-dark: #2a221a;
+  --mimo-accent: #c4a071;
+  --mimo-accent-light: #dfccb1;
 
   /* Background */
-  --bg-primary: #F8FAFC;
-  --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F1F5F9;
-  --bg-glass: rgba(255, 255, 255, 0.6);
-  --bg-glass-hover: rgba(255, 255, 255, 0.8);
-  --bg-input: #FFFFFF;
-  --bg-input-focus: #F8FAFC;
+  --bg-primary: #fdfbf6; /* Creamish background */
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f5f0e6;
+  --bg-glass: rgba(255, 255, 255, 0.65);
+  --bg-glass-hover: rgba(255, 255, 255, 0.85);
+  --bg-input: #ffffff;
+  --bg-input-focus: #fdfbf6;
 
   /* Text */
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
-  --text-inverse: #FFFFFF;
+  --text-primary: #4a4036;
+  --text-secondary: #7a6f62;
+  --text-muted: #a3988c;
+  --text-inverse: #ffffff;
 
   /* Borders */
-  --border-color: #E2E8F0;
-  --border-color-hover: #CBD5E1;
-  --border-color-focus: #94A3B8;
+  --border-color: #dfccb1;
+  --border-color-hover: #c4a071;
+  --border-color-focus: #c4a071;
 
   /* Status Colors */
-  --status-active: #059669;
-  --status-break: #D97706;
-  --status-offline: #6B7280;
-  --status-flagged: #DC2626;
-  --status-starred: #D97706;
-  --status-pending: #2563EB;
-  --status-approved: #059669;
-  --status-rejected: #DC2626;
+  --status-active: #98a086;
+  --status-break: #dfccb1;
+  --status-offline: #a3988c;
+  --status-flagged: #a76d5e;
+  --status-starred: #c4a071;
+  --status-pending: #c4a071;
+  --status-approved: #98a086;
+  --status-rejected: #a76d5e;
 
   /* Department Colors */
-  --dept-marketing: #DC2626;
-  --dept-technical: #4F46E5;
-  --dept-hardware: #0D9488;
-  --dept-finance: #D97706;
-  --dept-design: #DB2777;
+  --dept-marketing: #a76d5e;
+  --dept-technical: #98a086;
+  --dept-hardware: #c4a071;
+  --dept-finance: #98a086;
+  --dept-design: #dfccb1;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
