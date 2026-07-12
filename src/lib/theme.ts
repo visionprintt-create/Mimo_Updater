@@ -49,6 +49,12 @@ const defaultTheme: AppTheme = {
 };
 
 const themes: Record<string, AppTheme> = {
+  'Marketing': {
+    ...defaultTheme,
+    name: 'Marketing',
+    accent: '#B5838D', // Rose
+    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)',
+  },
   'Frontend': {
     ...defaultTheme,
     name: 'Frontend',
@@ -58,32 +64,26 @@ const themes: Record<string, AppTheme> = {
   'Backend': {
     ...defaultTheme,
     name: 'Backend',
-    accent: '#6B705C', // Deep Olive
-    gradient: 'linear-gradient(135deg, #6B705C 0%, #525646 100%)', 
+    accent: '#C9A66B', // Gold
+    gradient: 'linear-gradient(135deg, #C9A66B 0%, #B08D55 100%)', 
   },
   'Production': {
     ...defaultTheme,
     name: 'Production',
-    accent: '#A2727C', // Muted Rose
-    gradient: 'linear-gradient(135deg, #A2727C 0%, #855760 100%)', 
-  },
-  'Marketing': {
-    ...defaultTheme,
-    name: 'Marketing',
     accent: '#B5838D', // Rose
-    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)',
+    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)', 
   },
   'Hardware Team': {
     ...defaultTheme,
     name: 'Hardware',
-    accent: '#CB997E', // Warm Rose/Terracotta
-    gradient: 'linear-gradient(135deg, #CB997E 0%, #B8856A 100%)',
+    accent: '#768063', // Olive
+    gradient: 'linear-gradient(135deg, #768063 0%, #5E664E 100%)',
   },
   'Finance': {
     ...defaultTheme,
     name: 'Finance',
-    accent: '#6B705C', // Deep Olive
-    gradient: 'linear-gradient(135deg, #6B705C 0%, #525646 100%)',
+    accent: '#C9A66B', // Gold
+    gradient: 'linear-gradient(135deg, #C9A66B 0%, #B08D55 100%)',
   },
   'Design': {
     ...defaultTheme,

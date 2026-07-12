@@ -13,13 +13,13 @@ const getDeptColor = (dept: string) => {
 };
 
 const DEPT_BG: Record<string, string> = {
-  'Marketing': 'rgba(225,112,85,0.07)',
-  'Frontend': 'rgba(108,92,231,0.07)',
-  'Backend': 'rgba(108,92,231,0.07)',
-  'Production': 'rgba(108,92,231,0.07)',
-  'Hardware Team': 'rgba(0,206,201,0.07)',
-  'Finance': 'rgba(253,203,110,0.07)',
-  'Design': 'rgba(232,67,147,0.07)',
+  'Marketing': 'rgba(181,131,141,0.07)', // Rose
+  'Frontend': 'rgba(118,128,99,0.07)',   // Olive
+  'Backend': 'rgba(201,166,107,0.07)',   // Gold
+  'Production': 'rgba(181,131,141,0.07)', // Rose
+  'Hardware Team': 'rgba(118,128,99,0.07)', // Olive
+  'Finance': 'rgba(201,166,107,0.07)',    // Gold
+  'Design': 'rgba(181,131,141,0.07)',     // Rose
 };
 
 export default function AnalyticsPage() {
