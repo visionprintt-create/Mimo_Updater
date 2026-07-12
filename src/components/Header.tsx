@@ -50,20 +50,20 @@ export default function Header() {
         padding:'0 24px',
         flexShrink:0,
         flexShrink:0,
-        background: '#ffffff',
+        background: C.textPrimary,
         borderBottom: 'none',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
       }}>
       {/* ═══ LEFT: Profile ═══ */}
       <div className="header-left" style={{ position:'relative', display: 'flex', alignItems: 'center' }}>
-        <button className="mobile-menu-btn" onClick={toggleSidebar} aria-label="Menu">
+        <button className="mobile-menu-btn" onClick={toggleSidebar} aria-label="Menu" style={{ color: '#ffffff' }}>
           ☰
         </button>
         <div className="header-user-info" onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer', display: 'flex', flexDirection: 'column' }}>
-          <div className="header-name" style={{ fontWeight:800, fontSize:'16px', color: C.textPrimary, letterSpacing: '-0.02em' }}>
+          <div className="header-name" style={{ fontWeight:800, fontSize:'16px', color: '#ffffff', letterSpacing: '-0.02em' }}>
             {mimoUser?.displayName || 'User'}
           </div>
-          <div className="header-dept" style={{ fontSize:'12px', color: C.textSecondary, fontWeight: 500, marginTop:'2px' }}>
+          <div className="header-dept" style={{ fontSize:'12px', color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginTop:'2px' }}>
             {mimoUser?.role} • <span style={{ color: C.accent }}>{mimoUser?.department}</span>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function Header() {
       {/* ═══ CENTER: Tabs ═══ */}
       <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
         {!isAdminRoute && (
-          <div className="header-tabs" style={{ display:'flex', gap:'8px', background: 'rgba(0,0,0,0.03)', padding:'6px', borderRadius:'14px' }}>
+          <div className="header-tabs" style={{ display:'flex', gap:'8px', background: 'rgba(255,255,255,0.08)', padding:'6px', borderRadius:'14px' }}>
             {TABS.map(t => {
               const active = dashboardTab === t && pathname === '/dashboard';
               return (
@@ -99,11 +99,11 @@ export default function Header() {
                   className="header-tab-btn"
                   onClick={() => handleTabClick(t)}
                   style={{
-                    background: active ? '#ffffff' : 'transparent',
-                    color: active ? C.textPrimary : C.textSecondary,
+                    background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                    color: active ? '#ffffff' : 'rgba(255,255,255,0.6)',
                     border: 'none', padding: '6px 24px', borderRadius: '10px', cursor: 'pointer',
                     fontWeight: active ? 600 : 500, fontSize: '13px',
-                    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' : 'none',
+                    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}
                 >
@@ -121,7 +121,7 @@ export default function Header() {
           <>
             <div className="header-timer" style={{
               background: isOnBreak ? '#fffbeb' : (isWorking ? '#f0fdf4' : 'transparent'),
-              color: isOnBreak ? '#b45309' : (isWorking ? '#166534' : C.textPrimary),
+              color: isOnBreak ? '#b45309' : (isWorking ? '#166534' : '#ffffff'),
               padding: '6px 12px', borderRadius: '8px', fontFamily: 'monospace',
               fontSize: '16px', fontWeight: 700, letterSpacing: '1px',
               border: isOnBreak ? '1px solid #fde68a' : (isWorking ? '1px solid #bbf7d0' : 'none'),
