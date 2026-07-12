@@ -47,7 +47,7 @@ export default function Header() {
   return (
     <header className="header" style={{ 
         display:'flex', alignItems:'center', justifyContent:'space-between', 
-        padding:'0 24px',
+        padding:'0 32px',
         flexShrink:0,
         background: 'rgba(90, 80, 70, 0.9)',
         backdropFilter: 'blur(16px)',

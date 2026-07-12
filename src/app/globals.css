@@ -503,25 +503,27 @@ a:hover {
 .header {
   position: fixed;
   top: 16px;
-  left: calc(var(--sidebar-width) + 16px);
+  left: calc(var(--sidebar-width) + 32px); /* 16px left + width + 16px gap */
   right: 16px;
   height: var(--header-height);
   z-index: 50;
   transition: left var(--transition-base);
-  border-radius: 20px;
+  border-radius: 24px;
 }
 
 .sidebar {
   width: var(--sidebar-width);
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
+  top: 16px;
+  bottom: 16px;
+  left: 16px;
   z-index: 100;
   background: var(--bg-card);
   display: flex;
   flex-direction: column;
   transition: transform var(--transition-base);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
 }
 
 .header-left,
@@ -548,9 +550,9 @@ a:hover {
 
 .main-content {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: calc(var(--sidebar-width) + 32px); /* Shift content to account for floating sidebar */
   padding: var(--space-xl);
-  padding-top: calc(var(--header-height) + var(--space-xl));
+  padding-top: calc(var(--header-height) + 16px + var(--space-xl));
   min-height: 100vh;
   transition: margin-left var(--transition-base);
 }
@@ -1516,6 +1518,10 @@ a:hover {
   }
 
   .sidebar {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 0;
     transform: translateX(-100%);
     z-index: 200;
     background: #ffffff !important;
@@ -1529,7 +1535,7 @@ a:hover {
   .main-content {
     margin-left: 0;
     padding: var(--space-md);
-    padding-top: calc(var(--header-height) + var(--space-md));
+    padding-top: calc(var(--header-height) + 16px + var(--space-md));
     width: 100vw;
   }
 
