@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useUIStore } from '@/store/uiStore';
-import { getUserSessions, reviewSession, getUsersByDepartment, getWeeklyTasks, addWeeklyTask, updateWeeklyTask } from '@/lib/firestore';
+import { getUserSessions, reviewSession, getUsersByDepartment, getWeeklyTasks, addWeeklyTask, updateWeeklyTask, deleteWeeklyTask } from '@/lib/firestore';
 import { signOutUser } from '@/lib/auth';
 import { SESSION_DURATION_MS, DEPARTMENTS, ADMIN_ROLES } from '@/types';
 import type { WorkSession, TaskEntry, Department, ReviewAction } from '@/types';
@@ -35,6 +35,8 @@ export default function DashboardPage() {
   const [viewingUserIdx, setViewingUserIdx] = useState(0);
   const [weeklyTasks, setWeeklyTasks]       = useState<import('@/types').WeeklyTask[]>([]);
   const [newWeeklyTask, setNewWeeklyTask]   = useState('');
+  const [editingWeeklyTaskId, setEditingWeeklyTaskId] = useState<string | null>(null);
+  const [editingWeeklyTaskTitle, setEditingWeeklyTaskTitle] = useState('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { dashboardTab: tab, setDashboardTab: setTab, deptFilter, setDeptFilter } = useUIStore();
   const [submitting, setSubmitting]          = useState(false);
@@ -135,14 +137,17 @@ export default function DashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSignOut = async () => { await signOutUser(); router.push('/login'); };
 
-  const handleAddWeeklyTask = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && newWeeklyTask.trim() && viewingUser) {
-      const title = newWeeklyTask.trim();
-      setNewWeeklyTask('');
-      const tempId = genId();
-      setWeeklyTasks(prev => [{ id: tempId, title, completed: false, createdAt: new Date().toISOString(), userId: viewingUser.uid }, ...prev]);
-      const newId = await addWeeklyTask(viewingUser.uid, title);
-      setWeeklyTasks(prev => prev.map(t => t.id === tempId ? { ...t, id: newId } : t));
+  const handleAddWeeklyTask = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (newWeeklyTask.trim() && viewingUser) {
+        const title = newWeeklyTask.trim();
+        setNewWeeklyTask('');
+        const tempId = genId();
+        setWeeklyTasks(prev => [{ id: tempId, title, completed: false, createdAt: new Date().toISOString(), userId: viewingUser.uid }, ...prev]);
+        const newId = await addWeeklyTask(viewingUser.uid, title);
+        setWeeklyTasks(prev => prev.map(t => t.id === tempId ? { ...t, id: newId } : t));
+      }
     }
   };
 
@@ -150,6 +155,18 @@ export default function DashboardPage() {
     const updated = !task.completed;
     setWeeklyTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: updated } : t));
     await updateWeeklyTask(task.id, { completed: updated });
+  };
+
+  const handleDeleteWeeklyTask = async (taskId: string) => {
+    setWeeklyTasks(prev => prev.filter(t => t.id !== taskId));
+    await deleteWeeklyTask(taskId);
+  };
+
+  const handleSaveEditWeeklyTask = async (taskId: string) => {
+    if (!editingWeeklyTaskTitle.trim()) return;
+    setWeeklyTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: editingWeeklyTaskTitle.trim() } : t));
+    setEditingWeeklyTaskId(null);
+    await updateWeeklyTask(taskId, { title: editingWeeklyTaskTitle.trim() });
   };
 
   function getSalaryMonth(isoDate: string): string {
@@ -418,13 +435,12 @@ export default function DashboardPage() {
           <div style={{ fontSize:'20px', fontWeight:700, marginBottom:'24px' }}>Weekly Tasks</div>
           
           {isMe && (
-            <input 
-              type="text" 
-              placeholder="Add a new weekly task and press Enter..." 
+            <textarea 
+              placeholder="Add a new weekly task and press Enter (Shift+Enter for new line)..." 
               value={newWeeklyTask}
               onChange={e=>setNewWeeklyTask(e.target.value)}
               onKeyDown={handleAddWeeklyTask}
-              style={{ ...INPUT, padding:'14px 16px', fontSize:'15px', marginBottom:'24px' }}
+              style={{ ...TEXTAREA, minHeight: '60px', padding:'14px 16px', fontSize:'15px', marginBottom:'24px' }}
             />
           )}
 
@@ -441,9 +457,33 @@ export default function DashboardPage() {
                     disabled={!isMe}
                     style={{ width:'20px', height:'20px', cursor: isMe ? 'pointer' : 'default' }}
                   />
-                  <div style={{ fontSize:'15px', color: t.completed ? C.textMuted : C.textPrimary, textDecoration: t.completed ? 'line-through' : 'none' }}>
-                    {t.title}
-                  </div>
+                  {editingWeeklyTaskId === t.id ? (
+                    <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+                      <textarea
+                        value={editingWeeklyTaskTitle}
+                        onChange={e => setEditingWeeklyTaskTitle(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEditWeeklyTask(t.id); }
+                          if (e.key === 'Escape') setEditingWeeklyTaskId(null);
+                        }}
+                        style={{ ...TEXTAREA, flex: 1, minHeight: '40px', padding: '8px' }}
+                        autoFocus
+                      />
+                      <button onClick={() => handleSaveEditWeeklyTask(t.id)} style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: '8px', padding: '0 16px', cursor: 'pointer', fontWeight: 600 }}>Save</button>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ flex: 1, fontSize:'15px', color: t.completed ? C.textMuted : C.textPrimary, textDecoration: t.completed ? 'line-through' : 'none', whiteSpace: 'pre-wrap' }}>
+                        {t.title}
+                      </div>
+                      {isMe && (
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => { setEditingWeeklyTaskId(t.id); setEditingWeeklyTaskTitle(t.title); }} style={{ background: 'transparent', border: 'none', color: C.textSecondary, cursor: 'pointer', fontSize: '13px' }}>Edit</button>
+                          <button onClick={() => handleDeleteWeeklyTask(t.id)} style={{ background: 'transparent', border: 'none', color: C.red, cursor: 'pointer', fontSize: '13px' }}>Delete</button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               ))
             )}
@@ -473,7 +513,7 @@ export default function DashboardPage() {
                           <span style={{ fontSize:'11px', fontWeight:600, color: C.textMuted, textTransform:'uppercase', letterSpacing:'0.08em' }}>Task {idx+1}</span>
                           {isMe && <button onClick={()=>removeTask(task.id)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:'50%', width:'26px', height:'26px', color: C.textSecondary, cursor:'pointer', fontSize:'13px', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
                         </div>
-                        <input style={{ ...INPUT, marginBottom:'10px' }} placeholder="Task title..." value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} disabled={!isMe} />
+                        <textarea style={{ ...TEXTAREA, marginBottom:'10px', minHeight: '60px' }} placeholder="Task title (Shift+Enter for new line)" value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} disabled={!isMe} />
                         <div style={{ display:'flex', gap:'10px' }}>
                           <select style={{ ...INPUT, flex:'0 0 160px' }} value={task.category} onChange={e=>updateTask(task.id,'category',e.target.value)} disabled={!isMe}>
                             {TASK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
