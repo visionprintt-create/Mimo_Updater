@@ -15,6 +15,12 @@ import { fmt, fmtDur, shortDate, shortTime, genId } from '@/lib/utils';
 
 type Tab = 'Today' | 'History' | 'Tasks';
 
+const handleAutoResize = (e: React.ChangeEvent<HTMLTextAreaElement> | React.FormEvent<HTMLTextAreaElement>) => {
+  const target = e.target as HTMLTextAreaElement;
+  target.style.height = 'auto';
+  target.style.height = `${target.scrollHeight}px`;
+};
+
 import { getTheme } from '@/lib/theme';
 
 export default function DashboardPage() {
@@ -440,7 +446,8 @@ export default function DashboardPage() {
               value={newWeeklyTask}
               onChange={e=>setNewWeeklyTask(e.target.value)}
               onKeyDown={handleAddWeeklyTask}
-              style={{ ...TEXTAREA, minHeight: '60px', padding:'14px 16px', fontSize:'15px', marginBottom:'24px' }}
+              onInput={handleAutoResize}
+              style={{ ...TEXTAREA, minHeight: '60px', padding:'14px 16px', fontSize:'15px', marginBottom:'24px', overflow: 'hidden' }}
             />
           )}
 
@@ -466,7 +473,8 @@ export default function DashboardPage() {
                           if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEditWeeklyTask(t.id); }
                           if (e.key === 'Escape') setEditingWeeklyTaskId(null);
                         }}
-                        style={{ ...TEXTAREA, flex: 1, minHeight: '40px', padding: '8px' }}
+                        onInput={handleAutoResize}
+                        style={{ ...TEXTAREA, flex: 1, minHeight: '40px', padding: '8px', overflow: 'hidden' }}
                         autoFocus
                       />
                       <button onClick={() => handleSaveEditWeeklyTask(t.id)} style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: '8px', padding: '0 16px', cursor: 'pointer', fontWeight: 600 }}>Save</button>
@@ -513,7 +521,7 @@ export default function DashboardPage() {
                           <span style={{ fontSize:'11px', fontWeight:600, color: C.textMuted, textTransform:'uppercase', letterSpacing:'0.08em' }}>Task {idx+1}</span>
                           {isMe && <button onClick={()=>removeTask(task.id)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:'50%', width:'26px', height:'26px', color: C.textSecondary, cursor:'pointer', fontSize:'13px', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
                         </div>
-                        <textarea style={{ ...TEXTAREA, marginBottom:'10px', minHeight: '60px' }} placeholder="Task title (Shift+Enter for new line)" value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} disabled={!isMe} />
+                        <textarea style={{ ...TEXTAREA, marginBottom:'10px', minHeight: '60px', overflow: 'hidden' }} placeholder="Task title (Shift+Enter for new line)" value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} onInput={handleAutoResize} disabled={!isMe} />
                         <div style={{ display:'flex', gap:'10px' }}>
                           <select style={{ ...INPUT, flex:'0 0 160px' }} value={task.category} onChange={e=>updateTask(task.id,'category',e.target.value)} disabled={!isMe}>
                             {TASK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -532,7 +540,7 @@ export default function DashboardPage() {
 
                 <div>
                   <div style={{ fontSize:'13px', fontWeight:600, color: C.textSecondary, marginBottom:'10px', textTransform:'uppercase', letterSpacing:'0.08em' }}>Remark for the day</div>
-                  <textarea style={TEXTAREA} placeholder="Brief summary of your session..." value={draftSummary} onChange={e=>setDraftSummary(e.target.value)} disabled={!isMe} />
+                  <textarea style={{ ...TEXTAREA, overflow: 'hidden' }} placeholder="Brief summary of your session..." value={draftSummary} onChange={e=>setDraftSummary(e.target.value)} onInput={handleAutoResize} disabled={!isMe} />
                 </div>
 
 
