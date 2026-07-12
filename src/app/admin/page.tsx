@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { getAllSessions, getAllUsers } from '@/lib/firestore';
 import type { WorkSession, MimoUser, Department } from '@/types';
 import { DEPARTMENTS } from '@/types';
@@ -30,13 +32,49 @@ export default function AnalyticsPage() {
   const [activeView, setActiveView] = useState<'overview' | 'by-department'>('overview');
   const [selectedDept, setSelectedDept] = useState<Department | 'all'>('all');
 
+  const loadData = async () => {
+    setLoading(true);
+    const [sess, usrs] = await Promise.all([getAllSessions(), getAllUsers()]);
+    setSessions(sess.filter((ses) => ses.status !== 'active'));
+    setUsers(usrs.filter((usr) => usr.status === 'approved'));
+    setLoading(false);
+  };
+
   useEffect(() => {
-    Promise.all([getAllSessions(), getAllUsers()]).then(([s, u]) => {
-      setSessions(s.filter((ses) => ses.status !== 'active'));
-      setUsers(u.filter((usr) => usr.status === 'approved'));
-      setLoading(false);
-    });
+    loadData();
   }, []);
+
+  const [migrating, setMigrating] = useState(false);
+  const migrateData = async () => {
+    if (!confirm('Are you sure you want to migrate Technical Team users to Backend?')) return;
+    setMigrating(true);
+    try {
+      let migratedUsers = 0;
+      let migratedSessions = 0;
+      
+      // Migrate users
+      const toMigrate = users.filter((u) => (u.department as any) === 'Technical Team');
+      for (const u of toMigrate) {
+        await updateDoc(doc(db, 'users', u.uid), { department: 'Backend' });
+        migratedUsers++;
+      }
+
+      // Migrate sessions
+      const sessionsQ = query(collection(db, 'sessions'), where('userDepartment', '==', 'Technical Team'));
+      const sessionsSnap = await getDocs(sessionsQ);
+      for (const sDoc of sessionsSnap.docs) {
+        await updateDoc(doc(db, 'sessions', sDoc.id), { userDepartment: 'Backend' });
+        migratedSessions++;
+      }
+
+      alert(`Successfully migrated ${migratedUsers} users and ${migratedSessions} sessions to Backend.`);
+      await loadData();
+    } catch (err: any) {
+      alert(`Migration error: ${err.message}`);
+    } finally {
+      setMigrating(false);
+    }
+  };
 
   const filteredSessions = useMemo(() => {
     const now = new Date();
@@ -155,9 +193,17 @@ export default function AnalyticsPage() {
 
   return (
     <div className="animate-in">
-      <div className="page-header">
-        <h1>📈 Analytics</h1>
-        <p>Team performance and productivity insights</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1>📈 Analytics</h1>
+          <p>Team performance and productivity insights</p>
+        </div>
+        <button 
+          onClick={migrateData} 
+          disabled={migrating}
+          style={{ background: 'var(--status-flagged)', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+          {migrating ? 'Migrating...' : 'Migrate "Technical Team" to Backend'}
+        </button>
       </div>
 
       {/* Controls row */}
