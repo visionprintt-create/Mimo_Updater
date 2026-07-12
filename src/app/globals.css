@@ -22,12 +22,12 @@
   --mimo-accent-light: #dfccb1;
 
   /* Background */
-  --bg-primary: #fdfbf6; /* Creamish background */
+  --bg-primary: #eee5d3; /* Darker, noticeable cream */
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
   --bg-card-hover: #f5f0e6;
-  --bg-glass: rgba(255, 255, 255, 0.65);
-  --bg-glass-hover: rgba(255, 255, 255, 0.85);
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-glass-hover: rgba(255, 255, 255, 0.95);
   --bg-input: #ffffff;
   --bg-input-focus: #fdfbf6;
 
@@ -1517,7 +1517,8 @@ a:hover {
   .sidebar {
     transform: translateX(-100%);
     z-index: 200;
-    background: var(--bg-card) !important;
+    background: #ffffff !important;
+    border-right: none !important;
   }
 
   .sidebar.open {
@@ -1534,6 +1535,8 @@ a:hover {
   .header {
     left: 0;
     padding: 0 var(--space-md);
+    background: #ffffff !important;
+    border-bottom: none !important;
   }
 
   .header-left,

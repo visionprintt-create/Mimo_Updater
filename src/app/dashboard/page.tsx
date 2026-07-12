@@ -335,7 +335,7 @@ export default function DashboardPage() {
     >
       {/* ══ USER HEADER & SWIPE ARROWS ══ */}
       {deptFilter && deptUsers.length > 0 && (
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: '32px', background: 'rgba(255, 255, 255, 0.6)', padding:'16px 24px', borderRadius:'16px', border: `1px solid ${C.border}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', backdropFilter: 'blur(20px)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: '32px', background: '#ffffff', padding:'16px 24px', borderRadius:'16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
           <button onClick={prevUser} style={{ background:'transparent', border:'none', color:C.textPrimary, fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'<'}</button>
           <div style={{ textAlign:'center' }}>
             <div style={{ fontSize:'22px', fontWeight:800, letterSpacing:'-0.02em', color: C.textPrimary }}>{viewingUser?.displayName}</div>
@@ -347,7 +347,7 @@ export default function DashboardPage() {
 
       {/* ══ EMPTY STATE FOR DEPARTMENTS WITH NO USERS ══ */}
       {deptFilter && deptUsers.length === 0 && (
-        <div style={{ textAlign:'center', padding:'48px 24px', background:'rgba(255,255,255,0.4)', borderRadius:'16px', border:`1px solid ${C.border}`, marginBottom:'32px', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+        <div style={{ textAlign:'center', padding:'48px 24px', background:'#ffffff', borderRadius:'16px', border:'none', marginBottom:'32px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
           <div style={{ fontSize:'24px', fontWeight:700, color:C.textPrimary, letterSpacing:'-0.02em' }}>No Users Found</div>
           <div style={{ fontSize:'15px', color:C.textSecondary, marginTop:'8px', fontWeight:500 }}>There are currently no users assigned to the {deptFilter}.</div>
         </div>

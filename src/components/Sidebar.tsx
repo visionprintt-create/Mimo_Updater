@@ -49,7 +49,9 @@ export default function Sidebar() {
           padding: '24px 16px',
           gap: '32px',
           overflowY: 'auto',
-          borderRight: `1px solid ${C.borderLight}`
+          background: '#ffffff',
+          borderRight: 'none',
+          boxShadow: '2px 0 10px rgba(0,0,0,0.02)'
         }}
       >
         {/* Departments Section */}
