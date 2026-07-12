@@ -37,6 +37,12 @@ export async function getAllUsers(): Promise<MimoUser[]> {
   return snap.docs.map((d) => d.data() as MimoUser);
 }
 
+export async function getUsersByDepartment(dept: string): Promise<MimoUser[]> {
+  const q = query(collection(db, 'users'), where('department', '==', dept));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as MimoUser);
+}
+
 export async function getPendingUsers(): Promise<MimoUser[]> {
   const q = query(collection(db, 'users'), where('status', '==', 'pending'));
   const snap = await getDocs(q);
@@ -90,7 +96,8 @@ export async function getUserSessions(userId: string): Promise<WorkSession[]> {
   const q = query(
     collection(db, 'sessions'),
     where('userId', '==', userId),
-    orderBy('clockInTime', 'desc')
+    orderBy('clockInTime', 'desc'),
+    limit(100)
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession));
@@ -117,10 +124,11 @@ export async function getAllSessions(
     q = query(
       collection(db, 'sessions'),
       where('status', '==', statusFilter),
-      orderBy('clockInTime', 'desc')
+      orderBy('clockInTime', 'desc'),
+      limit(500)
     );
   } else {
-    q = query(collection(db, 'sessions'), orderBy('clockInTime', 'desc'));
+    q = query(collection(db, 'sessions'), orderBy('clockInTime', 'desc'), limit(500));
   }
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession));
@@ -131,7 +139,8 @@ export async function getUnreviewedSessions(): Promise<WorkSession[]> {
   const q = query(
     collection(db, 'sessions'),
     where('status', 'in', ['completed', 'auto-stopped']),
-    orderBy('clockInTime', 'desc')
+    orderBy('clockInTime', 'desc'),
+    limit(500)
   );
   const snap = await getDocs(q);
   // Filter out already reviewed

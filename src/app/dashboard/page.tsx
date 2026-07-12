@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useUIStore } from '@/store/uiStore';
-import { getAllSessions, reviewSession, getAllUsers, getWeeklyTasks, addWeeklyTask, updateWeeklyTask } from '@/lib/firestore';
+import { getUserSessions, reviewSession, getUsersByDepartment, getWeeklyTasks, addWeeklyTask, updateWeeklyTask } from '@/lib/firestore';
 import { signOutUser } from '@/lib/auth';
 import { SESSION_DURATION_MS, DEPARTMENTS, ADMIN_ROLES } from '@/types';
 import type { WorkSession, TaskEntry, Department, ReviewAction } from '@/types';
@@ -48,23 +48,22 @@ export default function DashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [savingRemark, setSavingRemark]      = useState(false);
 
-  const loadSessions = () =>
-    getAllSessions()
+  const loadSessions = (uid: string) =>
+    getUserSessions(uid)
       .then(setAllSessions)
-      .catch((e) => console.warn('Could not load team sessions:', e.message));
+      .catch((e) => console.warn('Could not load user sessions:', e.message));
 
   useEffect(() => {
     if (!mimoUser) return;
     loadActiveSession(mimoUser.uid);
-    loadSessions();
   }, [mimoUser, loadActiveSession]);
+
 
   // When deptFilter changes, load users in that dept
   useEffect(() => {
     if (deptFilter) {
-      getAllUsers().then(users => {
-        const dUsers = users.filter(u => u.department === deptFilter);
-        setDeptUsers(dUsers);
+      getUsersByDepartment(deptFilter).then(users => {
+        setDeptUsers(users);
         setViewingUserIdx(0);
       });
     } else {
@@ -77,6 +76,14 @@ export default function DashboardPage() {
   const viewingUser = deptFilter 
     ? (deptUsers.length > 0 ? deptUsers[viewingUserIdx] : null) 
     : mimoUser;
+
+  useEffect(() => {
+    if (viewingUser) {
+      loadSessions(viewingUser.uid);
+    } else {
+      setAllSessions([]);
+    }
+  }, [viewingUser]);
 
   const C = getTheme(deptFilter || viewingUser?.department);
 
@@ -107,7 +114,8 @@ export default function DashboardPage() {
     if (!draftTasks.some(t => t.title.trim())) { setSubmitError('Add at least one task.'); return; }
     setSubmitError(''); setSubmitting(true);
     await submitWorkLog(); setSubmitting(false);
-    loadSessions(); setTab('History');
+    if (viewingUser) loadSessions(viewingUser.uid);
+    setTab('History');
   };
 
   const handleRemark = async () => {
@@ -121,7 +129,7 @@ export default function DashboardPage() {
       reviewedAt: new Date().toISOString(),
     });
     setSavingRemark(false); setRemarkingOn(null); setRemarkComment('');
-    loadSessions();
+    if (viewingUser) loadSessions(viewingUser.uid);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -160,7 +168,7 @@ export default function DashboardPage() {
   /* Group sessions by salary month -> date for viewingUser */
   const groupedHistory = useMemo(() => {
     if (!viewingUser) return [];
-    let src = allSessions.filter(s => s.status !== 'active' && s.userId === viewingUser.uid);
+    let src = allSessions.filter(s => s.status !== 'active');
     src = src.sort((a, b) => new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime());
     
     const map: Record<string, Record<string, WorkSession[]>> = {};
@@ -184,7 +192,7 @@ export default function DashboardPage() {
   const todaySessions = useMemo(() => {
     if (!viewingUser) return [];
     const todayStr = shortDate(new Date().toISOString());
-    const src = allSessions.filter(s => s.status !== 'active' && s.userId === viewingUser.uid && shortDate(s.clockInTime) === todayStr);
+    const src = allSessions.filter(s => s.status !== 'active' && shortDate(s.clockInTime) === todayStr);
     return src.sort((a, b) => new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime());
   }, [allSessions, viewingUser]);
 
