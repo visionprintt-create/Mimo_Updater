@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
   /* Reusable Session Card Component */
   const renderSessionCard = (s: WorkSession) => (
-    <div key={s.id} className="session-card" style={{ background: C.surface, border:`1px solid ${C.border}`, borderRadius:'16px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
+    <div key={s.id} className="session-card" style={{ position: 'relative', zIndex: openDropdownId === s.id ? 50 : 1, background: C.surface, border:`1px solid ${C.border}`, borderRadius:'16px', padding:'24px', display:'flex', flexDirection:'column', gap:'16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom: `1px solid ${C.borderLight}`, paddingBottom: '16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
           <div style={{ width:'8px', height:'8px', borderRadius:'50%', background: s.status==='active' ? C.green : C.textSecondary }} />
