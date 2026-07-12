@@ -15,49 +15,49 @@
 /* ─── CSS Custom Properties ─────────────────────────────────────── */
 :root {
   /* Brand Colors */
-  --mimo-primary: #4a4036;
-  --mimo-primary-light: #7a6f62;
-  --mimo-primary-dark: #2a221a;
-  --mimo-accent: #c4a071;
-  --mimo-accent-light: #dfccb1;
+  --mimo-primary: #4D0E13; /* BURGENDY */
+  --mimo-primary-light: #7A3B40;
+  --mimo-primary-dark: #2A0508;
+  --mimo-accent: #C8A49F; /* DUSTY PINK */
+  --mimo-accent-light: #E2C8C4;
 
   /* Background */
-  --bg-primary: #eee5d3; /* Darker, noticeable cream */
-  --bg-secondary: #ffffff;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f5f0e6;
-  --bg-glass: rgba(255, 255, 255, 0.85);
-  --bg-glass-hover: rgba(255, 255, 255, 0.95);
-  --bg-input: #ffffff;
-  --bg-input-focus: #fdfbf6;
+  --bg-primary: #EEE4DA; /* CREME */
+  --bg-secondary: #D8C4AC; /* SAND */
+  --bg-card: #D8C4AC; /* SAND */
+  --bg-card-hover: #E2D1B8;
+  --bg-glass: rgba(216, 196, 172, 0.85); /* SAND glass */
+  --bg-glass-hover: rgba(216, 196, 172, 0.95);
+  --bg-input: #EEE4DA; /* CREME inside SAND cards */
+  --bg-input-focus: #F5EEE8;
 
   /* Text */
-  --text-primary: #4a4036;
-  --text-secondary: #7a6f62;
-  --text-muted: #a3988c;
-  --text-inverse: #ffffff;
+  --text-primary: #4D0E13; /* BURGENDY */
+  --text-secondary: #7A5B57; /* Darker dusty pink/brown */
+  --text-muted: #A38C88;
+  --text-inverse: #EEE4DA; /* CREME text for dark backgrounds */
 
   /* Borders */
-  --border-color: #dfccb1;
-  --border-color-hover: #c4a071;
-  --border-color-focus: #c4a071;
+  --border-color: #C8A49F; /* DUSTY PINK */
+  --border-color-hover: #4D0E13; /* BURGENDY */
+  --border-color-focus: #4D0E13;
 
   /* Status Colors */
-  --status-active: #98a086;
-  --status-break: #dfccb1;
-  --status-offline: #a3988c;
-  --status-flagged: #a76d5e;
-  --status-starred: #c4a071;
-  --status-pending: #c4a071;
-  --status-approved: #98a086;
-  --status-rejected: #a76d5e;
+  --status-active: #8A9A86;
+  --status-break: #D8C4AC;
+  --status-offline: #A38C88;
+  --status-flagged: #C8A49F;
+  --status-starred: #D8C4AC;
+  --status-pending: #D8C4AC;
+  --status-approved: #8A9A86;
+  --status-rejected: #4D0E13;
 
   /* Department Colors */
-  --dept-marketing: #a76d5e;
-  --dept-technical: #98a086;
-  --dept-hardware: #c4a071;
-  --dept-finance: #98a086;
-  --dept-design: #dfccb1;
+  --dept-marketing: #C8A49F; /* DUSTY PINK */
+  --dept-technical: #4D0E13; /* BURGENDY */
+  --dept-hardware: #D8C4AC; /* SAND */
+  --dept-finance: #C8A49F; 
+  --dept-design: #D8C4AC;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -518,7 +518,7 @@ a:hover {
   bottom: 16px;
   left: 16px;
   z-index: 100;
-  background: var(--bg-card);
+  background: var(--bg-card) !important;
   display: flex;
   flex-direction: column;
   transition: transform var(--transition-base);
@@ -1524,7 +1524,7 @@ a:hover {
     border-radius: 0;
     transform: translateX(-100%);
     z-index: 200;
-    background: #ffffff !important;
+    background: var(--bg-card) !important;
     border-right: none !important;
   }
 

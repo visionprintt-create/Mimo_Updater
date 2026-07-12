@@ -49,7 +49,7 @@ export default function Header() {
         display:'flex', alignItems:'center', justifyContent:'space-between', 
         padding:'0 32px',
         flexShrink:0,
-        background: '#ffffff',
+        background: C.surface,
         borderBottom: 'none',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
       }}>
@@ -98,8 +98,8 @@ export default function Header() {
                   className="header-tab-btn"
                   onClick={() => handleTabClick(t)}
                   style={{
-                    background: active ? '#ffffff' : 'transparent',
-                    color: active ? C.textPrimary : C.textSecondary,
+                    background: active ? C.accent : 'transparent',
+                    color: active ? '#4D0E13' : C.textSecondary,
                     border: 'none', padding: '6px 24px', borderRadius: '10px', cursor: 'pointer',
                     fontWeight: active ? 600 : 500, fontSize: '13px',
                     boxShadow: active ? '0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' : 'none',

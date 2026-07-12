@@ -49,7 +49,7 @@ export default function Sidebar() {
           padding: '24px 16px',
           gap: '32px',
           overflowY: 'auto',
-          background: '#ffffff',
+          background: C.surface,
           borderRight: 'none',
           boxShadow: '2px 0 10px rgba(0,0,0,0.02)'
         }}
