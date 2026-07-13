@@ -408,30 +408,30 @@ export default function DashboardPage() {
             {(viewingUser?.internshipStartDate || isEditingDates) && (
               <div style={{ marginTop: '12px' }}>
                 {isEditingDates ? (
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center' }}>
                     <input 
                       type="date" 
                       value={editStartDate} 
                       onChange={(e) => setEditStartDate(e.target.value)} 
-                      style={{ padding: '4px', borderRadius: '4px', border: 'none', fontSize: '12px' }}
+                      style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px', outline: 'none', colorScheme: 'dark' }}
                     />
-                    <span style={{ color: '#fff' }}>to</span>
+                    <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500 }}>to</span>
                     <input 
                       type="date" 
                       value={editEndDate} 
                       onChange={(e) => setEditEndDate(e.target.value)} 
-                      style={{ padding: '4px', borderRadius: '4px', border: 'none', fontSize: '12px' }}
+                      style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px', outline: 'none', colorScheme: 'dark' }}
                     />
                     <button 
                       onClick={handleSaveDates} 
                       disabled={savingDates}
-                      style={{ padding: '4px 8px', background: '#fff', color: C.accent, border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '6px 12px', background: '#fff', color: C.accent, border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s' }}
                     >
                       {savingDates ? 'Saving...' : 'Save'}
                     </button>
                     <button 
                       onClick={() => setIsEditingDates(false)} 
-                      style={{ padding: '4px 8px', background: 'transparent', color: '#fff', border: '1px solid #fff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      style={{ padding: '6px 12px', background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 500, transition: 'all 0.2s' }}
                     >
                       Cancel
                     </button>
