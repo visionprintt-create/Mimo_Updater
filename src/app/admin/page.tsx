@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { getAllSessions, getAllUsers } from '@/lib/firestore';
+import { getGlobalStats, getDepartmentStats, getAllUsers } from '@/lib/firestore';
 import type { WorkSession, MimoUser, Department } from '@/types';
 import { DEPARTMENTS } from '@/types';
 
@@ -31,12 +31,34 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'all'>('week');
   const [activeView, setActiveView] = useState<'overview' | 'by-department'>('overview');
   const [selectedDept, setSelectedDept] = useState<Department | 'all'>('all');
+  const [globalStats, setGlobalStats] = useState({ totalSessions: 0, totalDurationMs: 0 });
+  const [deptStatsTotal, setDeptStatsTotal] = useState<Record<string, { totalSessions: number; totalDurationMs: number }>>({});
 
   const loadData = async () => {
     setLoading(true);
-    const [sess, usrs] = await Promise.all([getAllSessions(), getAllUsers()]);
-    setSessions(sess.filter((ses) => ses.status !== 'active'));
+    
+    // 1. Fetch global and department aggregations (cheap reads)
+    const [gStats, usrs] = await Promise.all([getGlobalStats(), getAllUsers()]);
+    setGlobalStats(gStats);
     setUsers(usrs.filter((usr) => usr.status === 'approved'));
+
+    const deptMap: Record<string, { totalSessions: number; totalDurationMs: number }> = {};
+    await Promise.all(DEPARTMENTS.map(async (dept) => {
+      deptMap[dept] = await getDepartmentStats(dept);
+    }));
+    setDeptStatsTotal(deptMap);
+
+    // 2. Fetch only the last 7 days of sessions for the charts and leaderboard
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const q = query(
+      collection(db, 'sessions'), 
+      where('clockInTime', '>=', weekAgo.toISOString())
+    );
+    const snap = await getDocs(q);
+    const recentSessions = snap.docs.map(d => ({ ...d.data(), id: d.id } as WorkSession));
+    
+    setSessions(recentSessions.filter((ses) => ses.status !== 'active'));
     setLoading(false);
   };
 
@@ -95,8 +117,8 @@ export default function AnalyticsPage() {
   }, [sessions, dateRange]);
 
   // ─── Global Stats ─────────────────────────────────────────────────
-  const totalSessions = filteredSessions.length;
-  const totalHoursMs = filteredSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+  const totalSessions = globalStats.totalSessions;
+  const totalHoursMs = globalStats.totalDurationMs;
   const avgSessionMs = totalSessions > 0 ? totalHoursMs / totalSessions : 0;
   const flaggedCount = filteredSessions.filter((s) => s.review?.action === 'flagged').length;
   const starredCount = filteredSessions.filter((s) => s.review?.action === 'starred').length;
@@ -117,11 +139,11 @@ export default function AnalyticsPage() {
     for (const dept of DEPARTMENTS) {
       const deptSessions = filteredSessions.filter((s) => s.userDepartment === dept);
       const members = new Set(deptSessions.map((s) => s.userId));
-      const totalMs = deptSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+      const totalMs = deptStatsTotal[dept]?.totalDurationMs || 0;
       map[dept] = {
         sessions: deptSessions,
         totalMs,
-        avgMs: deptSessions.length > 0 ? totalMs / deptSessions.length : 0,
+        avgMs: deptStatsTotal[dept]?.totalSessions > 0 ? totalMs / deptStatsTotal[dept].totalSessions : 0,
         starred: deptSessions.filter((s) => s.review?.action === 'starred').length,
         flagged: deptSessions.filter((s) => s.review?.action === 'flagged').length,
         approved: deptSessions.filter((s) => s.review?.action === 'approved').length,
@@ -208,16 +230,8 @@ export default function AnalyticsPage() {
 
       {/* Controls row */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {(['week', 'month', 'all'] as const).map((range) => (
-            <button
-              key={range}
-              className={`btn btn-sm ${dateRange === range ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setDateRange(range)}
-            >
-              {range === 'week' ? 'Last 7 Days' : range === 'month' ? 'Last 30 Days' : 'All Time'}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginRight: '8px' }}>Charts showing last 7 days</span>
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {(['overview', 'by-department'] as const).map((view) => (

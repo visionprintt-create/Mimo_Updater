@@ -12,6 +12,9 @@ import {
   setDoc,
   deleteDoc,
   limit,
+  getCountFromServer,
+  getAggregateFromServer,
+  sum,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type {
@@ -111,6 +114,34 @@ export async function getUserSessions(userId: string): Promise<WorkSession[]> {
   return snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession));
 }
 
+export async function getRecentUserSessions(userId: string, limitCount: number = 5): Promise<WorkSession[]> {
+  const q = query(
+    collection(db, 'sessions'),
+    where('userId', '==', userId),
+    orderBy('clockInTime', 'desc'),
+    limit(limitCount)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession));
+}
+
+export async function getUserStats(userId: string): Promise<{ sessionCount: number; totalDurationMs: number }> {
+  const q = query(
+    collection(db, 'sessions'),
+    where('userId', '==', userId)
+  );
+  
+  const [countSnap, aggSnap] = await Promise.all([
+    getCountFromServer(q),
+    getAggregateFromServer(q, { totalDurationMs: sum('totalDurationMs') })
+  ]);
+  
+  return {
+    sessionCount: countSnap.data().count,
+    totalDurationMs: aggSnap.data().totalDurationMs || 0
+  };
+}
+
 export async function getActiveSession(userId: string): Promise<WorkSession | null> {
   const q = query(
     collection(db, 'sessions'),
@@ -141,6 +172,33 @@ export async function getAllSessions(
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ ...d.data(), id: d.id } as WorkSession));
 
+}
+
+export async function getGlobalStats(): Promise<{ totalSessions: number; totalDurationMs: number }> {
+  const q = collection(db, 'sessions');
+  const [countSnap, aggSnap] = await Promise.all([
+    getCountFromServer(q),
+    getAggregateFromServer(q, { totalDurationMs: sum('totalDurationMs') })
+  ]);
+  
+  return {
+    totalSessions: countSnap.data().count,
+    totalDurationMs: aggSnap.data().totalDurationMs || 0
+  };
+}
+
+export async function getDepartmentStats(dept: string) {
+  const deptQuery = query(collection(db, 'sessions'), where('userDepartment', '==', dept));
+  
+  const [countSnap, aggSnap] = await Promise.all([
+    getCountFromServer(deptQuery),
+    getAggregateFromServer(deptQuery, { totalDurationMs: sum('totalDurationMs') })
+  ]);
+
+  return {
+    totalSessions: countSnap.data().count,
+    totalDurationMs: aggSnap.data().totalDurationMs || 0,
+  };
 }
 
 export async function getUnreviewedSessions(): Promise<WorkSession[]> {

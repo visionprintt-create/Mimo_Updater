@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getPendingUsers, getAllUsers, getUserSessions, updateUserStatus, createNotification } from '@/lib/firestore';
+import { getPendingUsers, getAllUsers, getUserStats, getRecentUserSessions, updateUserStatus, createNotification } from '@/lib/firestore';
 import { ADMIN_ROLES } from '@/types';
 import type { MimoUser, WorkSession } from '@/types';
 import { fmtDur } from '@/lib/utils';
@@ -22,7 +22,8 @@ export default function TeamAndApprovalsPage() {
 
   // Team State
   const [teamUsers, setTeamUsers] = useState<MimoUser[]>([]);
-  const [userSessions, setUserSessions] = useState<Record<string, WorkSession[]>>({});
+  const [userStats, setUserStats] = useState<Record<string, { sessionCount: number; totalDurationMs: number }>>({});
+  const [userRecentSessions, setUserRecentSessions] = useState<Record<string, WorkSession[]>>({});
   const [loadingTeam, setLoadingTeam] = useState(true);
   const [teamFilter, setTeamFilter] = useState<string>('approved');
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
@@ -42,13 +43,13 @@ export default function TeamAndApprovalsPage() {
     const allUsers = await getAllUsers();
     setTeamUsers(allUsers);
 
-    // Load sessions for all approved users
-    const sessionsMap: Record<string, WorkSession[]> = {};
+    // Load stats for all approved users
+    const statsMap: Record<string, { sessionCount: number; totalDurationMs: number }> = {};
     for (const user of allUsers.filter((u) => u.status === 'approved')) {
-      const sessions = await getUserSessions(user.uid);
-      sessionsMap[user.uid] = sessions;
+      const stats = await getUserStats(user.uid);
+      statsMap[user.uid] = stats;
     }
-    setUserSessions(sessionsMap);
+    setUserStats(statsMap);
     setLoadingTeam(false);
   };
 
@@ -330,15 +331,22 @@ export default function TeamAndApprovalsPage() {
 
               const theme = getTheme(user.department);
               const avatarColor = theme.accent;
-              const sessions = userSessions[user.uid] || [];
-              const totalHours = sessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+              const stats = userStats[user.uid] || { sessionCount: 0, totalDurationMs: 0 };
               const isExpanded = expandedUser === user.uid;
+              const recentSessions = userRecentSessions[user.uid] || [];
 
               return (
                 <div key={user.uid} className="glass-card-static">
                   <div
                     style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', flexWrap: 'wrap' }}
-                    onClick={() => setExpandedUser(isExpanded ? null : user.uid)}
+                    onClick={async () => {
+                      const expanding = !isExpanded;
+                      setExpandedUser(expanding ? user.uid : null);
+                      if (expanding && !userRecentSessions[user.uid]) {
+                        const sessions = await getRecentUserSessions(user.uid, 5);
+                        setUserRecentSessions(prev => ({ ...prev, [user.uid]: sessions }));
+                      }
+                    }}
                   >
                     <div className="avatar avatar-lg" style={{ background: avatarColor, color: '#ffffff' }}>
                       {initials}
@@ -365,11 +373,11 @@ export default function TeamAndApprovalsPage() {
                     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>Sessions</div>
-                        <div style={{ fontWeight: 600 }}>{sessions.length}</div>
+                        <div style={{ fontWeight: 600 }}>{stats.sessionCount}</div>
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>Hours</div>
-                        <div style={{ fontWeight: 600 }}>{fmtDur(totalHours)}</div>
+                        <div style={{ fontWeight: 600 }}>{fmtDur(stats.totalDurationMs)}</div>
                       </div>
                     </div>
                   </div>
@@ -394,12 +402,12 @@ export default function TeamAndApprovalsPage() {
                       </div>
 
                       {/* Recent sessions */}
-                      {sessions.length > 0 && (
+                      {isExpanded && recentSessions.length > 0 && (
                         <div>
                           <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: '8px' }}>
                             Recent Sessions
                           </div>
-                          {sessions.slice(0, 5).map((s) => (
+                          {recentSessions.map((s) => (
                             <div
                               key={s.id}
                               style={{
