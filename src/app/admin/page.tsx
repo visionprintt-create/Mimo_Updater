@@ -354,8 +354,6 @@ export default function AnalyticsPage() {
                       <th>Department</th>
                       <th>Sessions</th>
                       <th>Hours</th>
-                      <th>⭐</th>
-                      <th>🔴</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -368,8 +366,6 @@ export default function AnalyticsPage() {
                         <td><span className={`badge badge-dept-${data.dept.toLowerCase().replace(/\s+/g, '-')}`}>{data.dept}</span></td>
                         <td>{data.sessions}</td>
                         <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--mimo-accent)' }}>{fmtDur(data.hours)}</td>
-                        <td style={{ color: 'var(--status-starred)' }}>{data.stars}</td>
-                        <td style={{ color: 'var(--status-flagged)' }}>{data.flags}</td>
                       </tr>
                     ))}
                   </tbody>

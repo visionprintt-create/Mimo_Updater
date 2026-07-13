@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useUIStore } from '@/store/uiStore';
-import { getUserSessions, reviewSession, getUsersByDepartment, getWeeklyTasks, addWeeklyTask, updateWeeklyTask, deleteWeeklyTask } from '@/lib/firestore';
+import { getUserSessions, reviewSession, getUsersByDepartment, getWeeklyTasks, addWeeklyTask, updateWeeklyTask, deleteWeeklyTask, updateUser } from '@/lib/firestore';
 import { signOutUser } from '@/lib/auth';
 import { SESSION_DURATION_MS, DEPARTMENTS, ADMIN_ROLES } from '@/types';
 import type { WorkSession, TaskEntry, Department, ReviewAction } from '@/types';
@@ -47,6 +47,12 @@ export default function DashboardPage() {
   const { dashboardTab: tab, setDashboardTab: setTab, deptFilter, setDeptFilter } = useUIStore();
   const [submitting, setSubmitting]          = useState(false);
   const [submitError, setSubmitError]        = useState('');
+
+  /* Internship Dates Edit State */
+  const [isEditingDates, setIsEditingDates]  = useState(false);
+  const [editStartDate, setEditStartDate]    = useState('');
+  const [editEndDate, setEditEndDate]        = useState('');
+  const [savingDates, setSavingDates]        = useState(false);
 
   /* Admin remark state */
   const [remarkingOn, setRemarkingOn]        = useState<string | null>(null);
@@ -173,6 +179,25 @@ export default function DashboardPage() {
     setWeeklyTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: editingWeeklyTaskTitle.trim() } : t));
     setEditingWeeklyTaskId(null);
     await updateWeeklyTask(taskId, { title: editingWeeklyTaskTitle.trim() });
+  };
+
+  const handleSaveDates = async () => {
+    if (!mimoUser || !isMe) return;
+    setSavingDates(true);
+    try {
+      await updateUser(mimoUser.uid, {
+        internshipStartDate: editStartDate,
+        internshipEndDate: editEndDate,
+      });
+      // Optionally update the local state for the user here if possible, 
+      // since the store might not immediately reflect it.
+      useAuthStore.setState({ mimoUser: { ...mimoUser, internshipStartDate: editStartDate, internshipEndDate: editEndDate } });
+      setIsEditingDates(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSavingDates(false);
+    }
   };
 
   function getSalaryMonth(isoDate: string): string {
@@ -379,6 +404,68 @@ export default function DashboardPage() {
           <div style={{ textAlign:'center' }}>
             <div style={{ fontSize:'22px', fontWeight:800, letterSpacing:'-0.02em', color: '#ffffff' }}>{viewingUser?.displayName}</div>
             <div style={{ fontSize:'13px', fontWeight:600, color:'rgba(255,255,255,0.8)', marginTop:'4px' }}>{viewingUser?.department} • <span style={{color:'#ffffff'}}>{viewingUser?.role}</span></div>
+            
+            {(viewingUser?.internshipStartDate || isEditingDates) && (
+              <div style={{ marginTop: '12px' }}>
+                {isEditingDates ? (
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
+                    <input 
+                      type="date" 
+                      value={editStartDate} 
+                      onChange={(e) => setEditStartDate(e.target.value)} 
+                      style={{ padding: '4px', borderRadius: '4px', border: 'none', fontSize: '12px' }}
+                    />
+                    <span style={{ color: '#fff' }}>to</span>
+                    <input 
+                      type="date" 
+                      value={editEndDate} 
+                      onChange={(e) => setEditEndDate(e.target.value)} 
+                      style={{ padding: '4px', borderRadius: '4px', border: 'none', fontSize: '12px' }}
+                    />
+                    <button 
+                      onClick={handleSaveDates} 
+                      disabled={savingDates}
+                      style={{ padding: '4px 8px', background: '#fff', color: C.accent, border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                    >
+                      {savingDates ? 'Saving...' : 'Save'}
+                    </button>
+                    <button 
+                      onClick={() => setIsEditingDates(false)} 
+                      style={{ padding: '4px 8px', background: 'transparent', color: '#fff', border: '1px solid #fff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <div style={{ fontSize: '13px', color: '#fff', fontWeight: 500 }}>
+                      🗓️ {viewingUser?.internshipStartDate ? new Date(viewingUser.internshipStartDate).toLocaleDateString() : 'N/A'} – {viewingUser?.internshipEndDate ? new Date(viewingUser.internshipEndDate).toLocaleDateString() : 'N/A'}
+                    </div>
+                    {isMe && (
+                      <button 
+                        onClick={() => {
+                          setEditStartDate(viewingUser?.internshipStartDate || '');
+                          setEditEndDate(viewingUser?.internshipEndDate || '');
+                          setIsEditingDates(true);
+                        }}
+                        style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '11px' }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!viewingUser?.internshipStartDate && isMe && !isEditingDates && (
+              <button 
+                onClick={() => setIsEditingDates(true)}
+                style={{ marginTop: '12px', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}
+              >
+                + Add Internship Dates
+              </button>
+            )}
           </div>
           <button onClick={nextUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'>'}</button>
         </div>

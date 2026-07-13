@@ -58,16 +58,24 @@ export async function updateUserStatus(
   const updates: Record<string, unknown> = { status };
 
   if (status === 'approved') {
-    updates.approvedBy = adminId;
     updates.approvedAt = new Date().toISOString();
+    updates.approvedBy = adminId;
   } else if (status === 'rejected') {
-    updates.rejectedBy = adminId;
     updates.rejectedAt = new Date().toISOString();
+    updates.rejectedBy = adminId;
     if (reason) updates.rejectionReason = reason;
   }
 
   await updateDoc(doc(db, 'users', uid), updates);
 }
+
+export async function updateUserInternshipDates(uid: string, startDate: string, endDate: string) {
+  await updateDoc(doc(db, 'users', uid), {
+    internshipStartDate: startDate,
+    internshipEndDate: endDate,
+  });
+}
+
 
 export async function updateUser(uid: string, data: Partial<MimoUser>) {
   await updateDoc(doc(db, 'users', uid), data);

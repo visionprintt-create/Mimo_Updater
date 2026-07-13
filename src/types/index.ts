@@ -35,6 +35,8 @@ export interface MimoUser {
   rejectedBy?: string;
   rejectedAt?: string;
   rejectionReason?: string;
+  internshipStartDate?: string;
+  internshipEndDate?: string;
   joinedAt: string;
   lastActiveAt?: string;
 }

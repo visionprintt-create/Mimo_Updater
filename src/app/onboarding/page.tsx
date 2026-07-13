@@ -12,6 +12,8 @@ export default function OnboardingPage() {
   
   const [role, setRole] = useState<UserRole>('intern');
   const [department, setDepartment] = useState<Department>('Frontend');
+  const [internshipStartDate, setInternshipStartDate] = useState('');
+  const [internshipEndDate, setInternshipEndDate] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,7 +36,7 @@ export default function OnboardingPage() {
     setIsSubmitting(true);
 
     try {
-      await completeOnboarding(firebaseUser, role, department);
+      await completeOnboarding(firebaseUser, role, department, internshipStartDate, internshipEndDate);
       router.push('/pending');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to complete profile';
@@ -93,6 +95,35 @@ export default function OnboardingPage() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group" style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <label className="form-label" htmlFor="start-date">
+                Internship Start Date
+              </label>
+              <input
+                id="start-date"
+                type="date"
+                className="form-input"
+                value={internshipStartDate}
+                onChange={(e) => setInternshipStartDate(e.target.value)}
+                required
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label className="form-label" htmlFor="end-date">
+                Internship End Date
+              </label>
+              <input
+                id="end-date"
+                type="date"
+                className="form-input"
+                value={internshipEndDate}
+                onChange={(e) => setInternshipEndDate(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group">

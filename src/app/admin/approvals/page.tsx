@@ -224,6 +224,11 @@ export default function TeamAndApprovalsPage() {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
+                          {user.internshipStartDate && user.internshipEndDate && (
+                            <div style={{ marginTop: '4px', color: 'var(--text-secondary)' }}>
+                              🗓️ Internship: {new Date(user.internshipStartDate).toLocaleDateString()} – {new Date(user.internshipEndDate).toLocaleDateString()}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -327,8 +332,6 @@ export default function TeamAndApprovalsPage() {
               const avatarColor = theme.accent;
               const sessions = userSessions[user.uid] || [];
               const totalHours = sessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
-              const flagCount = sessions.filter((s) => s.review?.action === 'flagged').length;
-              const starCount = sessions.filter((s) => s.review?.action === 'starred').length;
               const isExpanded = expandedUser === user.uid;
 
               return (
@@ -368,14 +371,6 @@ export default function TeamAndApprovalsPage() {
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>Hours</div>
                         <div style={{ fontWeight: 600 }}>{fmtDur(totalHours)}</div>
                       </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>⭐</div>
-                        <div style={{ fontWeight: 600, color: 'var(--status-starred)' }}>{starCount}</div>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>🔴</div>
-                        <div style={{ fontWeight: 600, color: 'var(--status-flagged)' }}>{flagCount}</div>
-                      </div>
                     </div>
                   </div>
 
@@ -389,6 +384,11 @@ export default function TeamAndApprovalsPage() {
                         {user.approvedAt && (
                           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                             • Approved: {new Date(user.approvedAt).toLocaleDateString()}
+                          </div>
+                        )}
+                        {user.internshipStartDate && user.internshipEndDate && (
+                          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                            • 🗓️ Internship: {new Date(user.internshipStartDate).toLocaleDateString()} – {new Date(user.internshipEndDate).toLocaleDateString()}
                           </div>
                         )}
                       </div>

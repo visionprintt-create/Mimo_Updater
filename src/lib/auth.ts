@@ -18,7 +18,9 @@ export async function signUp(
   password: string,
   displayName: string,
   role: UserRole,
-  department: Department
+  department: Department,
+  internshipStartDate: string,
+  internshipEndDate: string
 ): Promise<MimoUser> {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
   const user = credential.user;
@@ -32,6 +34,8 @@ export async function signUp(
     role: role,
     department: department,
     status: 'pending',
+    internshipStartDate,
+    internshipEndDate,
     joinedAt: new Date().toISOString(),
   };
 
@@ -44,7 +48,9 @@ export async function signUp(
 export async function completeOnboarding(
   user: User,
   role: UserRole,
-  department: Department
+  department: Department,
+  internshipStartDate: string,
+  internshipEndDate: string
 ): Promise<MimoUser> {
   const mimoUser: MimoUser = {
     uid: user.uid,
@@ -53,6 +59,8 @@ export async function completeOnboarding(
     role: role,
     department: department,
     status: 'pending',
+    internshipStartDate,
+    internshipEndDate,
     joinedAt: new Date().toISOString(),
   };
 
