@@ -68,10 +68,9 @@ export default function DashboardPage() {
       .catch((e) => console.warn('Could not load user sessions:', e.message));
 
   useEffect(() => {
-    if (!mimoUser) return;
+    if (!mimoUser?.uid) return;
     loadActiveSession(mimoUser.uid);
-  }, [mimoUser, loadActiveSession]);
-
+  }, [mimoUser?.uid, loadActiveSession]);
 
   // When deptFilter changes, load users in that dept
   useEffect(() => {
@@ -81,7 +80,6 @@ export default function DashboardPage() {
         setViewingUserIdx(0);
       });
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDeptUsers([]);
       setViewingUserIdx(0);
     }
@@ -92,21 +90,21 @@ export default function DashboardPage() {
     : mimoUser;
 
   useEffect(() => {
-    if (viewingUser) {
+    if (viewingUser?.uid) {
       loadSessions(viewingUser.uid);
     } else {
       setAllSessions([]);
     }
-  }, [viewingUser]);
+  }, [viewingUser?.uid]);
 
   const C = getTheme(deptFilter || viewingUser?.department);
 
   // Load weekly tasks for the viewingUser
   useEffect(() => {
-    if (viewingUser) {
+    if (viewingUser?.uid) {
       getWeeklyTasks(viewingUser.uid).then(setWeeklyTasks);
     }
-  }, [viewingUser]);
+  }, [viewingUser?.uid]);
 
   useEffect(() => {
     // We no longer auto-switch to 'Tasks' since the form is on 'Today' now
