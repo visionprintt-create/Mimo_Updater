@@ -366,7 +366,7 @@ export default function AnalyticsPage() {
                 {dropdownOpen && (
                   <div style={{ 
                     position: 'absolute', top: 'calc(100% + 4px)', right: 0, width: '180px', 
-                    background: 'var(--bg-surface)', border: '1px solid var(--border-color)', 
+                    background: 'var(--bg-input)', border: '1px solid var(--border-color)', 
                     borderRadius: '8px', overflow: 'hidden', zIndex: 10,
                     boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
                   }}>
@@ -563,13 +563,13 @@ export default function AnalyticsPage() {
                         <table className="data-table" style={{ minWidth: '800px' }}>
                           <thead>
                             <tr>
-                              <th style={{ minWidth: '180px', position: 'sticky', left: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Intern</th>
+                              <th style={{ minWidth: '180px', position: 'sticky', left: 0, top: 0, background: 'var(--bg-card)', zIndex: 3 }}>Intern</th>
                               {currentWeekDates.map((dh) => (
-                                <th key={dh.dayNumber} style={{ textAlign: 'center', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 2 }}>
+                                <th key={dh.dayNumber} style={{ textAlign: 'center', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 2 }}>
                                   {dh.label}
                                 </th>
                               ))}
-                              <th style={{ textAlign: 'center', minWidth: '100px', position: 'sticky', right: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Monthly Total</th>
+                              <th style={{ textAlign: 'center', minWidth: '100px', position: 'sticky', right: 0, top: 0, background: 'var(--bg-card)', zIndex: 3 }}>Monthly Total</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -579,7 +579,7 @@ export default function AnalyticsPage() {
 
                               return (
                                 <tr key={user.uid}>
-                                  <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 1 }}>{user.displayName}</td>
+                                  <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'var(--bg-card)', zIndex: 1 }}>{user.displayName}</td>
                                   {currentWeekDates.map((dh) => {
                                     const daySessions = userSessions.filter((s) => new Date(s.clockInTime).getDate() === dh.dayNumber);
                                     const dayMs = daySessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
@@ -589,7 +589,7 @@ export default function AnalyticsPage() {
                                       </td>
                                     );
                                   })}
-                                  <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: 'var(--mimo-accent)', position: 'sticky', right: 0, background: 'var(--bg-surface)', zIndex: 1 }}>
+                                  <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: 'var(--mimo-accent)', position: 'sticky', right: 0, background: 'var(--bg-card)', zIndex: 1 }}>
                                     {fmtDur(userTotalMs)}
                                   </td>
                                 </tr>
