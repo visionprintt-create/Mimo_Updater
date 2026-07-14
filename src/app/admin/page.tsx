@@ -37,6 +37,7 @@ export default function AnalyticsPage() {
 
   // Carousel & Month states
   const [currentDeptIndex, setCurrentDeptIndex] = useState(0);
+  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -465,7 +466,10 @@ export default function AnalyticsPage() {
                 className="form-input" 
                 style={{ width: '200px', textAlign: 'center', fontWeight: 'bold' }}
                 value={selectedMonth} 
-                onChange={(e) => setSelectedMonth(e.target.value)} 
+                onChange={(e) => {
+                  setSelectedMonth(e.target.value);
+                  setCurrentWeekIndex(0);
+                }} 
               />
               
               <button 
@@ -523,47 +527,80 @@ export default function AnalyticsPage() {
                   <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
                     No interns found in {dept}
                   </div>
-                ) : (
-                  <div className="table-container" style={{ overflowX: 'auto', maxHeight: '600px' }}>
-                    <table className="data-table" style={{ minWidth: '800px' }}>
-                      <thead>
-                        <tr>
-                          <th style={{ minWidth: '180px', position: 'sticky', left: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Intern</th>
-                          {dateHeaders.map((dh) => (
-                            <th key={dh.dayNumber} style={{ textAlign: 'center', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 2 }}>
-                              {dh.label}
-                            </th>
-                          ))}
-                          <th style={{ textAlign: 'center', minWidth: '100px', position: 'sticky', right: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {deptUsers.sort((a, b) => a.displayName.localeCompare(b.displayName)).map((user) => {
-                          const userSessions = deptSessions.filter((s) => s.userId === user.uid);
-                          const userTotalMs = userSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+                ) : (() => {
+                  const weeks = [];
+                  for (let i = 0; i < dateHeaders.length; i += 7) {
+                    weeks.push(dateHeaders.slice(i, i + 7));
+                  }
+                  const currentWeekDates = weeks[currentWeekIndex] || [];
+                  const weekStartLabel = currentWeekDates[0]?.label;
+                  const weekEndLabel = currentWeekDates[currentWeekDates.length - 1]?.label;
 
-                          return (
-                            <tr key={user.uid}>
-                              <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 1 }}>{user.displayName}</td>
-                              {dateHeaders.map((dh) => {
-                                const daySessions = userSessions.filter((s) => new Date(s.clockInTime).getDate() === dh.dayNumber);
-                                const dayMs = daySessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
-                                return (
-                                  <td key={dh.dayNumber} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: dayMs > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                    {dayMs > 0 ? fmtDur(dayMs) : '-'}
-                                  </td>
-                                );
-                              })}
-                              <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: 'var(--mimo-accent)', position: 'sticky', right: 0, background: 'var(--bg-surface)', zIndex: 1 }}>
-                                {fmtDur(userTotalMs)}
-                              </td>
+                  return (
+                    <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-color)' }}>
+                      {/* Week Paginator */}
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                        <button 
+                          className="btn btn-sm btn-ghost" 
+                          disabled={currentWeekIndex === 0} 
+                          onClick={() => setCurrentWeekIndex(p => Math.max(0, p - 1))}
+                        >
+                          ◀
+                        </button>
+                        <div style={{ fontWeight: 600, minWidth: '180px', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
+                          {weekStartLabel} - {weekEndLabel}, {year}
+                        </div>
+                        <button 
+                          className="btn btn-sm btn-ghost" 
+                          disabled={currentWeekIndex === weeks.length - 1} 
+                          onClick={() => setCurrentWeekIndex(p => Math.min(weeks.length - 1, p + 1))}
+                        >
+                          ▶
+                        </button>
+                      </div>
+
+                      <div className="table-container" style={{ overflowX: 'auto', maxHeight: '600px' }}>
+                        <table className="data-table" style={{ minWidth: '800px' }}>
+                          <thead>
+                            <tr>
+                              <th style={{ minWidth: '180px', position: 'sticky', left: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Intern</th>
+                              {currentWeekDates.map((dh) => (
+                                <th key={dh.dayNumber} style={{ textAlign: 'center', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 2 }}>
+                                  {dh.label}
+                                </th>
+                              ))}
+                              <th style={{ textAlign: 'center', minWidth: '100px', position: 'sticky', right: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Monthly Total</th>
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                          </thead>
+                          <tbody>
+                            {deptUsers.sort((a, b) => a.displayName.localeCompare(b.displayName)).map((user) => {
+                              const userSessions = deptSessions.filter((s) => s.userId === user.uid);
+                              const userTotalMs = userSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+
+                              return (
+                                <tr key={user.uid}>
+                                  <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 1 }}>{user.displayName}</td>
+                                  {currentWeekDates.map((dh) => {
+                                    const daySessions = userSessions.filter((s) => new Date(s.clockInTime).getDate() === dh.dayNumber);
+                                    const dayMs = daySessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+                                    return (
+                                      <td key={dh.dayNumber} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: dayMs > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                        {dayMs > 0 ? fmtDur(dayMs) : '-'}
+                                      </td>
+                                    );
+                                  })}
+                                  <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: 'var(--mimo-accent)', position: 'sticky', right: 0, background: 'var(--bg-surface)', zIndex: 1 }}>
+                                    {fmtDur(userTotalMs)}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
