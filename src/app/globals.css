@@ -1544,19 +1544,40 @@ a:hover {
     top: 8px;
     left: 8px;
     right: 8px;
-    padding: 0 var(--space-md);
+    padding: 12px var(--space-md) !important;
     border-bottom: none !important;
     border-radius: 16px;
     width: auto;
+    flex-wrap: wrap !important;
+    height: auto !important;
   }
 
-  .header-left,
+  .header-left {
+    flex: 1;
+    min-width: 130px !important;
+  }
+
   .header-right {
     min-width: auto;
   }
 
   .header-user-info {
     display: flex !important;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  .header-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+  
+  .header-center {
+    order: 3;
+    width: 100%;
+    margin-top: 12px;
   }
 
   .header-right {
