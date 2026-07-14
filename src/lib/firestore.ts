@@ -70,6 +70,35 @@ export async function updateUserStatus(
   }
 
   await updateDoc(doc(db, 'users', uid), updates);
+
+  // If suspended or rejected, purge their sessions/tasks so they don't appear in aggregations or leaderboard
+  if (status === 'suspended' || status === 'rejected') {
+    await purgeUserData(uid);
+  }
+}
+
+export async function purgeUserData(uid: string) {
+  const sessionsQ = query(collection(db, 'sessions'), where('userId', '==', uid));
+  const tasksQ = query(collection(db, 'tasks'), where('userId', '==', uid));
+  const notifsQ = query(collection(db, 'notifications'), where('userId', '==', uid));
+
+  const [sessions, tasks, notifs] = await Promise.all([
+    getDocs(sessionsQ),
+    getDocs(tasksQ),
+    getDocs(notifsQ)
+  ]);
+
+  const deletePromises: Promise<void>[] = [];
+  sessions.forEach(d => deletePromises.push(deleteDoc(d.ref)));
+  tasks.forEach(d => deletePromises.push(deleteDoc(d.ref)));
+  notifs.forEach(d => deletePromises.push(deleteDoc(d.ref)));
+  
+  await Promise.all(deletePromises);
+}
+
+export async function deleteUserAccount(uid: string) {
+  await purgeUserData(uid);
+  await deleteDoc(doc(db, 'users', uid));
 }
 
 export async function updateUserInternshipDates(uid: string, startDate: string, endDate: string) {

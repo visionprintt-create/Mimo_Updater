@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getPendingUsers, getAllUsers, getUserStats, getRecentUserSessions, updateUserStatus, createNotification } from '@/lib/firestore';
+import { getPendingUsers, getAllUsers, getUserStats, getRecentUserSessions, updateUserStatus, createNotification, deleteUserAccount } from '@/lib/firestore';
 import { ADMIN_ROLES } from '@/types';
 import type { MimoUser, WorkSession } from '@/types';
 import { fmtDur } from '@/lib/utils';
@@ -102,6 +102,13 @@ export default function TeamAndApprovalsPage() {
     setTeamUsers((prev) =>
       prev.map((u) => (u.uid === user.uid ? { ...u, status: newStatus } : u))
     );
+  };
+
+  const handleDelete = async (user: MimoUser) => {
+    if (!mimoUser) return;
+    if (!window.confirm(`Are you sure you want to permanently delete ${user.displayName} and completely wipe all their logged sessions and tasks? This cannot be undone.`)) return;
+    await deleteUserAccount(user.uid);
+    setTeamUsers((prev) => prev.filter((u) => u.uid !== user.uid));
   };
 
   const filteredTeamUsers = teamUsers.filter((u) => {
@@ -442,7 +449,7 @@ export default function TeamAndApprovalsPage() {
 
                       {/* Actions */}
                       {!ADMIN_ROLES.includes(user.role) && (
-                        <div style={{ marginTop: '16px' }}>
+                        <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
                           <button
                             className={`btn btn-sm ${user.status === 'suspended' ? 'btn-accent' : 'btn-danger'}`}
                             onClick={(e) => {
@@ -451,6 +458,17 @@ export default function TeamAndApprovalsPage() {
                             }}
                           >
                             {user.status === 'suspended' ? '✅ Reactivate' : '⛔ Suspend'}
+                          </button>
+                          
+                          <button
+                            className="btn btn-sm btn-ghost"
+                            style={{ color: 'var(--status-flagged)', border: '1px solid var(--status-flagged)' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(user);
+                            }}
+                          >
+                            🗑️ Delete
                           </button>
                         </div>
                       )}
