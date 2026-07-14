@@ -486,7 +486,7 @@ export default function AnalyticsPage() {
                 Loading {dept} data for {selectedMonth}...
               </div>
             ) : (
-              <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+              <div className="glass-card-static" style={{ padding: 0, overflow: 'hidden' }}>
                 {/* Department Header */}
                 <div style={{
                   background: DEPT_BG[dept],
