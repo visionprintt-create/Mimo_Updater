@@ -87,7 +87,7 @@ export default function Header() {
       </div>
 
       {/* ═══ CENTER: Tabs ═══ */}
-      <div style={{ flex:1, display:'flex', justifyContent:'center' }}>
+      <div className="header-center" style={{ flex:1, display:'flex', justifyContent:'center' }}>
         {!isAdminRoute && (
           <div className="header-tabs" style={{ display:'flex', gap:'8px', background: 'rgba(0,0,0,0.03)', padding:'6px', borderRadius:'14px' }}>
             {TABS.map(t => {

@@ -1556,7 +1556,7 @@ a:hover {
   }
 
   .header-user-info {
-    display: none !important;
+    display: flex !important;
   }
 
   .header-right {
