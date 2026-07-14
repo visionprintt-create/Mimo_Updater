@@ -11,6 +11,7 @@ export default function OnboardingPage() {
   const { firebaseUser, mimoUser, loading } = useAuthStore();
   
   const [role, setRole] = useState<UserRole>('intern');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [department, setDepartment] = useState<Department>('Frontend');
   const [internshipStartDate, setInternshipStartDate] = useState('');
   const [internshipEndDate, setInternshipEndDate] = useState('');
@@ -36,7 +37,7 @@ export default function OnboardingPage() {
     setIsSubmitting(true);
 
     try {
-      await completeOnboarding(firebaseUser, role, department, internshipStartDate, internshipEndDate);
+      await completeOnboarding(firebaseUser, role, department, phoneNumber, internshipStartDate, internshipEndDate);
       router.push('/pending');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to complete profile';
@@ -79,6 +80,21 @@ export default function OnboardingPage() {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label" htmlFor="ob-phone">
+              Phone Number
+            </label>
+            <input
+              id="ob-phone"
+              type="tel"
+              className="form-input"
+              placeholder="9876543210"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+            />
+          </div>
+
           <div className="form-group">
             <label className="form-label" htmlFor="department">
               Department

@@ -19,6 +19,7 @@ export async function signUp(
   displayName: string,
   role: UserRole,
   department: Department,
+  phoneNumber: string,
   internshipStartDate: string,
   internshipEndDate: string
 ): Promise<MimoUser> {
@@ -33,6 +34,7 @@ export async function signUp(
     displayName: displayName,
     role: role,
     department: department,
+    phoneNumber: phoneNumber,
     status: 'pending',
     internshipStartDate,
     internshipEndDate,
@@ -49,6 +51,7 @@ export async function completeOnboarding(
   user: User,
   role: UserRole,
   department: Department,
+  phoneNumber: string,
   internshipStartDate: string,
   internshipEndDate: string
 ): Promise<MimoUser> {
@@ -58,6 +61,7 @@ export async function completeOnboarding(
     displayName: user.displayName || 'Unknown User',
     role: role,
     department: department,
+    phoneNumber: phoneNumber,
     status: 'pending',
     internshipStartDate,
     internshipEndDate,

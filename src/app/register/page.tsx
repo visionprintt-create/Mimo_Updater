@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('intern');
@@ -38,7 +39,7 @@ export default function RegisterPage() {
     setEmailLoading(true);
 
     try {
-      await signUp(email, password, name, role, department, internshipStartDate, internshipEndDate);
+      await signUp(email, password, name, role, department, phoneNumber, internshipStartDate, internshipEndDate);
       setSuccess(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed';
@@ -156,6 +157,21 @@ export default function RegisterPage() {
               placeholder="you@mimo.in"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="reg-phone">
+              Phone Number
+            </label>
+            <input
+              id="reg-phone"
+              type="tel"
+              className="form-input"
+              placeholder="9876543210"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               required
             />
           </div>

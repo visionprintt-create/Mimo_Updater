@@ -25,6 +25,7 @@ export const ADMIN_ROLES: UserRole[] = ['founder', 'co-founder', 'hr'];
 export interface MimoUser {
   uid: string;
   email: string;
+  phoneNumber?: string;
   displayName: string;
   role: UserRole;
   department: Department;
