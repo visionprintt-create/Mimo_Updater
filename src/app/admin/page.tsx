@@ -200,7 +200,17 @@ export default function AnalyticsPage() {
           {(['overview', 'by-department'] as const).map((view) => (
             <button
               key={view}
-              className={`btn btn-sm ${activeView === view ? 'btn-accent' : 'btn-ghost'}`}
+              className="btn btn-sm"
+              style={{
+                background: activeView === view ? 'var(--mimo-primary)' : 'var(--bg-input)',
+                color: activeView === view ? '#fff' : 'var(--text-secondary)',
+                fontWeight: activeView === view ? 700 : 500,
+                border: 'none',
+                boxShadow: activeView === view ? '0 4px 12px rgba(108, 92, 231, 0.3)' : 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                transition: 'all 0.2s ease'
+              }}
               onClick={() => setActiveView(view)}
             >
               {view === 'overview' ? '📊 Overview' : '🏢 By Department'}
@@ -375,113 +385,111 @@ export default function AnalyticsPage() {
       )}
 
       {/* ── BY DEPARTMENT VIEW ── */}
-      {activeView === 'by-department' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {DEPARTMENTS.map((dept) => {
-            const data = deptStats[dept];
-            const deptSessions = data.sessions.slice().sort((a, b) =>
-              new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime()
-            );
+      {activeView === 'by-department' && (() => {
+        const dateHeaders: { dateStr: string; label: string }[] = [];
+        const now = new Date();
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
+          const label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          dateHeaders.push({ dateStr, label });
+        }
 
-            return (
-              <div key={dept} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-                {/* Department Header */}
-                <div style={{
-                  background: DEPT_BG[dept],
-                  borderBottom: `3px solid ${getDeptColor(dept)}`,
-                  padding: '16px 20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '12px',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: getDeptColor(dept) }} />
-                    <h4 style={{ fontSize: 'var(--font-size-xl)', margin: 0 }}>{dept}</h4>
-                  </div>
-                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{deptSessions.length}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Sessions</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{fmtDur(data.totalMs)}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Hours</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{fmtDur(data.avgMs)}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Avg Session</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-starred)' }}>{data.starred}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Stars</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-flagged)' }}>{data.flagged}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Flags</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-break)' }}>{data.unreviewed}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Unreviewed</div>
-                    </div>
-                  </div>
-                </div>
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {DEPARTMENTS.map((dept) => {
+              const data = deptStats[dept];
+              const deptSessions = data.sessions;
+              const deptUsers = users.filter((u) => (u.department as any) === dept);
 
-                {/* Sessions Table */}
-                {deptSessions.length === 0 ? (
-                  <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                    No sessions for this period
+              return (
+                <div key={dept} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                  {/* Department Header */}
+                  <div style={{
+                    background: DEPT_BG[dept],
+                    borderBottom: `3px solid ${getDeptColor(dept)}`,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: getDeptColor(dept) }} />
+                      <h4 style={{ fontSize: 'var(--font-size-xl)', margin: 0 }}>{dept}</h4>
+                    </div>
+                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{deptUsers.length}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Members</div>
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{fmtDur(data.totalMs)}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Hours</div>
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-starred)' }}>{data.starred}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Stars</div>
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-flagged)' }}>{data.flagged}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Flags</div>
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Intern</th>
-                          <th>Date</th>
-                          <th>Duration</th>
-                          <th>Tasks</th>
-                          <th>Status</th>
-                          <th>Review</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {deptSessions.map((s) => (
-                          <tr key={s.id}>
-                            <td style={{ fontWeight: 500 }}>{s.userName}</td>
-                            <td style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>
-                              {new Date(s.clockInTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </td>
-                            <td style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)' }}>
-                              {fmtDur(s.totalDurationMs)}
-                            </td>
-                            <td>{s.tasks.length}</td>
-                            <td>
-                              <span className={`badge badge-${s.status === 'completed' ? 'approved' : 'offline'}`}>
-                                {s.status}
-                              </span>
-                            </td>
-                            <td>
-                              {s.review ? (
-                                <span className={`badge badge-${s.review.action === 'starred' ? 'starred' : s.review.action === 'flagged' ? 'flagged' : s.review.action === 'approved' ? 'approved' : 'pending'}`}>
-                                  {s.review.action === 'starred' ? '⭐' : s.review.action === 'flagged' ? '🔴' : s.review.action === 'approved' ? '✅' : '📝'} {s.review.action}
-                                </span>
-                              ) : (
-                                <span className="badge badge-offline" style={{ color: 'var(--text-muted)' }}>Pending</span>
-                              )}
-                            </td>
+
+                  {/* Attendance Matrix */}
+                  {deptUsers.length === 0 ? (
+                    <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+                      No interns found in {dept}
+                    </div>
+                  ) : (
+                    <div className="table-container" style={{ overflowX: 'auto' }}>
+                      <table className="data-table" style={{ minWidth: '800px' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ minWidth: '180px', position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 2 }}>Intern</th>
+                            {dateHeaders.map((dh) => (
+                              <th key={dh.dateStr} style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{dh.label}</th>
+                            ))}
+                            <th style={{ textAlign: 'center', minWidth: '100px' }}>Total (7d)</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                        </thead>
+                        <tbody>
+                          {deptUsers.sort((a, b) => a.displayName.localeCompare(b.displayName)).map((user) => {
+                            const userSessions = deptSessions.filter((s) => s.userId === user.uid);
+                            const totalMs = userSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+
+                            return (
+                              <tr key={user.uid}>
+                                <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 1 }}>{user.displayName}</td>
+                                {dateHeaders.map((dh) => {
+                                  const daySessions = userSessions.filter((s) => s.clockInTime.startsWith(dh.dateStr));
+                                  const dayMs = daySessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+                                  return (
+                                    <td key={dh.dateStr} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: dayMs > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                      {dayMs > 0 ? fmtDur(dayMs) : '-'}
+                                    </td>
+                                  );
+                                })}
+                                <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: 'var(--mimo-accent)' }}>
+                                  {fmtDur(totalMs)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }
