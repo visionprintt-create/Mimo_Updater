@@ -35,6 +35,15 @@ export default function AnalyticsPage() {
   const [globalStats, setGlobalStats] = useState({ totalSessions: 0, totalDurationMs: 0 });
   const [deptStatsTotal, setDeptStatsTotal] = useState<Record<string, { totalSessions: number; totalDurationMs: number }>>({});
 
+  // Carousel & Month states
+  const [currentDeptIndex, setCurrentDeptIndex] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [monthlySessionsCache, setMonthlySessionsCache] = useState<Record<string, WorkSession[]>>({});
+  const [loadingMonth, setLoadingMonth] = useState(false);
+
   const loadData = async () => {
     setLoading(true);
     
@@ -66,6 +75,39 @@ export default function AnalyticsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (activeView !== 'by-department') return;
+    if (monthlySessionsCache[selectedMonth]) return;
+
+    const fetchMonth = async () => {
+      setLoadingMonth(true);
+      try {
+        const [year, month] = selectedMonth.split('-');
+        const startDate = new Date(Number(year), Number(month) - 1, 1);
+        const endDate = new Date(Number(year), Number(month), 1); // 1st of next month
+
+        const q = query(
+          collection(db, 'sessions'),
+          where('clockInTime', '>=', startDate.toISOString()),
+          where('clockInTime', '<', endDate.toISOString())
+        );
+        const snap = await getDocs(q);
+        const monthSessions = snap.docs.map(d => ({ ...d.data(), id: d.id } as WorkSession));
+        
+        setMonthlySessionsCache(prev => ({
+          ...prev,
+          [selectedMonth]: monthSessions.filter(s => s.status !== 'active')
+        }));
+      } catch (err) {
+        console.error("Error fetching month:", err);
+      } finally {
+        setLoadingMonth(false);
+      }
+    };
+
+    fetchMonth();
+  }, [activeView, selectedMonth, monthlySessionsCache]);
 
 
 
@@ -386,107 +428,144 @@ export default function AnalyticsPage() {
 
       {/* ── BY DEPARTMENT VIEW ── */}
       {activeView === 'by-department' && (() => {
-        const dateHeaders: { dateStr: string; label: string }[] = [];
-        const now = new Date();
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(now);
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toISOString().split('T')[0];
-          const label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          dateHeaders.push({ dateStr, label });
+        const [year, month] = selectedMonth.split('-');
+        const daysInMonth = new Date(Number(year), Number(month), 0).getDate();
+        const dateHeaders: { dayNumber: number; label: string }[] = [];
+        for (let i = 1; i <= daysInMonth; i++) {
+          const d = new Date(Number(year), Number(month) - 1, i);
+          dateHeaders.push({ 
+            dayNumber: i, 
+            label: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) 
+          });
         }
+
+        const dept = DEPARTMENTS[currentDeptIndex];
+        const monthSessions = monthlySessionsCache[selectedMonth] || [];
+        const deptSessions = monthSessions.filter(s => s.userDepartment === dept);
+        const deptUsers = users.filter((u) => (u.department as any) === dept);
+        
+        // Compute stats for current department in this month
+        const totalMs = deptSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+        const starred = deptSessions.filter((s) => s.review?.action === 'starred').length;
+        const flagged = deptSessions.filter((s) => s.review?.action === 'flagged').length;
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {DEPARTMENTS.map((dept) => {
-              const data = deptStats[dept];
-              const deptSessions = data.sessions;
-              const deptUsers = users.filter((u) => (u.department as any) === dept);
+            {/* Carousel Controls */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button 
+                className="btn btn-ghost" 
+                onClick={() => setCurrentDeptIndex(prev => prev === 0 ? DEPARTMENTS.length - 1 : prev - 1)}
+              >
+                ◀ Previous
+              </button>
+              
+              <input 
+                type="month" 
+                className="form-input" 
+                style={{ width: '200px', textAlign: 'center', fontWeight: 'bold' }}
+                value={selectedMonth} 
+                onChange={(e) => setSelectedMonth(e.target.value)} 
+              />
+              
+              <button 
+                className="btn btn-ghost" 
+                onClick={() => setCurrentDeptIndex(prev => prev === DEPARTMENTS.length - 1 ? 0 : prev + 1)}
+              >
+                Next ▶
+              </button>
+            </div>
 
-              return (
-                <div key={dept} style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-                  {/* Department Header */}
-                  <div style={{
-                    background: DEPT_BG[dept],
-                    borderBottom: `3px solid ${getDeptColor(dept)}`,
-                    padding: '16px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: getDeptColor(dept) }} />
-                      <h4 style={{ fontSize: 'var(--font-size-xl)', margin: 0 }}>{dept}</h4>
+            {loadingMonth ? (
+              <div style={{ padding: '64px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div className="spinner" style={{ margin: '0 auto 16px' }} />
+                Loading {dept} data for {selectedMonth}...
+              </div>
+            ) : (
+              <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                {/* Department Header */}
+                <div style={{
+                  background: DEPT_BG[dept],
+                  borderBottom: `3px solid ${getDeptColor(dept)}`,
+                  padding: '16px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: getDeptColor(dept) }} />
+                    <h4 style={{ fontSize: 'var(--font-size-xl)', margin: 0 }}>{dept}</h4>
+                  </div>
+                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{deptUsers.length}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Members</div>
                     </div>
-                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{deptUsers.length}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Members</div>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{fmtDur(data.totalMs)}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Hours</div>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-starred)' }}>{data.starred}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Stars</div>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-flagged)' }}>{data.flagged}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Flags</div>
-                      </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{fmtDur(totalMs)}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Hours</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-starred)' }}>{starred}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Stars</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--status-flagged)' }}>{flagged}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Flags</div>
                     </div>
                   </div>
-
-                  {/* Attendance Matrix */}
-                  {deptUsers.length === 0 ? (
-                    <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                      No interns found in {dept}
-                    </div>
-                  ) : (
-                    <div className="table-container" style={{ overflowX: 'auto' }}>
-                      <table className="data-table" style={{ minWidth: '800px' }}>
-                        <thead>
-                          <tr>
-                            <th style={{ minWidth: '180px', position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 2 }}>Intern</th>
-                            {dateHeaders.map((dh) => (
-                              <th key={dh.dateStr} style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{dh.label}</th>
-                            ))}
-                            <th style={{ textAlign: 'center', minWidth: '100px' }}>Total (7d)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {deptUsers.sort((a, b) => a.displayName.localeCompare(b.displayName)).map((user) => {
-                            const userSessions = deptSessions.filter((s) => s.userId === user.uid);
-                            const totalMs = userSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
-
-                            return (
-                              <tr key={user.uid}>
-                                <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 1 }}>{user.displayName}</td>
-                                {dateHeaders.map((dh) => {
-                                  const daySessions = userSessions.filter((s) => s.clockInTime.startsWith(dh.dateStr));
-                                  const dayMs = daySessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
-                                  return (
-                                    <td key={dh.dateStr} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: dayMs > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                                      {dayMs > 0 ? fmtDur(dayMs) : '-'}
-                                    </td>
-                                  );
-                                })}
-                                <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: 'var(--mimo-accent)' }}>
-                                  {fmtDur(totalMs)}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
                 </div>
-              );
-            })}
+
+                {/* Attendance Matrix */}
+                {deptUsers.length === 0 ? (
+                  <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+                    No interns found in {dept}
+                  </div>
+                ) : (
+                  <div className="table-container" style={{ overflowX: 'auto', maxHeight: '600px' }}>
+                    <table className="data-table" style={{ minWidth: '800px' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ minWidth: '180px', position: 'sticky', left: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Intern</th>
+                          {dateHeaders.map((dh) => (
+                            <th key={dh.dayNumber} style={{ textAlign: 'center', whiteSpace: 'nowrap', position: 'sticky', top: 0, background: 'var(--bg-surface)', zIndex: 2 }}>
+                              {dh.label}
+                            </th>
+                          ))}
+                          <th style={{ textAlign: 'center', minWidth: '100px', position: 'sticky', right: 0, top: 0, background: 'var(--bg-surface)', zIndex: 3 }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {deptUsers.sort((a, b) => a.displayName.localeCompare(b.displayName)).map((user) => {
+                          const userSessions = deptSessions.filter((s) => s.userId === user.uid);
+                          const userTotalMs = userSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+
+                          return (
+                            <tr key={user.uid}>
+                              <td style={{ fontWeight: 600, position: 'sticky', left: 0, background: 'var(--bg-surface)', zIndex: 1 }}>{user.displayName}</td>
+                              {dateHeaders.map((dh) => {
+                                const daySessions = userSessions.filter((s) => new Date(s.clockInTime).getDate() === dh.dayNumber);
+                                const dayMs = daySessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
+                                return (
+                                  <td key={dh.dayNumber} style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: dayMs > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                                    {dayMs > 0 ? fmtDur(dayMs) : '-'}
+                                  </td>
+                                );
+                              })}
+                              <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-sm)', color: 'var(--mimo-accent)', position: 'sticky', right: 0, background: 'var(--bg-surface)', zIndex: 1 }}>
+                                {fmtDur(userTotalMs)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       })()}

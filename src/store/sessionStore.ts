@@ -160,11 +160,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     } = get();
     if (!activeSession) return;
 
-    const clockOutTime = new Date().toISOString();
-    const totalDurationMs =
+    const clockOutTime = activeSession.clockOutTime || new Date().toISOString();
+    const totalDurationMs = activeSession.totalDurationMs || (
       new Date(clockOutTime).getTime() -
       new Date(activeSession.clockInTime).getTime() -
-      activeSession.breakDurationMs;
+      activeSession.breakDurationMs
+    );
 
     const updates: Partial<WorkSession> = {
       clockOutTime,
@@ -201,10 +202,16 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         new Date(lastBreak.startedAt).getTime();
     }
 
+    const clockOutTime = new Date(
+      new Date(activeSession.clockInTime).getTime() + SESSION_DURATION_MS + activeSession.breakDurationMs
+    ).toISOString();
+
     await updateSession(activeSession.id, {
       status: 'auto-stopped',
       breaks,
       breakDurationMs: activeSession.breakDurationMs + extraBreakMs,
+      clockOutTime,
+      totalDurationMs: SESSION_DURATION_MS,
     });
 
     // Create notification
@@ -226,6 +233,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         status: 'auto-stopped',
         breaks,
         breakDurationMs: activeSession.breakDurationMs + extraBreakMs,
+        clockOutTime,
+        totalDurationMs: SESSION_DURATION_MS,
       },
     });
   },
