@@ -31,6 +31,7 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'all'>('week');
   const [activeView, setActiveView] = useState<'overview' | 'by-department'>('overview');
   const [selectedDept, setSelectedDept] = useState<Department | 'all'>('all');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [globalStats, setGlobalStats] = useState({ totalSessions: 0, totalDurationMs: 0 });
   const [deptStatsTotal, setDeptStatsTotal] = useState<Record<string, { totalSessions: number; totalDurationMs: number }>>({});
 
@@ -66,37 +67,7 @@ export default function AnalyticsPage() {
     loadData();
   }, []);
 
-  const [migrating, setMigrating] = useState(false);
-  const migrateData = async () => {
-    if (!confirm('Are you sure you want to migrate Technical Team users to Backend?')) return;
-    setMigrating(true);
-    try {
-      let migratedUsers = 0;
-      let migratedSessions = 0;
-      
-      // Migrate users
-      const toMigrate = users.filter((u) => (u.department as any) === 'Technical Team');
-      for (const u of toMigrate) {
-        await updateDoc(doc(db, 'users', u.uid), { department: 'Backend' });
-        migratedUsers++;
-      }
 
-      // Migrate sessions
-      const sessionsQ = query(collection(db, 'sessions'), where('userDepartment', '==', 'Technical Team'));
-      const sessionsSnap = await getDocs(sessionsQ);
-      for (const sDoc of sessionsSnap.docs) {
-        await updateDoc(doc(db, 'sessions', sDoc.id), { userDepartment: 'Backend' });
-        migratedSessions++;
-      }
-
-      alert(`Successfully migrated ${migratedUsers} users and ${migratedSessions} sessions to Backend.`);
-      await loadData();
-    } catch (err: any) {
-      alert(`Migration error: ${err.message}`);
-    } finally {
-      setMigrating(false);
-    }
-  };
 
   const filteredSessions = useMemo(() => {
     const now = new Date();
@@ -120,8 +91,6 @@ export default function AnalyticsPage() {
   const totalSessions = globalStats.totalSessions;
   const totalHoursMs = globalStats.totalDurationMs;
   const avgSessionMs = totalSessions > 0 ? totalHoursMs / totalSessions : 0;
-  const flaggedCount = filteredSessions.filter((s) => s.review?.action === 'flagged').length;
-  const starredCount = filteredSessions.filter((s) => s.review?.action === 'starred').length;
 
   // ─── Per-department analytics ──────────────────────────────────────
   const deptStats = useMemo(() => {
@@ -220,12 +189,6 @@ export default function AnalyticsPage() {
           <h1>📈 Analytics</h1>
           <p>Team performance and productivity insights</p>
         </div>
-        <button 
-          onClick={migrateData} 
-          disabled={migrating}
-          style={{ background: 'var(--status-flagged)', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-          {migrating ? 'Migrating...' : 'Migrate "Technical Team" to Backend'}
-        </button>
       </div>
 
       {/* Controls row */}
@@ -259,14 +222,6 @@ export default function AnalyticsPage() {
         <div className="stat-card">
           <div className="stat-label">Avg Session</div>
           <div className="stat-value">{fmtDur(avgSessionMs)}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">⭐ Stars</div>
-          <div className="stat-value" style={{ color: 'var(--status-starred)' }}>{starredCount}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">🔴 Flags</div>
-          <div className="stat-value" style={{ color: 'var(--status-flagged)' }}>{flaggedCount}</div>
         </div>
       </div>
 
@@ -346,15 +301,44 @@ export default function AnalyticsPage() {
           <div className="glass-card-static">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h4>🏆 Leaderboard</h4>
-              <select
-                className="form-select"
-                style={{ width: 'auto', padding: '6px 32px 6px 12px', fontSize: 'var(--font-size-sm)' }}
-                value={selectedDept}
-                onChange={(e) => setSelectedDept(e.target.value as Department | 'all')}
-              >
-                <option value="all">All Departments</option>
-                {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="form-select"
+                  style={{ width: '180px', padding: '6px 32px 6px 12px', fontSize: 'var(--font-size-sm)', textAlign: 'left', background: 'var(--bg-input)' }}
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                  {selectedDept === 'all' ? 'All Departments' : selectedDept}
+                </button>
+                
+                {dropdownOpen && (
+                  <div style={{ 
+                    position: 'absolute', top: 'calc(100% + 4px)', right: 0, width: '180px', 
+                    background: 'var(--bg-surface)', border: '1px solid var(--border-color)', 
+                    borderRadius: '8px', overflow: 'hidden', zIndex: 10,
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                  }}>
+                    <div 
+                      onClick={() => { setSelectedDept('all'); setDropdownOpen(false); }}
+                      style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 'var(--font-size-sm)', background: selectedDept === 'all' ? 'var(--bg-input-focus)' : 'transparent', color: selectedDept === 'all' ? 'var(--mimo-primary)' : 'var(--text-primary)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-input-focus)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = selectedDept === 'all' ? 'var(--bg-input-focus)' : 'transparent'}
+                    >
+                      All Departments
+                    </div>
+                    {DEPARTMENTS.map((d) => (
+                      <div 
+                        key={d}
+                        onClick={() => { setSelectedDept(d); setDropdownOpen(false); }}
+                        style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 'var(--font-size-sm)', background: selectedDept === d ? 'var(--bg-input-focus)' : 'transparent', color: selectedDept === d ? 'var(--mimo-primary)' : 'var(--text-primary)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-input-focus)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = selectedDept === d ? 'var(--bg-input-focus)' : 'transparent'}
+                      >
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             {hoursByUser.length === 0 ? (
               <div className="empty-state"><p>No data yet</p></div>
