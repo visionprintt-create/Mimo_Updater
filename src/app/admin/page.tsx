@@ -354,7 +354,7 @@ export default function AnalyticsPage() {
           <div className="glass-card-static">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h4>🏆 Leaderboard</h4>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', zIndex: 50 }}>
                 <button
                   className="form-select"
                   style={{ width: '180px', padding: '6px 32px 6px 12px', fontSize: 'var(--font-size-sm)', textAlign: 'left', background: 'var(--bg-input)' }}
