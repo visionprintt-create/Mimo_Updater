@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getAllSessions, addReview } from '@/lib/firestore';
+import { getAllSessions, reviewSession } from '@/lib/firestore';
 import type { WorkSession } from '@/types';
 
 import { fmtDur } from '@/lib/utils';
@@ -129,7 +129,7 @@ export default function ReviewsPage() {
                             key={opt}
                             onClick={async () => {
                               if (!user) return;
-                              await addReview(session.id, {
+                              await reviewSession(session.id, {
                                 reviewedBy: user.uid,
                                 reviewerName: user.name,
                                 action: opt,
