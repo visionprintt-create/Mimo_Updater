@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getAllSessions } from '@/lib/firestore';
+import { getAllSessions, addReview } from '@/lib/firestore';
 import type { WorkSession } from '@/types';
 
 import { fmtDur } from '@/lib/utils';
@@ -11,6 +11,8 @@ import { getTheme } from '@/lib/theme';
 export default function ReviewsPage() {
   const [sessions, setSessions] = useState<WorkSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const user = useAuthStore((s) => s.user);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const loadSessions = async () => {
     setLoading(true);
@@ -98,19 +100,58 @@ export default function ReviewsPage() {
                   <span className={`badge badge-dept-${session.userDepartment.toLowerCase().replace(/\s+/g, '-')}`}>
                     {session.userDepartment}
                   </span>
-                  <span
-                    className={`badge ${
-                      session.review?.action === 'paid'
-                        ? 'badge-approved'
-                        : session.review?.action === 'unpaid'
-                        ? 'badge-flagged'
-                        : session.status === 'completed'
-                        ? 'badge-noted'
-                        : 'badge-break'
-                    }`}
-                  >
-                    {session.review?.action === 'paid' ? 'PAID' : (session.review?.action === 'unpaid' || session.status === 'completed') ? 'NOT PAID' : session.status}
-                  </span>
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      className={`badge ${
+                        session.review?.action === 'paid'
+                          ? 'badge-approved'
+                          : session.review?.action === 'unpaid'
+                          ? 'badge-flagged'
+                          : session.status === 'completed'
+                          ? 'badge-noted'
+                          : 'badge-break'
+                      }`}
+                      style={{ cursor: 'pointer', border: 'none', background: 'transparent' }}
+                      onClick={() => setOpenDropdownId(openDropdownId === session.id ? null : session.id)}
+                    >
+                      {session.review?.action === 'paid' ? 'PAID ▼' : (session.review?.action === 'unpaid' || session.status === 'completed') ? 'NOT PAID ▼' : `${session.status.toUpperCase()} ▼`}
+                    </button>
+                    
+                    {openDropdownId === session.id && (
+                      <div style={{
+                        position: 'absolute', top: '100%', right: 0, marginTop: '4px',
+                        background: 'var(--bg-input)', border: '1px solid var(--border-color)',
+                        borderRadius: '8px', zIndex: 10,
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.08)', overflow: 'hidden', minWidth: '100px'
+                      }}>
+                        {(['paid', 'unpaid'] as const).map(opt => (
+                          <div 
+                            key={opt}
+                            onClick={async () => {
+                              if (!user) return;
+                              await addReview(session.id, {
+                                reviewedBy: user.uid,
+                                reviewerName: user.name,
+                                action: opt,
+                                comment: session.review?.comment || '',
+                                reviewedAt: new Date().toISOString()
+                              });
+                              setOpenDropdownId(null);
+                              loadSessions();
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-input-focus)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                            style={{
+                              padding: '8px 12px', cursor: 'pointer',
+                              fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)',
+                            }}
+                          >
+                            {opt.toUpperCase()}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Work Summary */}

@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
   /* Admin remark state */
   const [remarkingOn, setRemarkingOn]        = useState<string | null>(null);
-  const [remarkAction, setRemarkAction]      = useState<ReviewAction>('paid');
+  const [remarkAction, setRemarkAction]      = useState<ReviewAction>('starred');
   const [remarkComment, setRemarkComment]    = useState('');
   const [openDropdownId, setOpenDropdownId]  = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -300,7 +300,7 @@ export default function DashboardPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                 }}
               >
-                {remarkAction.charAt(0).toUpperCase() + remarkAction.slice(1)}
+                {remarkAction === 'flagged' ? 'Redo' : remarkAction.charAt(0).toUpperCase() + remarkAction.slice(1)}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.textSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
               
@@ -311,7 +311,7 @@ export default function DashboardPage() {
                   borderRadius: '10px', width: '100%', zIndex: 50,
                   boxShadow: '0 4px 15px rgba(0,0,0,0.08)', overflow: 'hidden'
                 }}>
-                  {(['paid', 'unpaid', 'flagged', 'starred'] as ReviewAction[]).map(opt => (
+                  {(['starred', 'flagged'] as ReviewAction[]).map(opt => (
                     <div 
                       key={opt}
                       onClick={() => {
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      {opt === 'flagged' ? 'Redo' : opt.charAt(0).toUpperCase() + opt.slice(1)}
                     </div>
                   ))}
                 </div>
