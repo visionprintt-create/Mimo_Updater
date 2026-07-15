@@ -232,9 +232,9 @@ export default function TeamAndApprovalsPage() {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
-                          {user.internshipStartDate && user.internshipEndDate && (
+                          {user.role === 'intern' && (
                             <div style={{ marginTop: '4px', color: 'var(--text-secondary)' }}>
-                              🗓️ Internship: {new Date(user.internshipStartDate).toLocaleDateString()} – {new Date(user.internshipEndDate).toLocaleDateString()}
+                              🗓️ Internship: {user.internshipStartDate ? new Date(user.internshipStartDate).toLocaleDateString() : 'Not set'} – {user.internshipEndDate ? new Date(user.internshipEndDate).toLocaleDateString() : 'Not set'}
                             </div>
                           )}
                         </div>
@@ -373,13 +373,13 @@ export default function TeamAndApprovalsPage() {
                         <span className={`badge badge-${user.status}`}>
                           {user.status}
                         </span>
-                        {user.internshipStartDate && user.internshipEndDate && (
+                        {user.role === 'intern' && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', marginLeft: '8px' }} onClick={(e) => e.stopPropagation()}>
                             <input 
                               type="date" 
-                              value={user.internshipStartDate}
+                              value={user.internshipStartDate || ''}
                               onChange={async (e) => {
-                                await updateUserInternshipDates(user.uid, e.target.value, user.internshipEndDate!);
+                                await updateUserInternshipDates(user.uid, e.target.value, user.internshipEndDate || '');
                                 setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipStartDate: e.target.value } : u));
                               }}
                               style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
@@ -387,9 +387,9 @@ export default function TeamAndApprovalsPage() {
                             <span style={{ color: 'var(--text-muted)' }}>to</span>
                             <input 
                               type="date" 
-                              value={user.internshipEndDate}
+                              value={user.internshipEndDate || ''}
                               onChange={async (e) => {
-                                await updateUserInternshipDates(user.uid, user.internshipStartDate!, e.target.value);
+                                await updateUserInternshipDates(user.uid, user.internshipStartDate || '', e.target.value);
                                 setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipEndDate: e.target.value } : u));
                               }}
                               style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
