@@ -379,8 +379,9 @@ export default function TeamAndApprovalsPage() {
                               type="date" 
                               value={user.internshipStartDate ? user.internshipStartDate.split('T')[0] : ''}
                               onChange={async (e) => {
-                                await updateUserInternshipDates(user.uid, e.target.value, user.internshipEndDate || '');
-                                setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipStartDate: e.target.value } : u));
+                                const newDate = e.target.value;
+                                setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipStartDate: newDate } : u));
+                                await updateUserInternshipDates(user.uid, newDate, user.internshipEndDate || '');
                               }}
                               style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
                             />
@@ -389,8 +390,9 @@ export default function TeamAndApprovalsPage() {
                               type="date" 
                               value={user.internshipEndDate ? user.internshipEndDate.split('T')[0] : ''}
                               onChange={async (e) => {
-                                await updateUserInternshipDates(user.uid, user.internshipStartDate || '', e.target.value);
-                                setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipEndDate: e.target.value } : u));
+                                const newDate = e.target.value;
+                                setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipEndDate: newDate } : u));
+                                await updateUserInternshipDates(user.uid, user.internshipStartDate || '', newDate);
                               }}
                               style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
                             />
