@@ -131,7 +131,7 @@ export default function ReviewsPage() {
                               if (!mimoUser) return;
                               await reviewSession(session.id, {
                                 reviewedBy: mimoUser.uid,
-                                reviewerName: mimoUser.name,
+                                reviewerName: mimoUser.displayName,
                                 action: opt,
                                 comment: session.review?.comment || '',
                                 reviewedAt: new Date().toISOString()

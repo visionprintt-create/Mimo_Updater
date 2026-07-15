@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getPendingUsers, getAllUsers, getUserStats, getRecentUserSessions, updateUserStatus, createNotification, deleteUserAccount } from '@/lib/firestore';
+import { getPendingUsers, getAllUsers, getUserStats, getRecentUserSessions, updateUserStatus, createNotification, deleteUserAccount, updateUserInternshipDates } from '@/lib/firestore';
 import { ADMIN_ROLES } from '@/types';
 import type { MimoUser, WorkSession } from '@/types';
 import { fmtDur } from '@/lib/utils';
@@ -373,6 +373,29 @@ export default function TeamAndApprovalsPage() {
                         <span className={`badge badge-${user.status}`}>
                           {user.status}
                         </span>
+                        {user.internshipStartDate && user.internshipEndDate && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', marginLeft: '8px' }} onClick={(e) => e.stopPropagation()}>
+                            <input 
+                              type="date" 
+                              value={user.internshipStartDate}
+                              onChange={async (e) => {
+                                await updateUserInternshipDates(user.uid, e.target.value, user.internshipEndDate!);
+                                setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipStartDate: e.target.value } : u));
+                              }}
+                              style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
+                            />
+                            <span style={{ color: 'var(--text-muted)' }}>to</span>
+                            <input 
+                              type="date" 
+                              value={user.internshipEndDate}
+                              onChange={async (e) => {
+                                await updateUserInternshipDates(user.uid, user.internshipStartDate!, e.target.value);
+                                setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipEndDate: e.target.value } : u));
+                              }}
+                              style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -381,10 +404,6 @@ export default function TeamAndApprovalsPage() {
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>Sessions</div>
                         <div style={{ fontWeight: 600 }}>{stats.sessionCount}</div>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>Hours</div>
-                        <div style={{ fontWeight: 600 }}>{fmtDur(stats.totalDurationMs)}</div>
                       </div>
                     </div>
                   </div>
@@ -399,11 +418,6 @@ export default function TeamAndApprovalsPage() {
                         {user.approvedAt && (
                           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                             • Approved: {new Date(user.approvedAt).toLocaleDateString()}
-                          </div>
-                        )}
-                        {user.internshipStartDate && user.internshipEndDate && (
-                          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                            • 🗓️ Internship: {new Date(user.internshipStartDate).toLocaleDateString()} – {new Date(user.internshipEndDate).toLocaleDateString()}
                           </div>
                         )}
                       </div>
