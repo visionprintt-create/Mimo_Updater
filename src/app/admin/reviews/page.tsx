@@ -11,7 +11,7 @@ import { getTheme } from '@/lib/theme';
 export default function ReviewsPage() {
   const [sessions, setSessions] = useState<WorkSession[]>([]);
   const [loading, setLoading] = useState(true);
-  const user = useAuthStore((s) => s.user);
+  const mimoUser = useAuthStore((s) => s.mimoUser);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const loadSessions = async () => {
@@ -128,10 +128,10 @@ export default function ReviewsPage() {
                           <div 
                             key={opt}
                             onClick={async () => {
-                              if (!user) return;
+                              if (!mimoUser) return;
                               await reviewSession(session.id, {
-                                reviewedBy: user.uid,
-                                reviewerName: user.name,
+                                reviewedBy: mimoUser.uid,
+                                reviewerName: mimoUser.name,
                                 action: opt,
                                 comment: session.review?.comment || '',
                                 reviewedAt: new Date().toISOString()
