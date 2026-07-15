@@ -177,24 +177,6 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="department">
-              Department
-            </label>
-            <select
-              id="department"
-              className="form-select"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value as Department)}
-            >
-              {DEPARTMENTS.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
             <label className="form-label" htmlFor="role">
               Role
             </label>
@@ -202,7 +184,13 @@ export default function RegisterPage() {
               id="role"
               className="form-select"
               value={role}
-              onChange={(e) => setRole(e.target.value as UserRole)}
+              onChange={(e) => {
+                const r = e.target.value as UserRole;
+                setRole(r);
+                if (r === 'hr') setDepartment('HR');
+                else if (r === 'founder' || r === 'co-founder') setDepartment('Management');
+                else setDepartment('Frontend');
+              }}
             >
               <option value="intern">Intern</option>
               <option value="hr">HR</option>
@@ -211,34 +199,56 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          <div className="form-group" style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ flex: 1 }}>
-              <label className="form-label" htmlFor="start-date">
-                Internship Start Date
-              </label>
-              <input
-                id="start-date"
-                type="date"
-                className="form-input"
-                value={internshipStartDate}
-                onChange={(e) => setInternshipStartDate(e.target.value)}
-                required
-              />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label className="form-label" htmlFor="end-date">
-                Internship End Date
-              </label>
-              <input
-                id="end-date"
-                type="date"
-                className="form-input"
-                value={internshipEndDate}
-                onChange={(e) => setInternshipEndDate(e.target.value)}
-                required
-              />
-            </div>
-          </div>
+          {role === 'intern' && (
+            <>
+              <div className="form-group">
+                <label className="form-label" htmlFor="department">
+                  Department
+                </label>
+                <select
+                  id="department"
+                  className="form-select"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value as Department)}
+                >
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group" style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label" htmlFor="start-date">
+                    Internship Start Date
+                  </label>
+                  <input
+                    id="start-date"
+                    type="date"
+                    className="form-input"
+                    value={internshipStartDate}
+                    onChange={(e) => setInternshipStartDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label" htmlFor="end-date">
+                    Internship End Date
+                  </label>
+                  <input
+                    id="end-date"
+                    type="date"
+                    className="form-input"
+                    value={internshipEndDate}
+                    onChange={(e) => setInternshipEndDate(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="reg-password">

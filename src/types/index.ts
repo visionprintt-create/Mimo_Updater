@@ -8,7 +8,9 @@ export type Department =
   | 'Production'
   | 'Hardware Team'
   | 'Finance'
-  | 'Design';
+  | 'Design'
+  | 'Management'
+  | 'HR';
 
 export const DEPARTMENTS: Department[] = [
   'Marketing',
@@ -18,6 +20,8 @@ export const DEPARTMENTS: Department[] = [
   'Hardware Team',
   'Finance',
   'Design',
+  'Management',
+  'HR',
 ];
 
 export const ADMIN_ROLES: UserRole[] = ['founder', 'co-founder', 'hr'];
