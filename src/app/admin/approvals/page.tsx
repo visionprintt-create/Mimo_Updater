@@ -377,7 +377,7 @@ export default function TeamAndApprovalsPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', marginLeft: '8px' }} onClick={(e) => e.stopPropagation()}>
                             <input 
                               type="date" 
-                              value={user.internshipStartDate || ''}
+                              value={user.internshipStartDate ? user.internshipStartDate.split('T')[0] : ''}
                               onChange={async (e) => {
                                 await updateUserInternshipDates(user.uid, e.target.value, user.internshipEndDate || '');
                                 setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipStartDate: e.target.value } : u));
@@ -387,7 +387,7 @@ export default function TeamAndApprovalsPage() {
                             <span style={{ color: 'var(--text-muted)' }}>to</span>
                             <input 
                               type="date" 
-                              value={user.internshipEndDate || ''}
+                              value={user.internshipEndDate ? user.internshipEndDate.split('T')[0] : ''}
                               onChange={async (e) => {
                                 await updateUserInternshipDates(user.uid, user.internshipStartDate || '', e.target.value);
                                 setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipEndDate: e.target.value } : u));
