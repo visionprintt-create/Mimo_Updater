@@ -188,13 +188,12 @@ export default function RegisterPage() {
                 const r = e.target.value as UserRole;
                 setRole(r);
                 if (r === 'hr') setDepartment('HR');
-                else if (r === 'founder' || r === 'co-founder') setDepartment('Management');
+                else if (r === 'founder') setDepartment('Management');
                 else setDepartment('Frontend');
               }}
             >
               <option value="intern">Intern</option>
               <option value="hr">HR</option>
-              <option value="co-founder">Co-Founder</option>
               <option value="founder">Founder</option>
             </select>
           </div>

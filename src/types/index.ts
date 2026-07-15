@@ -1,5 +1,5 @@
 // ─── User & Auth Types ─────────────────────────────────────────────
-export type UserRole = 'founder' | 'co-founder' | 'hr' | 'intern';
+export type UserRole = 'founder' | 'hr' | 'intern';
 export type UserStatus = 'pending' | 'approved' | 'suspended' | 'rejected';
 export type Department =
   | 'Marketing'
@@ -24,7 +24,7 @@ export const DEPARTMENTS: Department[] = [
   'HR',
 ];
 
-export const ADMIN_ROLES: UserRole[] = ['founder', 'co-founder', 'hr'];
+export const ADMIN_ROLES: UserRole[] = ['founder', 'hr'];
 
 export interface MimoUser {
   uid: string;
