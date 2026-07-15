@@ -166,8 +166,6 @@ export default function AnalyticsPage() {
     return map;
   }, [filteredSessions]);
 
-  // ─── Hours by department bar chart ────────────────────────────────
-  const maxDeptHours = Math.max(...DEPARTMENTS.map((d) => deptStats[d]?.totalMs ?? 0), 1);
 
   // ─── Leaderboard (global or per dept) ─────────────────────────────
   const sessionSource = selectedDept === 'all' ? filteredSessions : filteredSessions.filter((s) => s.userDepartment === selectedDept);
@@ -281,29 +279,6 @@ export default function AnalyticsPage() {
       {/* ── OVERVIEW VIEW ── */}
       {activeView === 'overview' && (
         <>
-          <div className="grid-2" style={{ marginBottom: '32px' }}>
-            {/* Hours by Department */}
-            <div className="glass-card-static">
-              <h4 style={{ marginBottom: '20px' }}>Hours by Department</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {DEPARTMENTS.map((dept) => {
-                  const hours = deptStats[dept]?.totalMs ?? 0;
-                  const pct = (hours / maxDeptHours) * 100;
-                  return (
-                    <div key={dept}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>{dept}</span>
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>{fmtDur(hours)}</span>
-                      </div>
-                      <div style={{ height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, background: getDeptColor(dept), borderRadius: '4px', transition: 'width 0.5s ease' }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Task Categories */}
             <div className="glass-card-static">
               <h4 style={{ marginBottom: '20px' }}>Task Categories</h4>
@@ -328,7 +303,6 @@ export default function AnalyticsPage() {
                 </div>
               )}
             </div>
-          </div>
 
           {/* Daily Activity Chart */}
           <div className="glass-card-static" style={{ marginBottom: '32px' }}>
