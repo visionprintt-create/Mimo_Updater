@@ -20,8 +20,6 @@ export const DEPARTMENTS: Department[] = [
   'Hardware Team',
   'Finance',
   'Design',
-  'Management',
-  'HR',
 ];
 
 export const ADMIN_ROLES: UserRole[] = ['founder', 'hr'];
