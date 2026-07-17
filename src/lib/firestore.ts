@@ -389,11 +389,18 @@ export async function getWeeklyTasks(userId: string): Promise<import('@/types').
 
 export async function addWeeklyTask(userId: string, title: string): Promise<string> {
   const ref = doc(collection(db, 'weekly_tasks'));
+  
+  const d = new Date();
+  const day = d.getDay();
+  d.setDate(d.getDate() + (6 - day));
+  d.setHours(23, 59, 59, 999);
+  
   await setDoc(ref, {
     userId,
     title,
     completed: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    dueDate: d.toISOString()
   });
   return ref.id;
 }

@@ -154,7 +154,12 @@ export default function DashboardPage() {
         const title = newWeeklyTask.trim();
         setNewWeeklyTask('');
         const tempId = genId();
-        setWeeklyTasks(prev => [{ id: tempId, title, completed: false, createdAt: new Date().toISOString(), userId: viewingUser.uid }, ...prev]);
+        const d = new Date();
+        const day = d.getDay();
+        d.setDate(d.getDate() + (6 - day));
+        d.setHours(23, 59, 59, 999);
+        const dueDate = d.toISOString();
+        setWeeklyTasks(prev => [{ id: tempId, title, completed: false, createdAt: new Date().toISOString(), dueDate, userId: viewingUser.uid }, ...prev]);
         const newId = await addWeeklyTask(viewingUser.uid, title);
         setWeeklyTasks(prev => prev.map(t => t.id === tempId ? { ...t, id: newId } : t));
       }
@@ -163,8 +168,9 @@ export default function DashboardPage() {
 
   const handleToggleWeeklyTask = async (task: import('@/types').WeeklyTask) => {
     const updated = !task.completed;
-    setWeeklyTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: updated } : t));
-    await updateWeeklyTask(task.id, { completed: updated });
+    const completedAt = updated ? new Date().toISOString() : undefined;
+    setWeeklyTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: updated, completedAt } : t));
+    await updateWeeklyTask(task.id, { completed: updated, completedAt });
   };
 
   const handleDeleteWeeklyTask = async (taskId: string) => {
@@ -525,7 +531,7 @@ export default function DashboardPage() {
         <div style={{ maxWidth:'1200px', margin:'0 auto', width:'100%', padding:'36px 32px' }}>
           <div style={{ fontSize:'20px', fontWeight:700, marginBottom:'24px' }}>Weekly Tasks</div>
           
-          {isMe && (
+          {(mimoUser?.role === 'founder' || mimoUser?.role === 'hr') && (
             <textarea 
               placeholder="Add a new weekly task and press Enter (Shift+Enter for new line)..." 
               value={newWeeklyTask}
@@ -540,45 +546,53 @@ export default function DashboardPage() {
             {weeklyTasks.length === 0 ? (
               <div style={{ color:C.textSecondary, textAlign:'center', padding:'40px' }}>No weekly tasks found.</div>
             ) : (
-              weeklyTasks.map(t => (
-                <div key={t.id} style={{ display:'flex', alignItems:'center', gap:'12px', background:C.surface, padding:'16px', borderRadius:'12px', border:`1px solid ${C.border}` }}>
-                  <input 
-                    type="checkbox" 
-                    checked={t.completed} 
-                    onChange={() => isMe && handleToggleWeeklyTask(t)}
-                    disabled={!isMe}
-                    style={{ width:'20px', height:'20px', cursor: isMe ? 'pointer' : 'default' }}
-                  />
-                  {editingWeeklyTaskId === t.id ? (
-                    <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
-                      <textarea
-                        value={editingWeeklyTaskTitle}
-                        onChange={e => setEditingWeeklyTaskTitle(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEditWeeklyTask(t.id); }
-                          if (e.key === 'Escape') setEditingWeeklyTaskId(null);
-                        }}
-                        onInput={handleAutoResize}
-                        style={{ ...TEXTAREA, flex: 1, minHeight: '40px', padding: '8px', overflow: 'hidden' }}
-                        autoFocus
-                      />
-                      <button onClick={() => handleSaveEditWeeklyTask(t.id)} style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: '8px', padding: '0 16px', cursor: 'pointer', fontWeight: 600 }}>Save</button>
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ flex: 1, fontSize:'15px', color: t.completed ? C.textMuted : C.textPrimary, textDecoration: t.completed ? 'line-through' : 'none', whiteSpace: 'pre-wrap' }}>
-                        {t.title}
+              weeklyTasks.map(t => {
+                const dueDate = t.dueDate ? new Date(t.dueDate) : new Date(new Date(t.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000);
+                const isLate = t.completed
+                  ? t.completedAt && new Date(t.completedAt) > dueDate
+                  : new Date() > dueDate;
+                const canToggle = isMe || mimoUser?.role === 'founder' || mimoUser?.role === 'hr';
+
+                return (
+                  <div key={t.id} style={{ display:'flex', alignItems:'center', gap:'12px', background:C.surface, padding:'16px', borderRadius:'12px', border:`1px solid ${C.border}` }}>
+                    <input 
+                      type="checkbox" 
+                      checked={t.completed} 
+                      onChange={() => canToggle && handleToggleWeeklyTask(t)}
+                      disabled={!canToggle}
+                      style={{ width:'20px', height:'20px', cursor: canToggle ? 'pointer' : 'default' }}
+                    />
+                    {editingWeeklyTaskId === t.id ? (
+                      <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+                        <textarea
+                          value={editingWeeklyTaskTitle}
+                          onChange={e => setEditingWeeklyTaskTitle(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEditWeeklyTask(t.id); }
+                            if (e.key === 'Escape') setEditingWeeklyTaskId(null);
+                          }}
+                          onInput={handleAutoResize}
+                          style={{ ...TEXTAREA, flex: 1, minHeight: '40px', padding: '8px', overflow: 'hidden' }}
+                          autoFocus
+                        />
+                        <button onClick={() => handleSaveEditWeeklyTask(t.id)} style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: '8px', padding: '0 16px', cursor: 'pointer', fontWeight: 600 }}>Save</button>
                       </div>
-                      {isMe && (
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button onClick={() => { setEditingWeeklyTaskId(t.id); setEditingWeeklyTaskTitle(t.title); }} style={{ background: 'transparent', border: 'none', color: C.textSecondary, cursor: 'pointer', fontSize: '13px' }}>Edit</button>
-                          <button onClick={() => handleDeleteWeeklyTask(t.id)} style={{ background: 'transparent', border: 'none', color: C.red, cursor: 'pointer', fontSize: '13px' }}>Delete</button>
+                    ) : (
+                      <>
+                        <div style={{ flex: 1, fontSize:'15px', color: t.completed ? C.textMuted : C.textPrimary, textDecoration: t.completed ? 'line-through' : 'none', whiteSpace: 'pre-wrap' }}>
+                          {t.title} {isLate && <span title="Late Submission" style={{ color: C.red, marginLeft: '4px' }}>⭐</span>}
                         </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))
+                        {(mimoUser?.role === 'founder' || mimoUser?.role === 'hr') && (
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => { setEditingWeeklyTaskId(t.id); setEditingWeeklyTaskTitle(t.title); }} style={{ background: 'transparent', border: 'none', color: C.textSecondary, cursor: 'pointer', fontSize: '13px' }}>Edit</button>
+                            <button onClick={() => handleDeleteWeeklyTask(t.id)} style={{ background: 'transparent', border: 'none', color: C.red, cursor: 'pointer', fontSize: '13px' }}>Delete</button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

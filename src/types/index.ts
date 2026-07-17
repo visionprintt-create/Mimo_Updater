@@ -125,7 +125,9 @@ export interface WeeklyTask {
   userId: string;
   title: string;
   completed: boolean;
+  completedAt?: string;
   createdAt: string;
+  dueDate: string;
 }
 export type ReviewAction = 'approved' | 'noted' | 'flagged' | 'starred' | 'paid' | 'unpaid';
 
