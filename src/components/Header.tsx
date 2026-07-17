@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/uiStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { signOutUser } from '@/lib/auth';
 import { getTheme } from '@/lib/theme';
+import Notifications from './Notifications';
 
 function formatTime(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -116,6 +117,7 @@ export default function Header() {
 
       {/* ═══ RIGHT: Timer & Actions ═══ */}
       <div className="header-right" style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'16px' }}>
+        <Notifications />
         {!isAdminRoute && (
           <>
             <div className="header-timer" style={{
