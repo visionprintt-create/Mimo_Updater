@@ -230,6 +230,41 @@ export default function AnalyticsPage() {
           <h1>📈 Analytics</h1>
           <p>Team performance and productivity insights</p>
         </div>
+        <button onClick={async () => {
+          const mapping: Record<string, string> = {
+            'Mohamed Huzaifa S': 'Backend',
+            'Atharv Shukla': 'Backend',
+            'Zafreen Afifa': 'Marketing',
+            'Ankit': 'Marketing',
+            'Vedhika': 'Design',
+            'Vatsa krishna': 'Finance',
+            'Abhishek': 'Production'
+          };
+          try {
+            const snap = await getDocs(collection(db, 'users'));
+            const promises = snap.docs.map(async (d) => {
+              const data = d.data();
+              if (data.displayName) {
+                for (const [name, dept] of Object.entries(mapping)) {
+                  if (data.displayName.toLowerCase().includes(name.toLowerCase())) {
+                    await updateDoc(doc(db, 'users', d.id), { 
+                      department: dept,
+                      status: 'approved' 
+                    });
+                    break;
+                  }
+                }
+              }
+            });
+            await Promise.all(promises);
+            alert('Database updated successfully! All users mapped to correct departments and approved.');
+          } catch (e) {
+            console.error(e);
+            alert('Error updating database');
+          }
+        }} style={{ padding: '8px 16px', background: 'var(--mimo-primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+          Fix User Departments
+        </button>
       </div>
 
       {/* Controls row */}
