@@ -369,7 +369,7 @@ export default function DashboardPage() {
       {/* ══ USER HEADER & SWIPE ARROWS ══ */}
       {deptFilter && deptUsers.length > 0 && (
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: '32px', background: C.accent, padding:'16px 24px', borderRadius:'16px', border: 'none', boxShadow: `0 4px 20px ${C.accent}40` }}>
-          <button onClick={prevUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'<'}</button>
+          <button onClick={prevUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px', visibility: deptUsers.length > 1 ? 'visible' : 'hidden' }}>{'<'}</button>
           <div style={{ textAlign:'center' }}>
             <div style={{ fontSize:'22px', fontWeight:800, letterSpacing:'-0.02em', color: '#ffffff' }}>{viewingUser?.displayName}</div>
             <div style={{ fontSize:'13px', fontWeight:600, color:'rgba(255,255,255,0.8)', marginTop:'4px' }}>{viewingUser?.department} • <span style={{color:'#ffffff'}}>{viewingUser?.role}</span></div>
@@ -436,7 +436,7 @@ export default function DashboardPage() {
               </button>
             )}
           </div>
-          <button onClick={nextUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px' }}>{'>'}</button>
+          <button onClick={nextUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px', visibility: deptUsers.length > 1 ? 'visible' : 'hidden' }}>{'>'}</button>
         </div>
       )}
 
@@ -619,12 +619,7 @@ export default function DashboardPage() {
                           <span style={{ fontSize:'11px', fontWeight:600, color: C.textMuted, textTransform:'uppercase', letterSpacing:'0.08em' }}>Task {idx+1}</span>
                           <button onClick={()=>removeTask(task.id)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:'50%', width:'26px', height:'26px', color: C.textSecondary, cursor:'pointer', fontSize:'13px', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
                         </div>
-                        <textarea style={{ ...TEXTAREA, marginBottom:'10px', minHeight: '60px', overflow: 'hidden' }} placeholder="Task title (Shift+Enter for new line)" value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} onInput={handleAutoResize} />
-                        <div style={{ display:'flex', gap:'10px' }}>
-                          <select style={{ ...INPUT, flex:1 }} value={task.category} onChange={e=>updateTask(task.id,'category',e.target.value)}>
-                            {TASK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                          </select>
-                        </div>
+                        <textarea style={{ ...TEXTAREA, marginBottom:'0px', minHeight: '60px', overflow: 'hidden' }} placeholder="Task title (Shift+Enter for new line)" value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} onInput={handleAutoResize} />
                       </div>
                     ))}
                   </div>
