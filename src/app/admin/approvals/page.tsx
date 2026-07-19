@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { getPendingUsers, getAllUsers, getUserStats, getRecentUserSessions, updateUserStatus, createNotification, deleteUserAccount, updateUserInternshipDates } from '@/lib/firestore';
-import { ADMIN_ROLES } from '@/types';
-import type { MimoUser, WorkSession } from '@/types';
+import { ADMIN_ROLES, DEPARTMENTS } from '@/types';
+import type { MimoUser, WorkSession, Department } from '@/types';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { fmtDur } from '@/lib/utils';
 
 import { getTheme } from '@/lib/theme';
@@ -364,9 +366,19 @@ export default function TeamAndApprovalsPage() {
                         {user.email}
                       </div>
                       <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                        <span className={`badge badge-dept-${user.department.toLowerCase().replace(/\s+/g, '-')}`}>
-                          {user.department}
-                        </span>
+                        <select 
+                          className={`badge badge-dept-${user.department.toLowerCase().replace(/\s+/g, '-')}`}
+                          value={user.department}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={async (e) => {
+                            const newDept = e.target.value as Department;
+                            setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, department: newDept } : u));
+                            await updateDoc(doc(db, 'users', user.uid), { department: newDept });
+                          }}
+                          style={{ appearance: 'auto', border: 'none', cursor: 'pointer', outline: 'none' }}
+                        >
+                          {DEPARTMENTS.map(d => <option key={d} value={d} style={{ color: 'initial' }}>{d}</option>)}
+                        </select>
                         <span className="badge" style={{ background: 'var(--bg-glass)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}>
                           {user.role}
                         </span>
