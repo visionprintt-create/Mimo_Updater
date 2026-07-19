@@ -4,36 +4,36 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { isAdmin } from '@/lib/auth';
+import { signOutUser } from '@/lib/auth';
 import { DEPARTMENTS } from '@/types';
-import { getTheme } from '@/lib/theme';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { mimoUser } = useAuthStore();
   const { isMobileSidebarOpen, closeSidebar, deptFilter, setDeptFilter } = useUIStore();
-  const admin = mimoUser && isAdmin(mimoUser.role);
 
-  const depts = mimoUser?.departments || (mimoUser?.department ? [mimoUser.department] : []);
-  const activeDept = deptFilter || depts[0];
-  const C = getTheme(activeDept);
+  const handleSignOut = async () => {
+    await signOutUser();
+    router.push('/login');
+  };
 
-  const btnStyle = (active: boolean, specificDept?: string): React.CSSProperties => {
-    const theme = specificDept ? getTheme(specificDept) : C;
+  const btnStyle = (active: boolean): React.CSSProperties => {
     return {
-      background: active ? theme.gradient : 'transparent',
-      color: active ? '#ffffff' : C.textSecondary,
-      border: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '14px 16px',
+      margin: '4px 16px',
       borderRadius: '12px',
-      padding: '12px 16px',
+      color: active ? '#2D3A37' : '#516863',
+      background: active ? '#D69B69' : 'transparent',
+      border: 'none',
       cursor: 'pointer',
-      fontWeight: active ? 600 : 400,
-      fontSize: '13px',
+      fontWeight: 500,
+      fontSize: '15px',
       textAlign: 'left',
-      width: '100%',
-      transition: 'all 0.3s ease',
-      display: 'block',
+      width: 'calc(100% - 32px)',
+      transition: 'all 0.2s',
       textDecoration: 'none'
     };
   };
@@ -47,65 +47,104 @@ export default function Sidebar() {
       <aside 
         className={`sidebar ${isMobileSidebarOpen ? 'open' : ''}`}
         style={{
-          padding: '24px 16px',
-          gap: '32px',
-          overflowY: 'auto',
-          background: C.surface,
+          display: 'flex',
+          flexDirection: 'column',
+          width: '260px',
+          background: '#A9BDB8', // Mint background matching admin sidebar
           borderRight: 'none',
-          boxShadow: '2px 0 10px rgba(0,0,0,0.02)'
+          boxShadow: '2px 0 10px rgba(0,0,0,0.02)',
+          overflowY: 'auto',
+          height: '100vh',
+          position: 'sticky',
+          top: 0
         }}
       >
-        {/* Departments Section */}
-        {!admin && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ fontSize: '11px', color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '8px' }}>
-              Departments
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {DEPARTMENTS.map(d => (
-                <button
-                  key={d}
-                  onClick={() => {
-                    if (pathname !== '/dashboard') router.push('/dashboard');
-                    setDeptFilter(deptFilter === d ? null : d);
-                    closeSidebar();
-                  }}
-                  style={btnStyle(deptFilter === d, d)}
-                >
-                  {d}
-                </button>
-              ))}
-              {deptFilter && (
-                <button 
-                  onClick={() => setDeptFilter(null)} 
-                  style={{ ...btnStyle(false), border:'none', color:C.textSecondary, fontSize:'12px', textAlign:'center', marginTop:'4px' }}
-                >
-                  Clear filter
-                </button>
-              )}
-            </div>
+        {/* Logo Area */}
+        <div style={{ padding: '24px 32px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#2D3A37', letterSpacing: '1px' }}>
+            MIMO <span style={{ color: '#D69B69', fontStyle: 'italic' }}>MONITOR</span>
           </div>
-        )}
+        </div>
 
-        {/* Admin Navigation Section */}
-        {admin && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
-            <div style={{ fontSize: '11px', color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '8px' }}>
-              Admin
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link href="/admin" onClick={closeSidebar} style={btnStyle(pathname === '/admin')}>
-                Analytics
-              </Link>
-              <Link href="/admin/approvals" onClick={closeSidebar} style={btnStyle(pathname === '/admin/approvals')}>
-                Team & Approvals
-              </Link>
-              <Link href="/admin/reviews" onClick={closeSidebar} style={btnStyle(pathname === '/admin/reviews')}>
-                Work Reviews
-              </Link>
-            </div>
+        {/* Departments Section */}
+        <nav style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ fontSize: '11px', color: '#516863', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '32px', marginBottom: '8px' }}>
+            Departments
           </div>
-        )}
+          {DEPARTMENTS.map(d => {
+            const isActive = deptFilter === d;
+            return (
+              <button
+                key={d}
+                onClick={() => {
+                  if (pathname !== '/dashboard') router.push('/dashboard');
+                  setDeptFilter(isActive ? null : d);
+                  closeSidebar();
+                }}
+                style={btnStyle(isActive)}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.color = '#2D3A37';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#516863';
+                  }
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  {d}
+                </div>
+                {isActive && (
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+          
+          {deptFilter && (
+            <button 
+              onClick={() => setDeptFilter(null)} 
+              style={{ ...btnStyle(false), color: '#516863', fontSize: '13px', paddingLeft: '52px', marginTop: '4px' }}
+              onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#2D3A37';
+              }}
+              onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#516863';
+              }}
+            >
+              Clear filter
+            </button>
+          )}
+        </nav>
+
+        {/* Bottom Actions */}
+        <div style={{ marginTop: 'auto', padding: '32px 16px', borderTop: 'none' }}>
+          <div 
+            onClick={handleSignOut}
+            style={{ display: 'flex', alignItems: 'center', gap: '16px', color: '#2D3A37', cursor: 'pointer', padding: '12px 16px', borderRadius: '8px', transition: 'all 0.2s' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span style={{ fontSize: '15px', fontWeight: 500 }}>Sign Out</span>
+          </div>
+        </div>
+
       </aside>
     </>
   );

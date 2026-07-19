@@ -58,6 +58,7 @@ export interface TaskEntry {
   title: string;
   description: string;
   category: TaskCategory;
+  dueDate?: string;
 }
 
 export type TaskCategory =
@@ -130,7 +131,7 @@ export interface WeeklyTask {
   createdAt: string;
   dueDate: string;
 }
-export type ReviewAction = 'approved' | 'noted' | 'flagged' | 'starred' | 'paid' | 'unpaid';
+export type ReviewAction = 'approved';
 
 export interface SessionReview {
   reviewedBy: string;

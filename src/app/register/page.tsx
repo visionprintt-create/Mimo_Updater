@@ -100,7 +100,7 @@ export default function RegisterPage() {
       <div className="auth-container">
         <div className="auth-card animate-in">
           <div className="auth-logo">
-            <h1>Mimo</h1>
+            <h1>MIMO</h1>
           </div>
           <div className="auth-success">
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
@@ -124,8 +124,7 @@ export default function RegisterPage() {
     <div className="auth-container">
       <div className="auth-card animate-in">
         <div className="auth-logo">
-          <h1>Mimo</h1>
-          <p>Create your WorkTracker account</p>
+          <h1>MIMO</h1>
         </div>
 
         {error && <div className="auth-error">{error}</div>}
@@ -334,8 +333,16 @@ export default function RegisterPage() {
         <div className="auth-footer" style={{ marginTop: '24px' }}>
           <p>
             Already have an account?{' '}
-            <Link href="/login">Sign in</Link>
+            <Link href="/login">Sign in here</Link>
           </p>
+        </div>
+
+        <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+          <p>
+            Software Designed & Developed by{' '}
+            <Link href="/admin" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 600 }}>Afifaaa</Link>
+          </p>
+          <p>© 2026 Vision Printt Technologies. All Rights Reserved.</p>
         </div>
       </div>
     </div>

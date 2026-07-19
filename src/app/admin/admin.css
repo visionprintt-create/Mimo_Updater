@@ -1,0 +1,105 @@
+/* Admin Dashboard 3D Mint/Beige Theme */
+.admin-dark-theme {
+  --bg-primary: #BAC9C5;
+  --bg-secondary: #C3D1CE;
+  --bg-card: #D1DFDB;
+  --bg-glass: rgba(209, 223, 219, 0.85);
+  
+  --text-primary: #2D3A37;
+  --text-secondary: #516863;
+  --text-muted: #728A85;
+  
+  --bg-input: #C3D1CE;
+  --bg-input-focus: #D1DFDB;
+  --mimo-primary: #D69B69;
+  
+  --border-color: #9FB2AC;
+  
+  /* Specific component colors matching screenshot */
+  --admin-cyan: #9CC2BD;
+  --admin-indigo: #82A29C;
+  --admin-darkgray: #D1DFDB;
+  --admin-active-blue: #D69B69;
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  background-color: #A9BDB8;
+  border-right: none;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-header {
+  background-color: #BAC9C5;
+  border-bottom: none;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.admin-search {
+  background-color: #A9BDB8;
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  padding: 10px 20px;
+  color: var(--text-primary);
+  width: 320px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  width: 100%;
+  font-size: 14px;
+}
+
+.admin-search input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  margin: 4px 16px;
+  border-radius: 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.admin-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.admin-nav-item.active, .admin-nav-item.active:hover {
+  background-color: var(--mimo-primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.admin-card {
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 140px;
+}

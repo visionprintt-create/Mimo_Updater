@@ -15,49 +15,49 @@
 /* ─── CSS Custom Properties ─────────────────────────────────────── */
 :root {
   /* Brand Colors */
-  --mimo-primary: #4D0E13; /* BURGENDY */
-  --mimo-primary-light: #7A3B40;
-  --mimo-primary-dark: #2A0508;
-  --mimo-accent: #C8A49F; /* DUSTY PINK */
-  --mimo-accent-light: #E2C8C4;
+  --mimo-primary: #D69B69; /* Orange accent */
+  --mimo-primary-light: #E8B488;
+  --mimo-primary-dark: #C28250;
+  --mimo-accent: #82A29C; /* Indigo accent */
+  --mimo-accent-light: #9CC2BD; /* Cyan accent */
 
-  /* Background - Beige */
-  --bg-primary: #E8DECE; /* Warm Beige (Main Background) */
-  --bg-secondary: #F5F0E6; /* Light Beige (Cards/Sidebar) */
-  --bg-card: #F5F0E6; /* Light Beige */
-  --bg-card-hover: #EBE4D8;
-  --bg-glass: rgba(245, 240, 230, 0.85); /* Light Beige Glass */
-  --bg-glass-hover: rgba(245, 240, 230, 0.95);
-  --bg-input: #FFFFFF;
-  --bg-input-focus: #F5F0E6;
+  /* Background - Mint & Glass */
+  --bg-primary: #BAC9C5;
+  --bg-secondary: #C3D1CE;
+  --bg-card: #D1DFDB;
+  --bg-card-hover: #C3D1CE;
+  --bg-glass: rgba(209, 223, 219, 0.85);
+  --bg-glass-hover: rgba(209, 223, 219, 0.95);
+  --bg-input: #C3D1CE;
+  --bg-input-focus: #D1DFDB;
 
   /* Text */
-  --text-primary: #3F4238; /* Dark Olive / Charcoal */
-  --text-secondary: #768063; /* Olive */
-  --text-muted: #9BA38C;
-  --text-inverse: #F5F0E6; /* Light Beige */
+  --text-primary: #2D3A37;
+  --text-secondary: #516863;
+  --text-muted: #728A85;
+  --text-inverse: #D1DFDB;
 
-  /* Borders */
-  --border-color: #D3CABC; /* Soft Beige border */
-  --border-color-hover: #768063; /* Olive */
-  --border-color-focus: #B5838D; /* Rose */
+  /* Borders & Accents */
+  --border-color: #9FB2AC;
+  --border-color-hover: #82A29C;
+  --border-color-focus: #82A29C;
 
   /* Status Colors */
-  --status-active: #8A9A86;
-  --status-break: #D8C4AC;
+  --status-active: #859966; /* Olive Green */
+  --status-break: #CDBA88; /* Muted Gold */
   --status-offline: #A38C88;
-  --status-flagged: #C8A49F;
-  --status-starred: #D8C4AC;
-  --status-pending: #D8C4AC;
-  --status-approved: #8A9A86;
+  --status-flagged: #B88B93; /* Dusty Rose */
+  --status-starred: #CDBA88; /* Muted Gold */
+  --status-pending: #CDBA88; /* Muted Gold */
+  --status-approved: #789574; /* Green */
   --status-rejected: #4D0E13;
 
-  /* Department Colors */
-  --dept-marketing: #B5838D; /* Rose */
-  --dept-technical: #768063; /* Olive */
-  --dept-hardware: #CB997E; /* Warm Terracotta/Rose */
-  --dept-finance: #6B705C; /* Deep Olive */
-  --dept-design: #E5989B; /* Light Rose */
+  /* Department Colors - All Dusty Rose for uniform theme */
+  --dept-marketing: #B88B93; 
+  --dept-technical: #B88B93; 
+  --dept-hardware: #B88B93; 
+  --dept-finance: #B88B93; 
+  --dept-design: #B88B93; 
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -100,7 +100,7 @@
   --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Layout */
-  --sidebar-width: 220px;
+  --sidebar-width: 260px;
   --sidebar-collapsed: 72px;
   --header-height: 64px;
   --content-max-width: 1200px;

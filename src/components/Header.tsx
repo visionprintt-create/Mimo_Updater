@@ -22,10 +22,10 @@ export default function Header() {
   const pathname = usePathname();
   const { mimoUser } = useAuthStore();
   const { dashboardTab, setDashboardTab, toggleSidebar } = useUIStore();
-  const { remainingMs, isWorking, isOnBreak, isClockingIn, clockIn, clockOut } = useSessionStore();
+  const { activeSession, remainingMs, isWorking, isOnBreak, isClockingIn, clockIn, clockOut } = useSessionStore();
   const [showSignOut, setShowSignOut] = useState(false);
 
-  const { deptFilter } = useUIStore();
+  const { deptFilter, setDeptFilter } = useUIStore();
   const depts = mimoUser?.departments || (mimoUser?.department ? [mimoUser.department] : []);
   const activeDept = deptFilter || depts[0];
   const C = getTheme(activeDept);
@@ -50,87 +50,86 @@ export default function Header() {
     <header className="header" style={{ 
         display:'flex', alignItems:'center', justifyContent:'space-between', 
         padding:'0 32px',
+        height: '80px',
         flexShrink:0,
-        background: C.surface,
-        borderBottom: 'none',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+        background: 'var(--bg-glass)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(0,0,0,0.05)',
+        boxShadow: '0 4px 30px rgba(0,0,0,0.02)',
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        marginTop: '16px',
+        zIndex: 50
       }}>
-      {/* ═══ LEFT: Profile ═══ */}
-      <div className="header-left" style={{ position:'relative', display: 'flex', alignItems: 'center' }}>
-        <button className="mobile-menu-btn" onClick={toggleSidebar} aria-label="Menu">
-          ☰
+      {/* ═══ LEFT: Navigation ═══ */}
+      <div className="header-left" style={{ display: 'flex', alignItems: 'center' }}>
+        <button className="mobile-menu-btn" onClick={toggleSidebar} aria-label="Menu" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: C.textPrimary }}>
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
         </button>
-        <div className="header-user-info" onClick={() => setShowSignOut(v=>!v)} style={{ cursor:'pointer', display: 'flex', flexDirection: 'column' }}>
-          <div className="header-name" style={{ fontWeight:800, fontSize:'16px', color: C.textPrimary, letterSpacing: '-0.02em' }}>
-            {mimoUser?.displayName || 'User'}
-          </div>
-          <div className="header-dept" style={{ fontSize:'12px', color: C.textSecondary, fontWeight: 500, marginTop:'2px' }}>
-            {mimoUser?.role} • <span style={{ color: C.accent }}>{depts.join(', ')}</span>
-          </div>
-        </div>
-        {showSignOut && (
-          <div style={{ 
-            position:'absolute', top:'100%', left:0, marginTop:'8px', 
-            background:C.surface, border:`1px solid ${C.border}`, borderRadius:'8px', 
-            padding:'6px', zIndex:50, minWidth:'120px', boxShadow:'0 10px 25px rgba(0,0,0,0.5)'
-          }}>
-            <button 
-              onClick={handleSignOut}
-              style={{
-                width:'100%', padding:'8px 12px', background:'transparent', border:'none',
-                color:'#ef4444', textAlign:'left', cursor:'pointer', fontSize:'13px',
-                borderRadius:'6px'
-              }}
-            >
-              Sign Out
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* ═══ CENTER: Tabs ═══ */}
-      <div className="header-center" style={{ flex:1, display:'flex', justifyContent:'center' }}>
-        {!isAdminRoute && (
-          <div className="header-tabs" style={{ display:'flex', gap:'8px', background: 'rgba(0,0,0,0.03)', padding:'6px', borderRadius:'14px' }}>
-            {TABS.map(t => {
-              const active = dashboardTab === t && pathname === '/dashboard';
-              return (
-                <button
-                  key={t}
-                  className="header-tab-btn"
-                  onClick={() => handleTabClick(t)}
-                  style={{
-                    background: active ? C.accent : 'transparent',
-                    color: active ? '#FFFFFF' : C.textSecondary,
-                    border: 'none', padding: '6px 24px', borderRadius: '10px', cursor: 'pointer',
-                    fontWeight: active ? 600 : 500, fontSize: '13px',
-                    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' : 'none',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}
-                >
-                  {t}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* ═══ CENTER: Tabs (Absolutely Centered) ═══ */}
+      {!isAdminRoute && (
+        <div className="header-tabs" style={{ 
+          position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+          display:'flex', gap:'4px', background: 'rgba(0,0,0,0.05)', padding:'4px', borderRadius:'14px' 
+        }}>
+          {TABS.map(t => {
+            const active = dashboardTab === t && pathname === '/dashboard';
+            return (
+              <button
+                key={t}
+                className="header-tab-btn"
+                onClick={() => handleTabClick(t)}
+                style={{
+                  background: active ? '#fff' : 'transparent',
+                  color: active ? C.textPrimary : C.textSecondary,
+                  border: 'none', padding: '8px 24px', borderRadius: '10px', cursor: 'pointer',
+                  fontWeight: active ? 600 : 500, fontSize: '13px',
+                  boxShadow: active ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+              >
+                {t}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ═══ RIGHT: Timer & Actions ═══ */}
       <div className="header-right" style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', gap:'16px' }}>
         <Notifications />
         {!isAdminRoute && (
           <>
-            <div className="header-timer" style={{
-              background: isOnBreak ? '#fffbeb' : (isWorking ? '#f0fdf4' : 'transparent'),
-              color: isOnBreak ? '#b45309' : (isWorking ? '#166534' : C.textPrimary),
-              padding: '6px 12px', borderRadius: '8px', fontFamily: 'monospace',
-              fontSize: '16px', fontWeight: 700, letterSpacing: '1px',
-              border: isOnBreak ? '1px solid #fde68a' : (isWorking ? '1px solid #bbf7d0' : 'none'),
-            }}>
-              {formatTime(remainingMs)}
-            </div>
-            {!isWorking ? (
+            {(isWorking || activeSession) && (
+              <div className="header-timer" style={{
+                background: isOnBreak ? '#fffbeb' : (isWorking ? '#f0fdf4' : '#fef2f2'),
+                color: isOnBreak ? '#b45309' : (isWorking ? '#166534' : '#991b1b'),
+                padding: '6px 12px', borderRadius: '8px', fontFamily: 'monospace',
+                fontSize: '16px', fontWeight: 700, letterSpacing: '1px',
+                border: isOnBreak ? '1px solid #fde68a' : (isWorking ? '1px solid #bbf7d0' : '1px solid #fecaca'),
+              }}>
+                {isWorking ? formatTime(remainingMs) : 'PENDING'}
+              </div>
+            )}
+            
+            {activeSession && !isWorking ? (
+              <button 
+                className="header-action-btn"
+                onClick={() => { setDeptFilter(null); setDashboardTab('Today'); router.push('/dashboard'); }}
+                style={{ background: '#ef4444', color: '#ffffff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor: 'pointer', boxShadow: '0 4px 6px rgba(239,68,68,0.2)' }}
+              >
+                Submit Pending Log
+              </button>
+            ) : !isWorking ? (
               <button 
                 className="header-action-btn"
                 onClick={() => mimoUser && !isClockingIn && clockIn(mimoUser.uid, mimoUser.displayName, depts)}

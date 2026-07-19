@@ -21,76 +21,43 @@ export interface AppTheme {
   indigo: string;
 }
 
-// Olive & Rose Palette
-const BG_WARM_BEIGE = '#E8DECE'; // Warm Beige (Main background)
-const BG_LIGHT_BEIGE = '#F5F0E6'; // Light Beige (Floating islands)
-const BORDER_SOFT = '#D3CABC'; 
-const BORDER_LIGHT = 'rgba(211, 202, 188, 0.4)';
-const TEXT_OLIVE_DARK = '#3F4238'; // Dark Olive/Charcoal
-const TEXT_MUTED = '#9BA38C';
+// Mint & Glass Palette
+const BG_MINT = '#BAC9C5'; // Mint Background
+const BG_MINT_LIGHT = '#C3D1CE'; // Secondary
+const BG_MINT_CARD = '#D1DFDB'; // Cards
+const BORDER_SOFT = '#9FB2AC'; 
+const BORDER_LIGHT = 'rgba(159, 178, 172, 0.4)';
+const TEXT_DARK_GREEN = '#2D3A37'; // Dark Mint
+const TEXT_SECONDARY = '#516863';
+const TEXT_MUTED = '#728A85';
 
 const defaultTheme: AppTheme = {
   name: 'Default',
-  bg: BG_WARM_BEIGE,
-  surface: BG_LIGHT_BEIGE,
+  bg: BG_MINT,
+  surface: BG_MINT_CARD,
   border: BORDER_SOFT,
   borderLight: BORDER_LIGHT,
-  textPrimary: TEXT_OLIVE_DARK,
-  textSecondary: '#768063', // Olive
+  textPrimary: TEXT_DARK_GREEN,
+  textSecondary: TEXT_SECONDARY,
   textMuted: TEXT_MUTED,
-  accent: '#B5838D', // Rose
+  accent: '#D69B69', // Orange Accent
   accentGlow: 'transparent',
   radialGlow: 'transparent',
-  gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)', // Soft Rose Gradient
-  green: '#8A9A86', // Sage Green
-  red: '#B5838D', // Rose
-  yellow: '#D3CABC', // Beige
-  indigo: '#768063', // Olive
+  gradient: 'linear-gradient(135deg, #BAC9C5 0%, #9CC2BD 100%)', // Mint Gradient
+  green: '#82A29C', // Indigo/Mint Accent
+  red: '#A85751', // Red
+  yellow: '#D69B69', // Orange
+  indigo: '#5C7080', // Slate Blue
 };
 
 const themes: Record<string, AppTheme> = {
-  'Marketing': {
-    ...defaultTheme,
-    name: 'Marketing',
-    accent: '#B5838D', // Rose
-    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)',
-  },
-  'Frontend': {
-    ...defaultTheme,
-    name: 'Frontend',
-    accent: '#768063', // Olive
-    gradient: 'linear-gradient(135deg, #768063 0%, #5E664E 100%)', 
-  },
-  'Backend': {
-    ...defaultTheme,
-    name: 'Backend',
-    accent: '#C9A66B', // Gold
-    gradient: 'linear-gradient(135deg, #C9A66B 0%, #B08D55 100%)', 
-  },
-  'Production': {
-    ...defaultTheme,
-    name: 'Production',
-    accent: '#B5838D', // Rose
-    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)', 
-  },
-  'Hardware Team': {
-    ...defaultTheme,
-    name: 'Hardware',
-    accent: '#768063', // Olive
-    gradient: 'linear-gradient(135deg, #768063 0%, #5E664E 100%)',
-  },
-  'Finance': {
-    ...defaultTheme,
-    name: 'Finance',
-    accent: '#C9A66B', // Gold
-    gradient: 'linear-gradient(135deg, #C9A66B 0%, #B08D55 100%)',
-  },
-  'Design': {
-    ...defaultTheme,
-    name: 'Design',
-    accent: '#B5838D', // Rose
-    gradient: 'linear-gradient(135deg, #B5838D 0%, #A2727C 100%)',
-  }
+  'Marketing': { ...defaultTheme, name: 'Marketing' },
+  'Frontend': { ...defaultTheme, name: 'Frontend' },
+  'Backend': { ...defaultTheme, name: 'Backend' },
+  'Production': { ...defaultTheme, name: 'Production' },
+  'Hardware Team': { ...defaultTheme, name: 'Hardware' },
+  'Finance': { ...defaultTheme, name: 'Finance' },
+  'Design': { ...defaultTheme, name: 'Design' }
 };
 
 export function getTheme(department?: Department | string | null): AppTheme {

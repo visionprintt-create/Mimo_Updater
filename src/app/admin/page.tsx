@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getGlobalStats, getDepartmentStats, getAllUsers } from '@/lib/firestore';
@@ -25,6 +26,9 @@ const DEPT_BG: Record<string, string> = {
 };
 
 export default function AnalyticsPage() {
+  const searchParams = useSearchParams();
+  const searchQuery = (searchParams.get('q') || '').toLowerCase();
+
   const [sessions, setSessions] = useState<WorkSession[]>([]);
   const [users, setUsers] = useState<MimoUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,8 +174,8 @@ export default function AnalyticsPage() {
         sessions: deptSessions,
         totalMs,
         avgMs: deptStatsTotal[dept]?.totalSessions > 0 ? totalMs / deptStatsTotal[dept].totalSessions : 0,
-        starred: deptSessions.filter((s) => s.review?.action === 'starred').length,
-        flagged: deptSessions.filter((s) => s.review?.action === 'flagged').length,
+        starred: 0,
+        flagged: 0,
         approved: deptSessions.filter((s) => s.review?.action === 'approved').length,
         unreviewed: deptSessions.filter((s) => !s.review).length,
         memberCount: members.size,
@@ -192,11 +196,18 @@ export default function AnalyticsPage() {
       }
       map[s.userId].hours += s.totalDurationMs;
       map[s.userId].sessions += 1;
-      if (s.review?.action === 'starred') map[s.userId].stars += 1;
-      if (s.review?.action === 'flagged') map[s.userId].flags += 1;
+      if (s.review?.action === 'approved') map[s.userId].stars += 0; // Legacy
+      if (s.review?.action === 'approved') map[s.userId].flags += 0; // Legacy
     }
-    return Object.entries(map).sort((a, b) => b[1].hours - a[1].hours);
-  }, [sessionSource]);
+    let results = Object.entries(map).sort((a, b) => b[1].hours - a[1].hours);
+    if (searchQuery) {
+      results = results.filter(([_, data]) => 
+        data.name.toLowerCase().includes(searchQuery) ||
+        data.dept.toLowerCase().includes(searchQuery)
+      );
+    }
+    return results;
+  }, [sessionSource, searchQuery]);
 
   // ─── Task categories ──────────────────────────────────────────────
   const taskCategories = useMemo(() => {
@@ -313,8 +324,6 @@ export default function AnalyticsPage() {
             <div style={{ 
               display: 'flex', alignItems: 'flex-end', gap: '8px', height: '200px', 
               paddingBottom: '32px', paddingTop: '16px', position: 'relative',
-              backgroundImage: 'linear-gradient(to bottom, var(--border-color) 1px, transparent 1px)',
-              backgroundSize: '100% 40px',
               borderBottom: '1px solid var(--border-color)'
             }}>
               {dailyActivity.map((day, idx) => {
@@ -442,8 +451,8 @@ export default function AnalyticsPage() {
         
         // Compute stats for current department in this month
         const totalMs = deptSessions.reduce((acc, s) => acc + s.totalDurationMs, 0);
-        const starred = deptSessions.filter((s) => s.review?.action === 'starred').length;
-        const flagged = deptSessions.filter((s) => s.review?.action === 'flagged').length;
+        const starred = 0;
+        const flagged = 0;
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

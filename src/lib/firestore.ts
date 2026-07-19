@@ -262,9 +262,7 @@ export async function reviewSession(
   if (review.comment) cleanReview.comment = review.comment;
 
   const updates: Record<string, unknown> = { review: cleanReview };
-  if (review.action === 'flagged') {
-    updates.status = 'flagged';
-  }
+
   await updateDoc(doc(db, 'sessions', sessionId), updates);
 }
 

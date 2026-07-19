@@ -542,12 +542,10 @@ export default function TeamAndApprovalsPage() {
                               <span>{s.tasks.length} tasks</span>
                               <span
                                 className={`badge badge-${
-                                  s.review?.action === 'flagged'
-                                    ? 'flagged'
-                                    : s.review?.action === 'starred'
-                                    ? 'starred'
-                                    : s.status === 'completed'
+                                  s.review?.action === 'approved'
                                     ? 'approved'
+                                    : s.status === 'completed'
+                                    ? 'default'
                                     : 'break'
                                 }`}
                                 style={{ fontSize: '10px' }}
