@@ -71,8 +71,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!mimoUser?.uid) return;
+    if (ADMIN_ROLES.includes(mimoUser.role)) {
+      router.push('/admin');
+      return;
+    }
     loadActiveSession(mimoUser.uid);
-  }, [mimoUser?.uid, loadActiveSession]);
+  }, [mimoUser, router, loadActiveSession]);
 
   // When deptFilter changes, load users in that dept
   useEffect(() => {

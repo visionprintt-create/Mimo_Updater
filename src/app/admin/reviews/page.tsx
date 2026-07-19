@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getAllSessions, reviewSession } from '@/lib/firestore';
+import { getAllSessions, reviewSession, getAllUsers } from '@/lib/firestore';
+import { ADMIN_ROLES } from '@/types';
 import type { WorkSession } from '@/types';
 
 import { fmtDur } from '@/lib/utils';
@@ -17,8 +18,9 @@ export default function ReviewsPage() {
 
   const loadSessions = async () => {
     setLoading(true);
-    const s = await getAllSessions();
-    const completed = s.filter((x) => x.status !== 'active');
+    const [s, usrs] = await Promise.all([getAllSessions(), getAllUsers()]);
+    const adminUids = new Set(usrs.filter(u => ADMIN_ROLES.includes(u.role)).map(u => u.uid));
+    const completed = s.filter((x) => x.status !== 'active' && !adminUids.has(x.userId));
     completed.sort((a, b) => {
       const deptA = a.userDepartment || '';
       const deptB = b.userDepartment || '';

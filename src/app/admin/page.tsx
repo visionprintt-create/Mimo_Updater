@@ -5,7 +5,7 @@ import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/fire
 import { db } from '@/lib/firebase';
 import { getGlobalStats, getDepartmentStats, getAllUsers } from '@/lib/firestore';
 import type { WorkSession, MimoUser, Department } from '@/types';
-import { DEPARTMENTS } from '@/types';
+import { DEPARTMENTS, ADMIN_ROLES } from '@/types';
 
 import { fmtDur } from '@/lib/utils';
 import { getTheme } from '@/lib/theme';
@@ -48,27 +48,39 @@ export default function AnalyticsPage() {
   const loadData = async () => {
     setLoading(true);
     
-    // 1. Fetch global and department aggregations (cheap reads)
-    const [gStats, usrs] = await Promise.all([getGlobalStats(), getAllUsers()]);
-    setGlobalStats(gStats);
+    const [usrs, snap] = await Promise.all([
+      getAllUsers(), 
+      getDocs(query(collection(db, 'sessions')))
+    ]);
+    const adminUids = new Set(usrs.filter(u => ADMIN_ROLES.includes(u.role)).map(u => u.uid));
+    const allInternSessions = snap.docs.map(d => ({ ...d.data(), id: d.id } as WorkSession)).filter(s => !adminUids.has(s.userId));
+    
     setUsers(usrs.filter((usr) => usr.status === 'approved'));
 
+    let totalDurationMs = 0;
     const deptMap: Record<string, { totalSessions: number; totalDurationMs: number }> = {};
-    await Promise.all(DEPARTMENTS.map(async (dept) => {
-      deptMap[dept] = await getDepartmentStats(dept);
-    }));
-    setDeptStatsTotal(deptMap);
+    DEPARTMENTS.forEach(d => deptMap[d] = { totalSessions: 0, totalDurationMs: 0 });
 
-    // 2. Fetch only the last 7 days of sessions for the charts and leaderboard
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    const q = query(
-      collection(db, 'sessions'), 
-      where('clockInTime', '>=', weekAgo.toISOString())
-    );
-    const snap = await getDocs(q);
-    const recentSessions = snap.docs.map(d => ({ ...d.data(), id: d.id } as WorkSession));
+    const weekAgoTime = new Date();
+    weekAgoTime.setDate(weekAgoTime.getDate() - 7);
+    const weekAgoMs = weekAgoTime.getTime();
     
+    const recentSessions: WorkSession[] = [];
+
+    allInternSessions.forEach(ses => {
+      totalDurationMs += (ses.totalDurationMs || 0);
+      const d = ses.userDepartment || '';
+      if (deptMap[d]) {
+        deptMap[d].totalSessions += 1;
+        deptMap[d].totalDurationMs += (ses.totalDurationMs || 0);
+      }
+      if (new Date(ses.clockInTime).getTime() >= weekAgoMs) {
+        recentSessions.push(ses);
+      }
+    });
+
+    setGlobalStats({ totalSessions: allInternSessions.length, totalDurationMs });
+    setDeptStatsTotal(deptMap);
     setSessions(recentSessions.filter((ses) => ses.status !== 'active'));
     setLoading(false);
   };
@@ -96,9 +108,11 @@ export default function AnalyticsPage() {
         const snap = await getDocs(q);
         const monthSessions = snap.docs.map(d => ({ ...d.data(), id: d.id } as WorkSession));
         
+        const adminUids = new Set(users.filter(u => ADMIN_ROLES.includes(u.role)).map(u => u.uid));
+        
         setMonthlySessionsCache(prev => ({
           ...prev,
-          [selectedMonth]: monthSessions.filter(s => s.status !== 'active')
+          [selectedMonth]: monthSessions.filter(s => s.status !== 'active' && !adminUids.has(s.userId))
         }));
       } catch (err) {
         console.error("Error fetching month:", err);

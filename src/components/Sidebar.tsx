@@ -56,34 +56,36 @@ export default function Sidebar() {
         }}
       >
         {/* Departments Section */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ fontSize: '11px', color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '8px' }}>
-            Departments
+        {!admin && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ fontSize: '11px', color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '8px' }}>
+              Departments
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {DEPARTMENTS.map(d => (
+                <button
+                  key={d}
+                  onClick={() => {
+                    if (pathname !== '/dashboard') router.push('/dashboard');
+                    setDeptFilter(deptFilter === d ? null : d);
+                    closeSidebar();
+                  }}
+                  style={btnStyle(deptFilter === d, d)}
+                >
+                  {d}
+                </button>
+              ))}
+              {deptFilter && (
+                <button 
+                  onClick={() => setDeptFilter(null)} 
+                  style={{ ...btnStyle(false), border:'none', color:C.textSecondary, fontSize:'12px', textAlign:'center', marginTop:'4px' }}
+                >
+                  Clear filter
+                </button>
+              )}
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {DEPARTMENTS.map(d => (
-              <button
-                key={d}
-                onClick={() => {
-                  if (pathname !== '/dashboard') router.push('/dashboard');
-                  setDeptFilter(deptFilter === d ? null : d);
-                  closeSidebar();
-                }}
-                style={btnStyle(deptFilter === d, d)}
-              >
-                {d}
-              </button>
-            ))}
-            {deptFilter && (
-              <button 
-                onClick={() => setDeptFilter(null)} 
-                style={{ ...btnStyle(false), border:'none', color:C.textSecondary, fontSize:'12px', textAlign:'center', marginTop:'4px' }}
-              >
-                Clear filter
-              </button>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Admin Navigation Section */}
         {admin && (
