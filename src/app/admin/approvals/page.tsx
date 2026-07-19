@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { getPendingUsers, getAllUsers, getUserStats, getRecentUserSessions, updateUserStatus, createNotification, deleteUserAccount, updateUserInternshipDates } from '@/lib/firestore';
+import { adminCreateUser } from '@/lib/auth';
 import { ADMIN_ROLES, DEPARTMENTS } from '@/types';
-import type { MimoUser, WorkSession, Department } from '@/types';
+import type { MimoUser, WorkSession, Department, UserRole } from '@/types';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { fmtDur } from '@/lib/utils';
@@ -29,6 +30,21 @@ export default function TeamAndApprovalsPage() {
   const [loadingTeam, setLoadingTeam] = useState(true);
   const [teamFilter, setTeamFilter] = useState<string>('approved');
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+
+  // Add Employee State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addEmpForm, setAddEmpForm] = useState({
+    displayName: '',
+    email: '',
+    password: '',
+    role: 'intern' as UserRole,
+    departments: [] as Department[],
+    phoneNumber: '',
+    internshipStartDate: '',
+    internshipEndDate: ''
+  });
+  const [addEmpLoading, setAddEmpLoading] = useState(false);
+  const [addEmpError, setAddEmpError] = useState('');
 
   useEffect(() => {
     loadPending();
@@ -111,6 +127,38 @@ export default function TeamAndApprovalsPage() {
     if (!window.confirm(`Are you sure you want to permanently delete ${user.displayName} and completely wipe all their logged sessions and tasks? This cannot be undone.`)) return;
     await deleteUserAccount(user.uid);
     setTeamUsers((prev) => prev.filter((u) => u.uid !== user.uid));
+  };
+
+  const handleAddEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mimoUser) return;
+    setAddEmpError('');
+    setAddEmpLoading(true);
+
+    try {
+      const newUser = await adminCreateUser(
+        addEmpForm.email,
+        addEmpForm.password,
+        addEmpForm.displayName,
+        addEmpForm.role,
+        addEmpForm.departments,
+        addEmpForm.phoneNumber,
+        addEmpForm.internshipStartDate,
+        addEmpForm.internshipEndDate,
+        mimoUser.uid
+      );
+      setTeamUsers(prev => [...prev, newUser]);
+      setShowAddModal(false);
+      setAddEmpForm({
+        displayName: '', email: '', password: '', role: 'intern', departments: [], phoneNumber: '', internshipStartDate: '', internshipEndDate: ''
+      });
+      alert('Employee created successfully!');
+    } catch (err: any) {
+      console.error(err);
+      setAddEmpError(err.message || 'Failed to create user');
+    } finally {
+      setAddEmpLoading(false);
+    }
   };
 
   const filteredTeamUsers = teamUsers.filter((u) => {
@@ -320,18 +368,22 @@ export default function TeamAndApprovalsPage() {
           </div>
 
           {/* Filter */}
-          <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {['approved', 'all'].map((f) => (
-              <button
-                key={f}
-                className={`btn btn-sm ${teamFilter === f ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => setTeamFilter(f)}
-              >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ))}
+          <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {['approved', 'all'].map((f) => (
+                <button
+                  key={f}
+                  className={`btn btn-sm ${teamFilter === f ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() => setTeamFilter(f)}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>
+              + Add Employee
+            </button>
           </div>
-
           {/* Team List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {filteredTeamUsers.map((user) => {
@@ -517,6 +569,81 @@ export default function TeamAndApprovalsPage() {
             })}
           </div>
         </>
+      )}
+      {/* Add Employee Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content glass-card-static" onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '500px' }}>
+            <h2>Add New Employee</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>Create an account manually.</p>
+            {addEmpError && (
+              <div style={{ color: 'var(--status-flagged)', background: 'rgba(235,87,87,0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+                {addEmpError}
+              </div>
+            )}
+            <form onSubmit={handleAddEmployee} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label className="form-label">Full Name</label>
+                <input required className="form-input" type="text" value={addEmpForm.displayName} onChange={e => setAddEmpForm({...addEmpForm, displayName: e.target.value})} />
+              </div>
+              <div>
+                <label className="form-label">Email</label>
+                <input required className="form-input" type="email" value={addEmpForm.email} onChange={e => setAddEmpForm({...addEmpForm, email: e.target.value})} />
+              </div>
+              <div>
+                <label className="form-label">Temporary Password</label>
+                <input required className="form-input" type="text" minLength={6} value={addEmpForm.password} onChange={e => setAddEmpForm({...addEmpForm, password: e.target.value})} />
+              </div>
+              <div>
+                <label className="form-label">Role</label>
+                <select className="form-input" value={addEmpForm.role} onChange={e => setAddEmpForm({...addEmpForm, role: e.target.value as UserRole})}>
+                  <option value="intern">Intern</option>
+                  <option value="hr">HR</option>
+                  <option value="founder">Founder</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="form-label">Departments</label>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {DEPARTMENTS.map(d => (
+                    <label key={d} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={addEmpForm.departments.includes(d)}
+                        onChange={(e) => {
+                          if (e.target.checked) setAddEmpForm({...addEmpForm, departments: [...addEmpForm.departments, d]});
+                          else setAddEmpForm({...addEmpForm, departments: addEmpForm.departments.filter(dept => dept !== d)});
+                        }}
+                      />
+                      {d}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {addEmpForm.role === 'intern' && (
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label className="form-label">Internship Start Date</label>
+                    <input type="date" required className="form-input" value={addEmpForm.internshipStartDate} onChange={e => setAddEmpForm({...addEmpForm, internshipStartDate: e.target.value})} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label className="form-label">Internship End Date</label>
+                    <input type="date" required className="form-input" value={addEmpForm.internshipEndDate} onChange={e => setAddEmpForm({...addEmpForm, internshipEndDate: e.target.value})} />
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={addEmpLoading || addEmpForm.departments.length === 0}>
+                  {addEmpLoading ? 'Creating...' : 'Create Employee'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -8,8 +8,10 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { initializeApp, deleteApp } from 'firebase/app';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { auth, db, firebaseConfig } from './firebase';
 import type { MimoUser, UserRole, Department } from '@/types';
 
 // ─── Sign Up ───────────────────────────────────────────────────────
@@ -44,6 +46,54 @@ export async function signUp(
   await setDoc(doc(db, 'users', user.uid), mimoUser);
 
   return mimoUser;
+}
+
+// ─── Admin Create User ─────────────────────────────────────────────
+export async function adminCreateUser(
+  email: string,
+  password: string,
+  displayName: string,
+  role: UserRole,
+  departments: Department[],
+  phoneNumber: string,
+  internshipStartDate: string,
+  internshipEndDate: string,
+  adminId: string
+): Promise<MimoUser> {
+  // Initialize secondary app to avoid logging out the current admin
+  const tempAppName = `TempApp_${new Date().getTime()}`;
+  const tempApp = initializeApp(firebaseConfig, tempAppName);
+  const tempAuth = getAuth(tempApp);
+
+  try {
+    const credential = await createUserWithEmailAndPassword(tempAuth, email, password);
+    const user = credential.user;
+
+    await updateProfile(user, { displayName });
+
+    const mimoUser: MimoUser = {
+      uid: user.uid,
+      email: email,
+      displayName: displayName,
+      role: role,
+      departments: departments,
+      phoneNumber: phoneNumber,
+      status: 'approved', // Directly approved since admin created it
+      internshipStartDate,
+      internshipEndDate,
+      joinedAt: new Date().toISOString(),
+      approvedBy: adminId,
+      approvedAt: new Date().toISOString(),
+    };
+
+    // Write to main db instance
+    await setDoc(doc(db, 'users', user.uid), mimoUser);
+
+    return mimoUser;
+  } finally {
+    // Always clean up the temporary app
+    await deleteApp(tempApp);
+  }
 }
 
 // ─── Complete Onboarding (for Google Sign In) ──────────────────────
