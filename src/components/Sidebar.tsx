@@ -89,15 +89,12 @@ export default function Sidebar() {
 
         {/* Admin Navigation Section */}
         {admin && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
             <div style={{ fontSize: '11px', color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600, paddingLeft: '8px' }}>
               Admin
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Link href="/admin" onClick={closeSidebar} style={btnStyle(pathname === '/admin')}>
-                Dashboard
-              </Link>
-              <Link href="/admin/analytics" onClick={closeSidebar} style={btnStyle(pathname === '/admin/analytics')}>
                 Analytics
               </Link>
               <Link href="/admin/approvals" onClick={closeSidebar} style={btnStyle(pathname === '/admin/approvals')}>
