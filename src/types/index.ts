@@ -29,7 +29,8 @@ export interface MimoUser {
   phoneNumber?: string;
   displayName: string;
   role: UserRole;
-  department: Department;
+  departments: Department[];
+  department?: Department; // deprecated, for backward compatibility
   status: UserStatus;
   avatarUrl?: string;
   approvedBy?: string;
@@ -86,7 +87,8 @@ export interface WorkSession {
   id: string;
   userId: string;
   userName: string;
-  userDepartment: Department;
+  userDepartments: Department[];
+  userDepartment?: Department; // deprecated
   clockInTime: string;
   clockOutTime?: string;
   totalDurationMs: number; // actual worked milliseconds

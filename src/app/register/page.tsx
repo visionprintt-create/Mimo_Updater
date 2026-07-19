@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('intern');
-  const [department, setDepartment] = useState<Department>('Frontend');
+  const [departments, setDepartments] = useState<Department[]>(['Frontend']);
   const [internshipStartDate, setInternshipStartDate] = useState('');
   const [internshipEndDate, setInternshipEndDate] = useState('');
   const [error, setError] = useState('');
@@ -39,7 +39,7 @@ export default function RegisterPage() {
     setEmailLoading(true);
 
     try {
-      await signUp(email, password, name, role, department, phoneNumber, internshipStartDate, internshipEndDate);
+      await signUp(email, password, name, role, departments, phoneNumber, internshipStartDate, internshipEndDate);
       setSuccess(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed';
@@ -187,9 +187,9 @@ export default function RegisterPage() {
               onChange={(e) => {
                 const r = e.target.value as UserRole;
                 setRole(r);
-                if (r === 'hr') setDepartment('HR');
-                else if (r === 'founder') setDepartment('Management');
-                else setDepartment('Frontend');
+                if (r === 'hr') setDepartments(['HR']);
+                else if (r === 'founder') setDepartments(['Management']);
+                else setDepartments(['Frontend']);
               }}
             >
               <option value="intern">Intern</option>
@@ -201,21 +201,30 @@ export default function RegisterPage() {
           {role === 'intern' && (
             <>
               <div className="form-group">
-                <label className="form-label" htmlFor="department">
-                  Department
+                <label className="form-label">
+                  Departments
                 </label>
-                <select
-                  id="department"
-                  className="form-select"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value as Department)}
-                >
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                   {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept}>
+                    <label key={dept} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: 'var(--bg-glass)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--border-color)', fontSize: '14px' }}>
+                      <input
+                        type="checkbox"
+                        checked={departments.includes(dept)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setDepartments([...departments, dept]);
+                          } else {
+                            // ensure at least one remains
+                            if (departments.length > 1) {
+                              setDepartments(departments.filter(d => d !== dept));
+                            }
+                          }
+                        }}
+                      />
                       {dept}
-                    </option>
+                    </label>
                   ))}
-                </select>
+                </div>
               </div>
 
               <div className="form-group" style={{ display: 'flex', gap: '12px' }}>

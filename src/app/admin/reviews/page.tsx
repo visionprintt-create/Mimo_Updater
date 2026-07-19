@@ -129,8 +129,8 @@ export default function ReviewsPage() {
                     </div>
                   </div>
                   <span className="session-duration">{fmtDur(session.totalDurationMs)}</span>
-                  <span className={`badge badge-dept-${session.userDepartment.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {session.userDepartment}
+                  <span className={`badge badge-dept-${(session.userDepartments?.[0] || session.userDepartment || 'other').toLowerCase().replace(/\s+/g, '-')}`}>
+                    {(session.userDepartments?.[0] || session.userDepartment || 'Unknown')}
                   </span>
 
                 </div>

@@ -149,7 +149,7 @@ export default function AnalyticsPage() {
     }> = {};
 
     for (const dept of DEPARTMENTS) {
-      const deptSessions = filteredSessions.filter((s) => s.userDepartment === dept);
+      const deptSessions = filteredSessions.filter((s) => s.userDepartments?.includes(dept) || s.userDepartment === dept);
       const members = new Set(deptSessions.map((s) => s.userId));
       const totalMs = deptStatsTotal[dept]?.totalDurationMs || 0;
       map[dept] = {
@@ -168,12 +168,13 @@ export default function AnalyticsPage() {
 
 
   // ─── Leaderboard (global or per dept) ─────────────────────────────
-  const sessionSource = selectedDept === 'all' ? filteredSessions : filteredSessions.filter((s) => s.userDepartment === selectedDept);
+  const sessionSource = selectedDept === 'all' ? filteredSessions : filteredSessions.filter((s) => s.userDepartments?.includes(selectedDept) || s.userDepartment === selectedDept);
   const hoursByUser = useMemo(() => {
     const map: Record<string, { name: string; dept: string; hours: number; sessions: number; stars: number; flags: number }> = {};
     for (const s of sessionSource) {
       if (!map[s.userId]) {
-        map[s.userId] = { name: s.userName, dept: s.userDepartment, hours: 0, sessions: 0, stars: 0, flags: 0 };
+        const uDepts = s.userDepartments || (s.userDepartment ? [s.userDepartment] : ['']);
+        map[s.userId] = { name: s.userName, dept: uDepts.join(', '), hours: 0, sessions: 0, stars: 0, flags: 0 };
       }
       map[s.userId].hours += s.totalDurationMs;
       map[s.userId].sessions += 1;
@@ -231,39 +232,28 @@ export default function AnalyticsPage() {
           <p>Team performance and productivity insights</p>
         </div>
         <button onClick={async () => {
-          const mapping: Record<string, string> = {
-            'Mohamed Huzaifa S': 'Backend',
-            'Atharv Shukla': 'Backend',
-            'Zafreen Afifa': 'Marketing',
-            'Ankit': 'Marketing',
-            'Vedhika': 'Design',
-            'Vatsa krishna': 'Finance',
-            'Abhishek': 'Production'
-          };
           try {
             const snap = await getDocs(collection(db, 'users'));
             const promises = snap.docs.map(async (d) => {
               const data = d.data();
-              if (data.displayName) {
-                for (const [name, dept] of Object.entries(mapping)) {
-                  if (data.displayName.toLowerCase().includes(name.toLowerCase())) {
-                    await updateDoc(doc(db, 'users', d.id), { 
-                      department: dept,
-                      status: 'approved' 
-                    });
-                    break;
-                  }
-                }
+              if (data.department && !data.departments) {
+                await updateDoc(doc(db, 'users', d.id), { 
+                  departments: [data.department]
+                });
+              } else if (!data.departments) {
+                await updateDoc(doc(db, 'users', d.id), { 
+                  departments: ['Frontend']
+                });
               }
             });
             await Promise.all(promises);
-            alert('Database updated successfully! All users mapped to correct departments and approved.');
+            alert('Database migrated successfully! All users now have a departments array.');
           } catch (e) {
             console.error(e);
             alert('Error updating database');
           }
         }} style={{ padding: '8px 16px', background: 'var(--mimo-primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-          Fix User Departments
+          Migrate Database
         </button>
       </div>
 

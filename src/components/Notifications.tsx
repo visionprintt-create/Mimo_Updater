@@ -18,7 +18,8 @@ export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const activeDept = deptFilter || mimoUser?.department;
+  const depts = mimoUser?.departments || (mimoUser?.department ? [mimoUser.department] : []);
+  const activeDept = deptFilter || depts[0];
   const C = getTheme(activeDept);
 
   useEffect(() => {

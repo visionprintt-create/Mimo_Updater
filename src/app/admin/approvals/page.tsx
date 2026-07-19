@@ -202,7 +202,8 @@ export default function TeamAndApprovalsPage() {
                   .toUpperCase()
                   .slice(0, 2) || '?';
 
-                const theme = getTheme(user.department);
+                const depts = user.departments || (user.department ? [user.department] : []);
+                const theme = getTheme(depts[0]);
                 const avatarColor = theme.accent;
 
                 return (
@@ -219,9 +220,11 @@ export default function TeamAndApprovalsPage() {
                           {user.email}
                         </div>
                         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                          <span className={`badge badge-dept-${user.department.toLowerCase().replace(/\s+/g, '-')}`}>
-                            {user.department}
-                          </span>
+                          {depts.map(d => (
+                            <span key={d} className={`badge badge-dept-${d.toLowerCase().replace(/\s+/g, '-')}`}>
+                              {d}
+                            </span>
+                          ))}
                           <span className="badge" style={{ background: 'var(--bg-glass)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}>
                             {user.role}
                           </span>
@@ -304,7 +307,8 @@ export default function TeamAndApprovalsPage() {
               teamUsers
                 .filter((u) => u.status === 'approved')
                 .reduce((acc: Record<string, number>, u) => {
-                  acc[u.department] = (acc[u.department] || 0) + 1;
+                  const depts = u.departments || (u.department ? [u.department] : []);
+                  depts.forEach(d => acc[d] = (acc[d] || 0) + 1);
                   return acc;
                 }, {})
             ).map(([dept, count]) => (
@@ -338,7 +342,8 @@ export default function TeamAndApprovalsPage() {
                 .toUpperCase()
                 .slice(0, 2) || '?';
 
-              const theme = getTheme(user.department);
+              const depts = user.departments || (user.department ? [user.department] : []);
+              const theme = getTheme(depts[0]);
               const avatarColor = theme.accent;
               const stats = userStats[user.uid] || { sessionCount: 0, totalDurationMs: 0 };
               const isExpanded = expandedUser === user.uid;
@@ -366,19 +371,32 @@ export default function TeamAndApprovalsPage() {
                         {user.email}
                       </div>
                       <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                        <select 
-                          className={`badge badge-dept-${user.department.toLowerCase().replace(/\s+/g, '-')}`}
-                          value={user.department}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={async (e) => {
-                            const newDept = e.target.value as Department;
-                            setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, department: newDept } : u));
-                            await updateDoc(doc(db, 'users', user.uid), { department: newDept });
-                          }}
-                          style={{ appearance: 'auto', border: 'none', cursor: 'pointer', outline: 'none' }}
-                        >
-                          {DEPARTMENTS.map(d => <option key={d} value={d} style={{ color: 'initial' }}>{d}</option>)}
-                        </select>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '4px', background: 'var(--bg-glass)', borderRadius: '8px', border: '1px solid var(--border-color)' }} onClick={(e) => e.stopPropagation()}>
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Departments</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {DEPARTMENTS.map(d => {
+                              const hasDept = depts.includes(d);
+                              return (
+                                <label key={d} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer', opacity: hasDept ? 1 : 0.5 }}>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={hasDept} 
+                                    onChange={async (e) => {
+                                      const checked = e.target.checked;
+                                      let newDepts = [...depts];
+                                      if (checked) newDepts.push(d);
+                                      else if (newDepts.length > 1) newDepts = newDepts.filter(x => x !== d);
+                                      
+                                      setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, departments: newDepts } : u));
+                                      await updateDoc(doc(db, 'users', user.uid), { departments: newDepts });
+                                    }}
+                                  />
+                                  {d}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
                         <span className="badge" style={{ background: 'var(--bg-glass)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}>
                           {user.role}
                         </span>

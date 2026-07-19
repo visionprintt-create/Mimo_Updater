@@ -10,7 +10,8 @@ export default function ThemeWrapper({ children }: { children: React.ReactNode }
   const { deptFilter } = useUIStore();
   
   useEffect(() => {
-    const activeDept = deptFilter || mimoUser?.department;
+    const depts = mimoUser?.departments || (mimoUser?.department ? [mimoUser.department] : []);
+    const activeDept = deptFilter || depts[0];
     const theme = getTheme(activeDept);
     
     // Apply theme to body

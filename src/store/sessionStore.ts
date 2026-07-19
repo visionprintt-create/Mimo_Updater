@@ -29,7 +29,7 @@ interface SessionState {
   draftAchievements: string;
 
   // Actions
-  clockIn: (userId: string, userName: string, department: string) => Promise<void>;
+  clockIn: (userId: string, userName: string, departments: import('@/types').Department[]) => Promise<void>;
   clockOut: () => Promise<void>;
   startBreak: (reason?: string) => Promise<void>;
   endBreak: () => Promise<void>;
@@ -63,7 +63,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   isClockingIn: false,
 
-  clockIn: async (userId, userName, department) => {
+  clockIn: async (userId, userName, departments) => {
     if (get().isClockingIn || get().activeSession || get().isWorking) return;
     set({ isClockingIn: true });
 
@@ -71,7 +71,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       const session: Omit<WorkSession, 'id'> = {
         userId,
         userName,
-        userDepartment: department as WorkSession['userDepartment'],
+        userDepartments: departments,
         clockInTime: new Date().toISOString(),
         totalDurationMs: 0,
         breakDurationMs: 0,

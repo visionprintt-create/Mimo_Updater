@@ -15,7 +15,8 @@ export default function Sidebar() {
   const { isMobileSidebarOpen, closeSidebar, deptFilter, setDeptFilter } = useUIStore();
   const admin = mimoUser && isAdmin(mimoUser.role);
 
-  const activeDept = deptFilter || mimoUser?.department;
+  const depts = mimoUser?.departments || (mimoUser?.department ? [mimoUser.department] : []);
+  const activeDept = deptFilter || depts[0];
   const C = getTheme(activeDept);
 
   const btnStyle = (active: boolean, specificDept?: string): React.CSSProperties => {

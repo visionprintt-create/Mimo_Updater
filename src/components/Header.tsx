@@ -26,7 +26,8 @@ export default function Header() {
   const [showSignOut, setShowSignOut] = useState(false);
 
   const { deptFilter } = useUIStore();
-  const activeDept = deptFilter || mimoUser?.department;
+  const depts = mimoUser?.departments || (mimoUser?.department ? [mimoUser.department] : []);
+  const activeDept = deptFilter || depts[0];
   const C = getTheme(activeDept);
 
   const TABS = ['Today', 'History', 'Tasks'] as const;
@@ -64,7 +65,7 @@ export default function Header() {
             {mimoUser?.displayName || 'User'}
           </div>
           <div className="header-dept" style={{ fontSize:'12px', color: C.textSecondary, fontWeight: 500, marginTop:'2px' }}>
-            {mimoUser?.role} • <span style={{ color: C.accent }}>{mimoUser?.department}</span>
+            {mimoUser?.role} • <span style={{ color: C.accent }}>{depts.join(', ')}</span>
           </div>
         </div>
         {showSignOut && (
@@ -132,7 +133,7 @@ export default function Header() {
             {!isWorking ? (
               <button 
                 className="header-action-btn"
-                onClick={() => mimoUser && !isClockingIn && clockIn(mimoUser.uid, mimoUser.displayName, mimoUser.department)}
+                onClick={() => mimoUser && !isClockingIn && clockIn(mimoUser.uid, mimoUser.displayName, depts)}
                 disabled={isClockingIn}
                 style={{ background: isClockingIn ? C.border : C.gradient, color: isClockingIn ? C.textSecondary : '#ffffff', border:'none', borderRadius:'10px', padding:'10px 20px', fontWeight:700, fontSize:'13px', cursor: isClockingIn ? 'wait' : 'pointer', transition: 'all 0.3s ease', boxShadow: isClockingIn ? 'none' : '0 4px 6px rgba(0,0,0,0.1)' }}
               >

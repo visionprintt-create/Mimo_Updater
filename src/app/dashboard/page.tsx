@@ -99,7 +99,8 @@ export default function DashboardPage() {
     }
   }, [viewingUser?.uid]);
 
-  const C = getTheme(deptFilter || viewingUser?.department);
+  const viewingUserDepts = viewingUser?.departments || (viewingUser?.department ? [viewingUser.department] : []);
+  const C = getTheme(deptFilter || viewingUserDepts[0]);
 
   // Load weekly tasks for the viewingUser
   useEffect(() => {
@@ -115,7 +116,12 @@ export default function DashboardPage() {
 
   /* Handlers */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleClockIn  = async () => { if (!mimoUser) return; await clockIn(mimoUser.uid, mimoUser.displayName, mimoUser.department); setTab('Today'); };
+  const handleClockIn  = async () => { 
+    if (!mimoUser) return; 
+    const uDepts = mimoUser.departments || (mimoUser.department ? [mimoUser.department] : []);
+    await clockIn(mimoUser.uid, mimoUser.displayName, uDepts); 
+    setTab('Today'); 
+  };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClockOut = () => { clockOut(); };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -372,7 +378,7 @@ export default function DashboardPage() {
           <button onClick={prevUser} style={{ background:'transparent', border:'none', color:'#ffffff', fontSize:'24px', cursor:'pointer', padding:'0 16px', visibility: deptUsers.length > 1 ? 'visible' : 'hidden' }}>{'<'}</button>
           <div style={{ textAlign:'center' }}>
             <div style={{ fontSize:'22px', fontWeight:800, letterSpacing:'-0.02em', color: '#ffffff' }}>{viewingUser?.displayName}</div>
-            <div style={{ fontSize:'13px', fontWeight:600, color:'rgba(255,255,255,0.8)', marginTop:'4px' }}>{viewingUser?.department} • <span style={{color:'#ffffff'}}>{viewingUser?.role}</span></div>
+            <div style={{ fontSize:'13px', fontWeight:600, color:'rgba(255,255,255,0.8)', marginTop:'4px' }}>{viewingUserDepts.join(', ')} • <span style={{color:'#ffffff'}}>{viewingUser?.role}</span></div>
             
             {(viewingUser?.internshipStartDate || isEditingDates) && (
               <div style={{ marginTop: '12px' }}>

@@ -41,7 +41,7 @@ export async function getAllUsers(): Promise<MimoUser[]> {
 }
 
 export async function getUsersByDepartment(dept: string): Promise<MimoUser[]> {
-  const q = query(collection(db, 'users'), where('department', '==', dept));
+  const q = query(collection(db, 'users'), where('departments', 'array-contains', dept));
   const snap = await getDocs(q);
   return snap.docs.map((d) => d.data() as MimoUser);
 }

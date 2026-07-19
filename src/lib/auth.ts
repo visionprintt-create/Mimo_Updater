@@ -18,7 +18,7 @@ export async function signUp(
   password: string,
   displayName: string,
   role: UserRole,
-  department: Department,
+  departments: Department[],
   phoneNumber: string,
   internshipStartDate: string,
   internshipEndDate: string
@@ -33,7 +33,7 @@ export async function signUp(
     email: email,
     displayName: displayName,
     role: role,
-    department: department,
+    departments: departments,
     phoneNumber: phoneNumber,
     status: 'pending',
     internshipStartDate,
@@ -50,7 +50,7 @@ export async function signUp(
 export async function completeOnboarding(
   user: User,
   role: UserRole,
-  department: Department,
+  departments: Department[],
   phoneNumber: string,
   internshipStartDate: string,
   internshipEndDate: string
@@ -60,7 +60,7 @@ export async function completeOnboarding(
     email: user.email || '',
     displayName: user.displayName || 'Unknown User',
     role: role,
-    department: department,
+    departments: departments,
     phoneNumber: phoneNumber,
     status: 'pending',
     internshipStartDate,
