@@ -10,6 +10,7 @@ import { getTheme } from '@/lib/theme';
 
 export default function ReviewsPage() {
   const [sessions, setSessions] = useState<WorkSession[]>([]);
+  const [userStats, setUserStats] = useState<Record<string, { currentMonthMs: number, previousMonthMs: number }>>({});
   const [loading, setLoading] = useState(true);
   const mimoUser = useAuthStore((s) => s.mimoUser);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -25,6 +26,32 @@ export default function ReviewsPage() {
       if (deptA > deptB) return 1;
       return new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime();
     });
+    
+    const stats: Record<string, { currentMonthMs: number, previousMonthMs: number }> = {};
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+    completed.forEach(session => {
+      const d = new Date(session.clockInTime);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const ms = session.totalDurationMs || 0;
+      
+      if (!stats[session.userId]) {
+        stats[session.userId] = { currentMonthMs: 0, previousMonthMs: 0 };
+      }
+      
+      if (m === currentMonth && y === currentYear) {
+        stats[session.userId].currentMonthMs += ms;
+      } else if (m === previousMonth && y === previousMonthYear) {
+        stats[session.userId].previousMonthMs += ms;
+      }
+    });
+    
+    setUserStats(stats);
     setSessions(completed);
     setLoading(false);
   };
@@ -78,6 +105,11 @@ export default function ReviewsPage() {
                       </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600 }}>{session.userName}</div>
+                    {userStats[session.userId] && (
+                      <div style={{ fontSize: '11px', color: 'var(--mimo-primary)', marginTop: '2px', marginBottom: '4px', fontWeight: 500 }}>
+                        This Month: {fmtDur(userStats[session.userId].currentMonthMs)} • Last Month: {fmtDur(userStats[session.userId].previousMonthMs)}
+                      </div>
+                    )}
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
                       {new Date(session.clockInTime).toLocaleDateString(undefined, {
                         weekday: 'short',
@@ -100,58 +132,7 @@ export default function ReviewsPage() {
                   <span className={`badge badge-dept-${session.userDepartment.toLowerCase().replace(/\s+/g, '-')}`}>
                     {session.userDepartment}
                   </span>
-                  <div style={{ position: 'relative' }}>
-                    <button
-                      className={`badge ${
-                        session.review?.action === 'paid'
-                          ? 'badge-approved'
-                          : session.review?.action === 'unpaid'
-                          ? 'badge-flagged'
-                          : session.status === 'completed'
-                          ? 'badge-noted'
-                          : 'badge-break'
-                      }`}
-                      style={{ cursor: 'pointer', border: 'none', background: 'transparent' }}
-                      onClick={() => setOpenDropdownId(openDropdownId === session.id ? null : session.id)}
-                    >
-                      {session.review?.action === 'paid' ? 'PAID ▼' : (session.review?.action === 'unpaid' || session.status === 'completed') ? 'NOT PAID ▼' : `${session.status.toUpperCase()} ▼`}
-                    </button>
-                    
-                    {openDropdownId === session.id && (
-                      <div style={{
-                        position: 'absolute', top: '100%', right: 0, marginTop: '4px',
-                        background: 'var(--bg-input)', border: '1px solid var(--border-color)',
-                        borderRadius: '8px', zIndex: 10,
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.08)', overflow: 'hidden', minWidth: '100px'
-                      }}>
-                        {(['paid', 'unpaid'] as const).map(opt => (
-                          <div 
-                            key={opt}
-                            onClick={async () => {
-                              if (!mimoUser) return;
-                              await reviewSession(session.id, {
-                                reviewedBy: mimoUser.uid,
-                                reviewerName: mimoUser.displayName,
-                                action: opt,
-                                comment: session.review?.comment || '',
-                                reviewedAt: new Date().toISOString()
-                              });
-                              setOpenDropdownId(null);
-                              loadSessions();
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-input-focus)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                            style={{
-                              padding: '8px 12px', cursor: 'pointer',
-                              fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)',
-                            }}
-                          >
-                            {opt.toUpperCase()}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+
                 </div>
 
                 {/* Work Summary */}
@@ -213,44 +194,7 @@ export default function ReviewsPage() {
                   </div>
                 )}
 
-                {/* Existing review */}
-                {session.review && (
-                  <div
-                    style={{
-                      marginTop: '12px',
-                      padding: '12px',
-                      background: 'var(--bg-glass)',
-                      borderRadius: 'var(--radius-md)',
-                      borderLeft: `3px solid ${
-                        session.review.action === 'approved'
-                          ? 'var(--status-active)'
-                          : session.review.action === 'starred'
-                          ? 'var(--status-starred)'
-                          : session.review.action === 'flagged'
-                          ? 'var(--status-flagged)'
-                          : 'var(--status-break)'
-                      }`,
-                    }}
-                  >
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
-                      Reviewed by {session.review.reviewerName} •{' '}
-                      {new Date(session.review.reviewedAt).toLocaleString()}
-                    </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', marginTop: '4px' }}>
-                      {session.review.action === 'paid' && '✅ Paid'}
-                      {session.review.action === 'unpaid' && '🔴 Not Paid'}
-                      {session.review.action === 'approved' && '✅ Approved (Legacy)'}
-                      {session.review.action === 'starred' && '⭐ Starred — Exceptional'}
-                      {session.review.action === 'flagged' && '🔴 Flagged — Needs Redo'}
-                      {session.review.action === 'noted' && '🟡 Note Added'}
-                    </div>
-                    {session.review.comment && (
-                      <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                        &ldquo;{session.review.comment}&rdquo;
-                      </p>
-                    )}
-                  </div>
-                )}
+
 
               </div>
             );

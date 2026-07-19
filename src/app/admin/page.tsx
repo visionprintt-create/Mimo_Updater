@@ -260,61 +260,45 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Overview Stats */}
-      <div className="grid-stats" style={{ marginBottom: '32px' }}>
-        <div className="stat-card">
-          <div className="stat-label">Total Sessions</div>
-          <div className="stat-value">{totalSessions}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Total Hours</div>
-          <div className="stat-value">{fmtDur(totalHoursMs)}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Avg Session</div>
-          <div className="stat-value">{fmtDur(avgSessionMs)}</div>
-        </div>
-      </div>
 
       {/* ── OVERVIEW VIEW ── */}
       {activeView === 'overview' && (
         <>
-            {/* Task Categories */}
-            <div className="glass-card-static">
-              <h4 style={{ marginBottom: '20px' }}>Task Categories</h4>
-              {taskCategories.length === 0 ? (
-                <div className="empty-state"><p>No task data yet</p></div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {taskCategories.map(([category, count]) => {
-                    const pct = totalTasks > 0 ? (count / totalTasks) * 100 : 0;
-                    return (
-                      <div key={category}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <span style={{ fontSize: 'var(--font-size-sm)' }}>{category}</span>
-                          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>{count} ({pct.toFixed(0)}%)</span>
-                        </div>
-                        <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: 'var(--mimo-primary)', borderRadius: '3px', transition: 'width 0.5s ease' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+
 
           {/* Daily Activity Chart */}
           <div className="glass-card-static" style={{ marginBottom: '32px' }}>
-            <h4 style={{ marginBottom: '20px' }}>Daily Activity</h4>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '160px', paddingBottom: '24px', position: 'relative' }}>
+            <h4 style={{ marginBottom: '20px', display:'flex', alignItems:'center', gap:'8px' }}>
+              <span style={{ fontSize: '20px' }}>📊</span> Daily Activity
+            </h4>
+            <div style={{ 
+              display: 'flex', alignItems: 'flex-end', gap: '8px', height: '200px', 
+              paddingBottom: '32px', paddingTop: '16px', position: 'relative',
+              backgroundImage: 'linear-gradient(to bottom, var(--border-color) 1px, transparent 1px)',
+              backgroundSize: '100% 40px',
+              borderBottom: '1px solid var(--border-color)'
+            }}>
               {dailyActivity.map((day, idx) => {
                 const heightPct = (day.hours / maxDailyHours) * 100;
                 return (
-                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', position: 'relative' }} title={`${day.date}: ${fmtDur(day.hours)} (${day.count} sessions)`}>
-                    <div style={{ width: '100%', maxWidth: '24px', height: `${Math.max(heightPct, 2)}%`, background: day.hours > 0 ? 'linear-gradient(180deg, var(--mimo-primary-light), var(--mimo-primary))' : 'var(--border-color)', borderRadius: '3px 3px 0 0', transition: 'height 0.3s ease', minHeight: '2px' }} />
+                  <div key={idx} className="group" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', position: 'relative' }} title={`${day.date}: ${fmtDur(day.hours)} (${day.count} sessions)`}>
+                    <div style={{ 
+                      width: '100%', maxWidth: '32px', height: `${Math.max(heightPct, 2)}%`, 
+                      background: day.hours > 0 ? 'linear-gradient(180deg, var(--mimo-primary), var(--mimo-primary-light))' : 'var(--bg-input)', 
+                      borderRadius: '6px 6px 0 0', transition: 'all 0.3s ease', minHeight: '2px',
+                      boxShadow: day.hours > 0 ? '0 -4px 12px rgba(108,92,231,0.2)' : 'none',
+                      opacity: 0.9,
+                      cursor: 'pointer'
+                    }} 
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scaleY(1.02)'; e.currentTarget.style.transformOrigin = 'bottom'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'scaleY(1)'; }}
+                    />
                     {(idx % Math.ceil(dailyActivity.length / 10) === 0 || dailyActivity.length <= 10) && (
-                      <span style={{ fontSize: '9px', color: 'var(--text-muted)', position: 'absolute', bottom: '-20px', whiteSpace: 'nowrap', transform: 'rotate(-45deg)', transformOrigin: 'top left' }}>
+                      <span style={{ 
+                        fontSize: '11px', color: 'var(--text-secondary)', position: 'absolute', 
+                        bottom: '-28px', whiteSpace: 'nowrap', left: '50%', transform: 'translateX(-50%)', 
+                        fontWeight: '600', letterSpacing: '0.05em' 
+                      }}>
                         {day.date}
                       </span>
                     )}
@@ -377,7 +361,6 @@ export default function AnalyticsPage() {
                       <th>#</th>
                       <th>Intern</th>
                       <th>Department</th>
-                      <th>Sessions</th>
                       <th>Hours</th>
                     </tr>
                   </thead>
@@ -389,7 +372,6 @@ export default function AnalyticsPage() {
                         </td>
                         <td style={{ fontWeight: 500 }}>{data.name}</td>
                         <td><span className={`badge badge-dept-${data.dept.toLowerCase().replace(/\s+/g, '-')}`}>{data.dept}</span></td>
-                        <td>{data.sessions}</td>
                         <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--mimo-accent)' }}>{fmtDur(data.hours)}</td>
                       </tr>
                     ))}

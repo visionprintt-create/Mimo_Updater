@@ -41,8 +41,10 @@ export default function DashboardPage() {
   const [viewingUserIdx, setViewingUserIdx] = useState(0);
   const [weeklyTasks, setWeeklyTasks]       = useState<import('@/types').WeeklyTask[]>([]);
   const [newWeeklyTask, setNewWeeklyTask]   = useState('');
+  const [newWeeklyTaskDeadline, setNewWeeklyTaskDeadline] = useState('');
   const [editingWeeklyTaskId, setEditingWeeklyTaskId] = useState<string | null>(null);
   const [editingWeeklyTaskTitle, setEditingWeeklyTaskTitle] = useState('');
+  const [editingWeeklyTaskDeadline, setEditingWeeklyTaskDeadline] = useState('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { dashboardTab: tab, setDashboardTab: setTab, deptFilter, setDeptFilter } = useUIStore();
   const [submitting, setSubmitting]          = useState(false);
@@ -126,8 +128,7 @@ export default function DashboardPage() {
     if (!draftTasks.some(t => t.title.trim())) { setSubmitError('Add at least one task.'); return; }
     setSubmitError(''); setSubmitting(true);
     await submitWorkLog(); setSubmitting(false);
-    if (viewingUser) loadSessions(viewingUser.uid);
-    setTab('History');
+    await handleSignOut(); // Automatically logout after submitting work log
   };
 
   const handleRemark = async () => {
@@ -154,13 +155,23 @@ export default function DashboardPage() {
         const title = newWeeklyTask.trim();
         setNewWeeklyTask('');
         const tempId = genId();
-        const d = new Date();
-        const day = d.getDay();
-        d.setDate(d.getDate() + (6 - day));
-        d.setHours(23, 59, 59, 999);
-        const dueDate = d.toISOString();
+        
+        let dueDate: string;
+        if (newWeeklyTaskDeadline) {
+          const d = new Date(newWeeklyTaskDeadline);
+          d.setHours(23, 59, 59, 999);
+          dueDate = d.toISOString();
+        } else {
+          const d = new Date();
+          const day = d.getDay();
+          d.setDate(d.getDate() + (6 - day));
+          d.setHours(23, 59, 59, 999);
+          dueDate = d.toISOString();
+        }
+        
         setWeeklyTasks(prev => [{ id: tempId, title, completed: false, createdAt: new Date().toISOString(), dueDate, userId: viewingUser.uid }, ...prev]);
-        const newId = await addWeeklyTask(viewingUser.uid, title);
+        const newId = await addWeeklyTask(viewingUser.uid, title, dueDate);
+        setNewWeeklyTaskDeadline('');
         setWeeklyTasks(prev => prev.map(t => t.id === tempId ? { ...t, id: newId } : t));
       }
     }
@@ -180,9 +191,26 @@ export default function DashboardPage() {
 
   const handleSaveEditWeeklyTask = async (taskId: string) => {
     if (!editingWeeklyTaskTitle.trim()) return;
-    setWeeklyTasks(prev => prev.map(t => t.id === taskId ? { ...t, title: editingWeeklyTaskTitle.trim() } : t));
+    
+    let newDueDate: string | undefined;
+    if (editingWeeklyTaskDeadline) {
+      const d = new Date(editingWeeklyTaskDeadline);
+      d.setHours(23, 59, 59, 999);
+      newDueDate = d.toISOString();
+    }
+
+    setWeeklyTasks(prev => prev.map(t => t.id === taskId ? { 
+      ...t, 
+      title: editingWeeklyTaskTitle.trim(),
+      ...(newDueDate ? { dueDate: newDueDate } : {})
+    } : t));
+    
     setEditingWeeklyTaskId(null);
-    await updateWeeklyTask(taskId, { title: editingWeeklyTaskTitle.trim() });
+    
+    await updateWeeklyTask(taskId, { 
+      title: editingWeeklyTaskTitle.trim(),
+      ...(newDueDate ? { dueDate: newDueDate } : {})
+    });
   };
 
   const handleSaveDates = async () => {
@@ -276,73 +304,10 @@ export default function DashboardPage() {
 
       {s.workSummary && (
         <div style={{ background: C.bg, padding:'16px', borderRadius:'12px', borderLeft: `3px solid ${C.accent}` }}>
-          <div style={{ fontSize:'12px', color:C.textSecondary, textTransform:'uppercase', marginBottom:'6px', letterSpacing:'1.2px', fontWeight:700 }}>Summary</div>
+          <div style={{ fontSize:'12px', color:C.textSecondary, textTransform:'uppercase', marginBottom:'6px', letterSpacing:'1.2px', fontWeight:700 }}>Remark</div>
           <div style={{ fontSize:'14px', color:C.textPrimary, lineHeight:'1.5' }}>{s.workSummary}</div>
         </div>
       )}
-
-      <div className="session-review-box" style={{ background: 'rgba(0,0,0,0.02)', padding:'16px', borderRadius:'12px', border:`1px solid ${C.borderLight}` }}>
-        <div style={{ fontSize:'12px', color:C.textSecondary, textTransform:'uppercase', marginBottom:'12px', letterSpacing:'1.2px', fontWeight:700 }}>Evaluation & Remark</div>
-        {s.review ? (
-           <div style={{ display:'flex', gap:'12px', alignItems:'flex-start' }}>
-             <span style={{ fontSize:'12px', fontWeight:700, padding:'4px 10px', borderRadius:'6px', background: s.review.action==='starred' ? 'rgba(234,179,8,0.12)' : s.review.action==='flagged' ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.1)', color: s.review.action==='starred' ? C.yellow : s.review.action==='flagged' ? C.red : C.green }}>
-               {s.review.action.toUpperCase()}
-             </span>
-             {s.review.comment && <div style={{ fontSize:'14px', color: C.textPrimary, lineHeight:'1.5' }}>{s.review.comment}</div>}
-           </div>
-        ) : (
-           <div style={{ fontSize:'13px', color:C.textMuted }}>No remarks yet.</div>
-        )}
-        {isAdmin && !s.review && (
-          <div className="session-review-actions" style={{ marginTop:'16px', display:'flex', gap:'12px', alignItems:'center', borderTop:`1px solid ${C.borderLight}`, paddingTop:'16px' }}>
-            <div style={{ position: 'relative' }}>
-              <div 
-                onClick={() => setOpenDropdownId(openDropdownId === s.id ? null : s.id)}
-                style={{
-                  padding:'10px 14px', width:'130px', cursor:'pointer',
-                  background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px',
-                  color: C.textPrimary, fontWeight: 600, fontSize: '13px',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-                }}
-              >
-                {remarkAction === 'flagged' ? 'Redo' : remarkAction.charAt(0).toUpperCase() + remarkAction.slice(1)}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.textSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
-              
-              {openDropdownId === s.id && (
-                <div style={{
-                  position: 'absolute', top: '100%', left: 0, marginTop: '6px',
-                  background: C.bg, border: `1px solid ${C.border}`,
-                  borderRadius: '10px', width: '100%', zIndex: 50,
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.08)', overflow: 'hidden'
-                }}>
-                  {(['starred', 'flagged'] as ReviewAction[]).map(opt => (
-                    <div 
-                      key={opt}
-                      onClick={() => {
-                        setRemarkAction(opt);
-                        setOpenDropdownId(null);
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = C.accent; e.currentTarget.style.color = '#FFF'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.textPrimary; }}
-                      style={{
-                        padding: '10px 14px', cursor: 'pointer',
-                        fontSize: '13px', fontWeight: 500, color: C.textPrimary,
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      {opt === 'flagged' ? 'Redo' : opt.charAt(0).toUpperCase() + opt.slice(1)}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <input value={remarkComment} onChange={e=>setRemarkComment(e.target.value)} placeholder="Add a remark..." style={{ ...INPUT, padding:'10px 14px', flex:1, borderRadius:'10px', border:`1px solid ${C.border}`, background: C.surface, fontSize:'13px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} />
-            <button onClick={() => { setRemarkingOn(s.id); handleRemark(); }} style={{ background:C.accent, color:'#000', padding:'10px 20px', borderRadius:'10px', border:'none', cursor:'pointer', fontWeight:700, fontSize:'13px', boxShadow: `0 2px 4px ${C.accent}40`, transition: 'all 0.2s' }}>Save</button>
-          </div>
-        )}
-      </div>
     </div>
   );
 
@@ -532,14 +497,25 @@ export default function DashboardPage() {
           <div style={{ fontSize:'20px', fontWeight:700, marginBottom:'24px' }}>Weekly Tasks</div>
           
           {(mimoUser?.role === 'founder' || mimoUser?.role === 'hr') && (
-            <textarea 
-              placeholder="Add a new weekly task and press Enter (Shift+Enter for new line)..." 
-              value={newWeeklyTask}
-              onChange={e=>setNewWeeklyTask(e.target.value)}
-              onKeyDown={handleAddWeeklyTask}
-              onInput={handleAutoResize}
-              style={{ ...TEXTAREA, minHeight: '60px', padding:'14px 16px', fontSize:'15px', marginBottom:'24px', overflow: 'hidden' }}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <textarea 
+                placeholder="Add a new weekly task and press Enter (Shift+Enter for new line)..." 
+                value={newWeeklyTask}
+                onChange={e=>setNewWeeklyTask(e.target.value)}
+                onKeyDown={handleAddWeeklyTask}
+                onInput={handleAutoResize}
+                style={{ ...TEXTAREA, minHeight: '60px', padding:'14px 16px', fontSize:'15px', overflow: 'hidden', margin: 0 }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '13px', color: C.textSecondary, fontWeight: 600 }}>Deadline (Optional):</span>
+                <input 
+                  type="date" 
+                  value={newWeeklyTaskDeadline} 
+                  onChange={e => setNewWeeklyTaskDeadline(e.target.value)} 
+                  style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)', padding: '6px 12px', fontSize: '14px' }}
+                />
+              </div>
+            </div>
           )}
 
           <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
@@ -563,28 +539,51 @@ export default function DashboardPage() {
                       style={{ width:'20px', height:'20px', cursor: canToggle ? 'pointer' : 'default' }}
                     />
                     {editingWeeklyTaskId === t.id ? (
-                      <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
-                        <textarea
-                          value={editingWeeklyTaskTitle}
-                          onChange={e => setEditingWeeklyTaskTitle(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEditWeeklyTask(t.id); }
-                            if (e.key === 'Escape') setEditingWeeklyTaskId(null);
-                          }}
-                          onInput={handleAutoResize}
-                          style={{ ...TEXTAREA, flex: 1, minHeight: '40px', padding: '8px', overflow: 'hidden' }}
-                          autoFocus
-                        />
-                        <button onClick={() => handleSaveEditWeeklyTask(t.id)} style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: '8px', padding: '0 16px', cursor: 'pointer', fontWeight: 600 }}>Save</button>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <textarea
+                            value={editingWeeklyTaskTitle}
+                            onChange={e => setEditingWeeklyTaskTitle(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEditWeeklyTask(t.id); }
+                              if (e.key === 'Escape') setEditingWeeklyTaskId(null);
+                            }}
+                            onInput={handleAutoResize}
+                            style={{ ...TEXTAREA, flex: 1, minHeight: '40px', padding: '8px', overflow: 'hidden' }}
+                            autoFocus
+                          />
+                          <button onClick={() => handleSaveEditWeeklyTask(t.id)} style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: '8px', padding: '0 16px', cursor: 'pointer', fontWeight: 600, alignSelf: 'flex-start', height: '40px' }}>Save</button>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontSize: '12px', color: C.textSecondary, fontWeight: 600 }}>Deadline:</span>
+                          <input 
+                            type="date" 
+                            value={editingWeeklyTaskDeadline} 
+                            onChange={e => setEditingWeeklyTaskDeadline(e.target.value)} 
+                            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', padding: '4px 8px', fontSize: '13px' }}
+                          />
+                        </div>
                       </div>
                     ) : (
                       <>
                         <div style={{ flex: 1, fontSize:'15px', color: t.completed ? C.textMuted : C.textPrimary, textDecoration: t.completed ? 'line-through' : 'none', whiteSpace: 'pre-wrap' }}>
-                          {t.title} {isLate && <span title="Late Submission" style={{ color: C.red, marginLeft: '4px' }}>⭐</span>}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>{t.title}</span>
+                            {isLate && <span title="Late Submission" style={{ color: C.red, fontSize: '11px', fontWeight: 700, padding: '2px 8px', background: 'rgba(239,68,68,0.1)', borderRadius: '4px', whiteSpace: 'nowrap' }}>Task delayed</span>}
+                          </div>
+                          {t.dueDate && (
+                            <div style={{ fontSize: '12px', color: isLate && !t.completed ? C.red : C.textSecondary, marginTop: '4px', textDecoration: 'none' }}>
+                              Deadline: {new Date(t.dueDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                          )}
                         </div>
                         {(mimoUser?.role === 'founder' || mimoUser?.role === 'hr') && (
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            <button onClick={() => { setEditingWeeklyTaskId(t.id); setEditingWeeklyTaskTitle(t.title); }} style={{ background: 'transparent', border: 'none', color: C.textSecondary, cursor: 'pointer', fontSize: '13px' }}>Edit</button>
+                            <button onClick={() => { 
+                              setEditingWeeklyTaskId(t.id); 
+                              setEditingWeeklyTaskTitle(t.title); 
+                              setEditingWeeklyTaskDeadline(t.dueDate ? t.dueDate.substring(0, 10) : '');
+                            }} style={{ background: 'transparent', border: 'none', color: C.textSecondary, cursor: 'pointer', fontSize: '13px' }}>Edit</button>
                             <button onClick={() => handleDeleteWeeklyTask(t.id)} style={{ background: 'transparent', border: 'none', color: C.red, cursor: 'pointer', fontSize: '13px' }}>Delete</button>
                           </div>
                         )}
@@ -601,45 +600,42 @@ export default function DashboardPage() {
       {/* ══ TODAY TAB ══ */}
       {tab === 'Today' && (
         <div style={{ padding:'36px 32px', maxWidth:'1200px', margin: '0 auto', width:'100%', display:'flex', flexDirection:'column', gap:'40px' }}>
-          {isMe && activeSession || (!isMe && allSessions.some(s => s.userId === viewingUser?.uid && s.status === 'active')) ? (
+          {activeSession ? (
             <div style={{ display:'flex', flexDirection:'column', gap:'28px' }}>
               <div style={{ fontSize:'18px', fontWeight:700 }}>
-                {isMe ? 'Your Live Session' : `${viewingUser?.displayName}'s Live Session`}
+                Your Live Session
               </div>
               
               {/* Work Log Form */}
               <div style={{ display:'flex', flexDirection:'column', gap:'28px' }}>
                 <div>
                   <div style={{ fontSize:'13px', fontWeight:600, color: C.textSecondary, marginBottom:'12px', textTransform:'uppercase', letterSpacing:'0.08em' }}>
-                    What did you work on? {isMe && <span style={{ color: C.red }}>*</span>}
+                    What did you work on? <span style={{ color: C.red }}>*</span>
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
                     {draftTasks.map((task, idx) => (
                       <div key={task.id} style={{ background: C.surface, border:`1px solid ${C.border}`, borderRadius:'12px', padding:'18px 20px' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' }}>
                           <span style={{ fontSize:'11px', fontWeight:600, color: C.textMuted, textTransform:'uppercase', letterSpacing:'0.08em' }}>Task {idx+1}</span>
-                          {isMe && <button onClick={()=>removeTask(task.id)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:'50%', width:'26px', height:'26px', color: C.textSecondary, cursor:'pointer', fontSize:'13px', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>}
+                          <button onClick={()=>removeTask(task.id)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:'50%', width:'26px', height:'26px', color: C.textSecondary, cursor:'pointer', fontSize:'13px', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
                         </div>
-                        <textarea style={{ ...TEXTAREA, marginBottom:'10px', minHeight: '60px', overflow: 'hidden' }} placeholder="Task title (Shift+Enter for new line)" value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} onInput={handleAutoResize} disabled={!isMe} />
+                        <textarea style={{ ...TEXTAREA, marginBottom:'10px', minHeight: '60px', overflow: 'hidden' }} placeholder="Task title (Shift+Enter for new line)" value={task.title} onChange={e=>updateTask(task.id,'title',e.target.value)} onInput={handleAutoResize} />
                         <div style={{ display:'flex', gap:'10px' }}>
-                          <select style={{ ...INPUT, flex:'0 0 160px' }} value={task.category} onChange={e=>updateTask(task.id,'category',e.target.value)} disabled={!isMe}>
+                          <select style={{ ...INPUT, flex:1 }} value={task.category} onChange={e=>updateTask(task.id,'category',e.target.value)}>
                             {TASK_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                           </select>
-                          <input style={INPUT} placeholder="Description (optional)" value={task.description} onChange={e=>updateTask(task.id,'description',e.target.value)} disabled={!isMe} />
                         </div>
                       </div>
                     ))}
                   </div>
-                  {isMe && (
-                    <button onClick={addTask} style={{ width:'100%', background:'none', border:`1px dashed ${C.border}`, borderRadius:'10px', color: C.textSecondary, cursor:'pointer', padding:'13px', fontSize:'13px', fontWeight:500, marginTop:'10px' }}>
-                      + Add Task
-                    </button>
-                  )}
+                  <button onClick={addTask} style={{ width:'100%', background:'none', border:`1px dashed ${C.border}`, borderRadius:'10px', color: C.textSecondary, cursor:'pointer', padding:'13px', fontSize:'13px', fontWeight:500, marginTop:'10px' }}>
+                    + Add Task
+                  </button>
                 </div>
 
                 <div>
                   <div style={{ fontSize:'13px', fontWeight:600, color: C.textSecondary, marginBottom:'10px', textTransform:'uppercase', letterSpacing:'0.08em' }}>Remark for the day</div>
-                  <textarea style={{ ...TEXTAREA, overflow: 'hidden' }} placeholder="Brief summary of your session..." value={draftSummary} onChange={e=>setDraftSummary(e.target.value)} onInput={handleAutoResize} disabled={!isMe} />
+                  <textarea style={{ ...TEXTAREA, overflow: 'hidden' }} placeholder="Brief summary of your session..." value={draftSummary} onChange={e=>setDraftSummary(e.target.value)} onInput={handleAutoResize} />
                 </div>
 
 
@@ -649,27 +645,25 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                {isMe && (
-                  <div style={{ display:'flex', flexDirection:'column', gap:'10px', marginTop:'8px' }}>
-                    {isWorking && (
-                      <div style={{ color: C.textSecondary, fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
-                        Clock out of your session from the top right button to submit the work log
-                      </div>
-                    )}
-                    <button onClick={handleSubmit} disabled={submitting||isWorking} style={{ width:'100%', padding:'15px', borderRadius:'10px', border:'none', background: isWorking ? C.borderLight : C.accent, color: isWorking ? C.textMuted : '#ffffff', cursor: isWorking?'not-allowed':'pointer', fontWeight:700, fontSize:'15px', transition: 'all 0.3s ease' }}>
-                      {submitting ? 'Submitting...' : isWorking ? 'Clock out first' : '✓ Submit Work Log'}
-                    </button>
-                  </div>
-                )}
+                <div style={{ display:'flex', flexDirection:'column', gap:'10px', marginTop:'8px' }}>
+                  {isWorking && (
+                    <div style={{ color: C.textSecondary, fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
+                      Clock out of your session from the top right button to submit the work log
+                    </div>
+                  )}
+                  <button onClick={handleSubmit} disabled={submitting||isWorking} style={{ width:'100%', padding:'15px', borderRadius:'10px', border:'none', background: isWorking ? C.borderLight : C.accent, color: isWorking ? C.textMuted : '#ffffff', cursor: isWorking?'not-allowed':'pointer', fontWeight:700, fontSize:'15px', transition: 'all 0.3s ease' }}>
+                    {submitting ? 'Submitting...' : isWorking ? 'Clock out first' : '✓ Submit Work Log'}
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
             <div style={{ textAlign:'center', paddingTop:'20px', paddingBottom:'20px' }}>
               <div style={{ fontWeight:800, fontSize:'22px', marginBottom:'8px' }}>
-                {isMe ? 'No active session' : `${viewingUser?.displayName} has no active session`}
+                No active session
               </div>
               <div style={{ color: C.textSecondary, fontSize:'14px' }}>
-                {isMe ? 'Check in from the top right to start logging work.' : 'Check their History for past sessions.'}
+                Check in from the top right to start logging work.
               </div>
             </div>
           )}

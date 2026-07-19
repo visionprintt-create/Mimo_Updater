@@ -387,13 +387,20 @@ export async function getWeeklyTasks(userId: string): Promise<import('@/types').
   return tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function addWeeklyTask(userId: string, title: string): Promise<string> {
+export async function addWeeklyTask(userId: string, title: string, customDueDate?: string): Promise<string> {
   const ref = doc(collection(db, 'weekly_tasks'));
   
-  const d = new Date();
-  const day = d.getDay();
-  d.setDate(d.getDate() + (6 - day));
-  d.setHours(23, 59, 59, 999);
+  let d: Date;
+  if (customDueDate) {
+    d = new Date(customDueDate);
+    // ensure end of day for the selected date
+    d.setHours(23, 59, 59, 999);
+  } else {
+    d = new Date();
+    const day = d.getDay();
+    d.setDate(d.getDate() + (6 - day));
+    d.setHours(23, 59, 59, 999);
+  }
   
   await setDoc(ref, {
     userId,
