@@ -321,7 +321,7 @@ export default function TeamAndApprovalsPage() {
 
           {/* Filter */}
           <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {['approved', 'suspended', 'all'].map((f) => (
+            {['approved', 'all'].map((f) => (
               <button
                 key={f}
                 className={`btn btn-sm ${teamFilter === f ? 'btn-primary' : 'btn-ghost'}`}
@@ -496,15 +496,7 @@ export default function TeamAndApprovalsPage() {
                       {/* Actions */}
                       {!ADMIN_ROLES.includes(user.role) && (
                         <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                          <button
-                            className={`btn btn-sm ${user.status === 'suspended' ? 'btn-accent' : 'btn-danger'}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSuspend(user);
-                            }}
-                          >
-                            {user.status === 'suspended' ? '✅ Reactivate' : '⛔ Suspend'}
-                          </button>
+
                           
                           <button
                             className="btn btn-sm btn-ghost"

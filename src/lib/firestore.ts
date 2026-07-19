@@ -37,13 +37,13 @@ export async function getUser(uid: string): Promise<MimoUser | null> {
 
 export async function getAllUsers(): Promise<MimoUser[]> {
   const snap = await getDocs(collection(db, 'users'));
-  return snap.docs.map((d) => d.data() as MimoUser);
+  return snap.docs.map((d) => d.data() as MimoUser).filter(u => u.status !== 'deleted');
 }
 
 export async function getUsersByDepartment(dept: string): Promise<MimoUser[]> {
   const q = query(collection(db, 'users'), where('departments', 'array-contains', dept));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as MimoUser);
+  return snap.docs.map((d) => d.data() as MimoUser).filter(u => u.status !== 'deleted');
 }
 
 export async function getPendingUsers(): Promise<MimoUser[]> {
@@ -97,8 +97,13 @@ export async function purgeUserData(uid: string) {
 }
 
 export async function deleteUserAccount(uid: string) {
-  await purgeUserData(uid);
-  await deleteDoc(doc(db, 'users', uid));
+  try {
+    await purgeUserData(uid);
+    await deleteDoc(doc(db, 'users', uid));
+  } catch (err) {
+    console.warn("Hard delete failed (likely due to rules), falling back to soft delete", err);
+    await updateDoc(doc(db, 'users', uid), { status: 'deleted' });
+  }
 }
 
 export async function updateUserInternshipDates(uid: string, startDate: string, endDate: string) {
