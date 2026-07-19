@@ -78,49 +78,45 @@ export default function AdminDashboard() {
         </p>
       </header>
 
-      {/* Row 1: Quick Stats (4 cards) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
-        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Total Interns</div>
+      {/* Quick Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Interns</div>
           <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--text-primary)' }}>{interns.length}</div>
         </div>
         
-        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Currently Active</div>
-          <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--text-primary)' }}>{activeSessions.length}</div>
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Currently Active</div>
+          <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--accent-green)' }}>{activeSessions.length}</div>
         </div>
 
-        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Hours This Week</div>
-          <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {thisWeekHours}
-            <span style={{ fontSize: '18px', color: 'var(--accent-green)', marginLeft: '6px', fontWeight: 500 }}>hrs</span>
-          </div>
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Hours This Week</div>
+          <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--text-primary)' }}>{thisWeekHours}<span style={{ fontSize: '18px', color: 'var(--text-secondary)', marginLeft: '4px' }}>hrs</span></div>
         </div>
         
-        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Pending Approvals</div>
-          <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--text-primary)' }}>{pendingUsers.length}</div>
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px', border: pendingUsers.length > 0 ? '1px solid var(--accent-orange)' : undefined }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Pending Approvals</div>
+          <div style={{ fontSize: '36px', fontWeight: 600, color: pendingUsers.length > 0 ? 'var(--accent-orange)' : 'var(--text-primary)' }}>{pendingUsers.length}</div>
         </div>
       </div>
 
-      {/* Row 2: Two Columns (65% / 35%) */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
-        {/* Left Column: Currently Working */}
-        <section className="glass-card" style={{ flex: '2 1 500px', padding: '32px' }}>
-          <h2 style={{ margin: '0 0 24px 0', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>Currently Working</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+        {/* Currently Active Interns */}
+        <section className="glass-card" style={{ padding: '24px' }}>
+          <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>Currently Working</h2>
           {activeSessions.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontStyle: 'italic' }}>No interns are currently clocked in.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {activeSessions.map(session => (
-                <div key={session.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--bg-glass)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <div key={session.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-glass)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-green)', boxShadow: '0 0 8px var(--accent-green)' }}></div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '15px' }}>{session.userName || 'Unknown Intern'}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{session.userDepartments?.[0] || 'No Dept'}</div>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>{session.userName || 'Unknown Intern'}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{session.userDepartments?.[0] || session.userDepartment || 'No Dept'}</div>
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                     Since {new Date(session.clockInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -129,10 +125,10 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        {/* Right Column: Quick Links */}
-        <section className="glass-card" style={{ flex: '1 1 300px', padding: '32px' }}>
-          <h2 style={{ margin: '0 0 24px 0', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>Quick Links</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Quick Links */}
+        <section className="glass-card" style={{ padding: '24px' }}>
+          <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>Quick Links</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Link href="/admin/approvals" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'var(--bg-glass)', borderRadius: '12px', border: '1px solid var(--border-color)', textDecoration: 'none', color: 'inherit', transition: 'background 0.2s' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>Manage Team</div>
