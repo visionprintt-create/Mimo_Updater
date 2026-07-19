@@ -418,45 +418,59 @@ export default function TeamAndApprovalsPage() {
                       {initials}
                     </div>
                     <div style={{ flex: 1, minWidth: '180px' }}>
-                      <div style={{ fontWeight: 600 }}>{user.displayName}</div>
-                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{ fontWeight: 600 }}>{user.displayName}</div>
+                        <span className="badge" style={{ background: 'var(--bg-glass)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', fontSize: '10px', padding: '2px 6px' }}>
+                          {user.role.toUpperCase()}
+                        </span>
+                        <span className={`badge badge-${user.status}`} style={{ fontSize: '10px', padding: '2px 6px' }}>
+                          {user.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: '12px' }}>
                         {user.email}
                       </div>
-                      <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '4px', background: 'var(--bg-glass)', borderRadius: '8px', border: '1px solid var(--border-color)' }} onClick={(e) => e.stopPropagation()}>
-                          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Departments</div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                            {DEPARTMENTS.map(d => {
-                              const hasDept = depts.includes(d);
-                              return (
-                                <label key={d} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer', opacity: hasDept ? 1 : 0.5 }}>
-                                  <input 
-                                    type="checkbox" 
-                                    checked={hasDept} 
-                                    onChange={async (e) => {
-                                      const checked = e.target.checked;
-                                      let newDepts = [...depts];
-                                      if (checked) newDepts.push(d);
-                                      else if (newDepts.length > 1) newDepts = newDepts.filter(x => x !== d);
-                                      
-                                      setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, departments: newDepts } : u));
-                                      await updateDoc(doc(db, 'users', user.uid), { departments: newDepts });
-                                    }}
-                                  />
-                                  {d}
-                                </label>
-                              );
-                            })}
-                          </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {/* Departments selector (pill style) */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: '4px' }}>Depts:</span>
+                          {DEPARTMENTS.map(d => {
+                            const hasDept = depts.includes(d);
+                            return (
+                              <span 
+                                key={d} 
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  let newDepts = [...depts];
+                                  if (!hasDept) newDepts.push(d);
+                                  else if (newDepts.length > 1) newDepts = newDepts.filter(x => x !== d);
+                                  
+                                  setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, departments: newDepts } : u));
+                                  await updateDoc(doc(db, 'users', user.uid), { departments: newDepts });
+                                }}
+                                style={{ 
+                                  cursor: 'pointer', 
+                                  fontSize: '11px', 
+                                  padding: '4px 8px', 
+                                  borderRadius: '12px',
+                                  background: hasDept ? getTheme(d).gradient : 'transparent',
+                                  color: hasDept ? '#fff' : 'var(--text-secondary)',
+                                  border: hasDept ? 'none' : '1px solid var(--border-color)',
+                                  fontWeight: hasDept ? 600 : 400,
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                {d}
+                              </span>
+                            );
+                          })}
                         </div>
-                        <span className="badge" style={{ background: 'var(--bg-glass)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}>
-                          {user.role}
-                        </span>
-                        <span className={`badge badge-${user.status}`}>
-                          {user.status}
-                        </span>
+
+                        {/* Internship Dates */}
                         {user.role === 'intern' && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', marginLeft: '8px' }} onClick={(e) => e.stopPropagation()}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }} onClick={(e) => e.stopPropagation()}>
+                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: '4px' }}>Timeline:</span>
                             <input 
                               type="date" 
                               value={user.internshipStartDate ? user.internshipStartDate.split('T')[0] : ''}
@@ -465,9 +479,9 @@ export default function TeamAndApprovalsPage() {
                                 setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipStartDate: newDate } : u));
                                 await updateUserInternshipDates(user.uid, newDate, user.internshipEndDate || '');
                               }}
-                              style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
+                              style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '4px 8px', color: 'var(--text-primary)', outline: 'none', fontSize: '12px', fontFamily: 'inherit' }}
                             />
-                            <span style={{ color: 'var(--text-muted)' }}>to</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 600 }}>TO</span>
                             <input 
                               type="date" 
                               value={user.internshipEndDate ? user.internshipEndDate.split('T')[0] : ''}
@@ -476,7 +490,7 @@ export default function TeamAndApprovalsPage() {
                                 setTeamUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, internshipEndDate: newDate } : u));
                                 await updateUserInternshipDates(user.uid, user.internshipStartDate || '', newDate);
                               }}
-                              style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 4px', color: 'var(--text-primary)', outline: 'none' }}
+                              style={{ background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '4px 8px', color: 'var(--text-primary)', outline: 'none', fontSize: '12px', fontFamily: 'inherit' }}
                             />
                           </div>
                         )}
