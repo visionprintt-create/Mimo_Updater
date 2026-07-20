@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { getAllUsers, getInvitations, deleteInvitation, deleteUserAccount, updateUser, updateUserStatus, createAuditLog } from '@/lib/firestore';
 import type { MimoUser, Invitation, Department, UserRole } from '@/types';
@@ -281,6 +282,9 @@ export default function EmployeesPage() {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <Link href={`/admin/employees/${(item as MimoUser).uid}/dashboard`} className="btn btn-sm btn-primary" style={{ padding: '0 12px' }}>
+                          View Dashboard
+                        </Link>
                         <button className="btn btn-sm btn-ghost" onClick={() => setEditingUser(item as MimoUser)}>Edit</button>
                         {(item as MimoUser).status === 'approved' ? (
                           <button className="btn btn-sm" style={{ background: 'var(--status-flagged)', color: 'white' }} onClick={() => handleUpdateStatus((item as MimoUser).uid, 'suspended')}>Suspend</button>
