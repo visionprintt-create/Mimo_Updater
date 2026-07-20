@@ -142,6 +142,8 @@ export default function DashboardOverview() {
   const productivityScore = Math.min(100, Math.round((totalTasksCompleted / Math.max(1, allSessions.length)) * 15 + 75));
   const efficiencyScore = Math.min(100, Math.round(70 + (totalWorkedMs / (1000 * 60 * 60 * 40)) * 30));
 
+  if (!mimoUser) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Dashboard...</div>;
+
   return (
     <>
       <div className={styles.topHeader}>
