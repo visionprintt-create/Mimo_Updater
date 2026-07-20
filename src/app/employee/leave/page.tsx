@@ -86,7 +86,7 @@ export default function EmployeeLeavePage() {
             title: 'New Leave Request',
             message: `${mimoUser.displayName} has requested ${days} day(s) of leave.`,
             type: 'system',
-            isRead: false,
+            read: false,
             createdAt: new Date().toISOString()
          });
       }

@@ -38,7 +38,7 @@ export default function AdminLeavesPage() {
         title: 'Leave Approved',
         message: `Your ${req.leaveType} leave request for ${req.days} days has been approved.`,
         type: 'system',
-        isRead: false,
+        read: false,
         createdAt: new Date().toISOString()
       });
       await fetchRequests();
@@ -62,7 +62,7 @@ export default function AdminLeavesPage() {
         title: 'Leave Rejected',
         message: `Your leave request was rejected: ${rejectionReason}`,
         type: 'system',
-        isRead: false,
+        read: false,
         createdAt: new Date().toISOString()
       });
       setRejectingId(null);
