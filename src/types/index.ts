@@ -195,7 +195,8 @@ export type NotificationType =
   | 'session_starred'
   | 'session_noted'
   | 'session_auto_stopped'
-  | 'general';
+  | 'general'
+  | 'system';
 
 export interface MimoNotification {
   id: string;
