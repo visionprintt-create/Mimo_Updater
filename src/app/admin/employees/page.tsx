@@ -58,7 +58,7 @@ export default function EmployeesPage() {
         departments: [inviteForm.department],
         position: inviteForm.position,
         invitedBy: mimoUser.uid,
-        createdAt: new Date().toISOString()
+        invitedAt: new Date().toISOString()
       };
       await setDoc(doc(db, 'invitations', invite.email), invite);
       setShowInviteModal(false);
