@@ -59,7 +59,6 @@ export default function EmployeeDashboardLayout({ children }: { children: React.
   }
 
   return (
-    <AuthProvider>
       <AuthGuard requiredPermission="VIEW_OWN_DASHBOARD">
         <div className={`${styles.pageContainer} ${theme === 'dark' ? styles.darkTheme : ''}`}>
       {/* Sidebar */}
@@ -107,6 +106,5 @@ export default function EmployeeDashboardLayout({ children }: { children: React.
       </div>
         </div>
       </AuthGuard>
-    </AuthProvider>
   );
 }
