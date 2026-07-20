@@ -111,7 +111,7 @@ export default function SessionPage() {
     router.push('/login');
   };
 
-  const timelineItems = [];
+  const timelineItems: Array<{ time: string; text: string; status: string; extra?: string }> = [];
   if (activeSession) {
     timelineItems.push({ time: formatTime(activeSession.clockInTime), text: 'Checked In', status: 'success' });
     activeSession.breaks.forEach(b => {
