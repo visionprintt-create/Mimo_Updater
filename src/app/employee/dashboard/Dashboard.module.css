@@ -1,16 +1,16 @@
 .pageContainer {
   display: flex;
   min-height: 100vh;
-  background-color: #f7f9fc;
+  background-color: #f3e8e3;
   font-family: var(--font-sans, 'Inter', sans-serif);
-  color: #1e293b;
+  color: #4a3b36;
 }
 
 /* Sidebar */
 .sidebar {
   width: 250px;
-  background-color: #ffffff;
-  border-right: 1px solid #e2e8f0;
+  background-color: #fffbf9;
+  border-right: none; box-shadow: 4px 0 16px rgba(210, 185, 175, 0.3);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
@@ -22,13 +22,13 @@
   gap: 0.5rem;
   font-size: 1.25rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #352925;
   margin-bottom: 2.5rem;
   padding-left: 0.5rem;
 }
 
 .logoHighlight {
-  color: #2563eb; /* Blue primary */
+  color: #eca696; /* Blue primary */
 }
 
 .navMenu {
@@ -43,21 +43,21 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  color: #64748b;
+  border-radius: 1.5rem;
+  color: #8f807a;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .navItem:hover {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background-color: #ece0da;
+  color: #352925;
 }
 
 .navItem.active {
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: #fcedea;
+  color: #eca696;
   font-weight: 600;
 }
 
@@ -67,7 +67,7 @@
   gap: 0.75rem;
   margin-top: auto;
   padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(234, 168, 154, 0.2);
   margin-bottom: 1rem;
 }
 
@@ -75,12 +75,12 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #cbd5e1;
+  background-color: #d8cac4;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  color: #ffffff;
+  color: #fffbf9;
   overflow: hidden;
 }
 
@@ -98,12 +98,12 @@
 .userName {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #352925;
 }
 
 .userRole {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #8f807a;
 }
 
 .onlineStatus {
@@ -126,7 +126,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  color: #64748b;
+  color: #8f807a;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -156,12 +156,12 @@
 .greeting h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #352925;
   margin-bottom: 0.25rem;
 }
 
 .greeting p {
-  color: #64748b;
+  color: #8f807a;
   font-size: 0.875rem;
 }
 
@@ -173,7 +173,7 @@
 
 .tabs {
   display: flex;
-  background-color: #f1f5f9;
+  background-color: #ece0da;
   border-radius: 2rem;
   padding: 0.25rem;
 }
@@ -183,14 +183,14 @@
   border-radius: 1.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #64748b;
+  color: #8f807a;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .tab.active {
-  background-color: #ffffff;
-  color: #2563eb;
+  background-color: #fffbf9;
+  color: #eca696;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
@@ -202,9 +202,10 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
+  background-color: #fffbf9;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  color: #8f807a;
   cursor: pointer;
 }
 
@@ -225,10 +226,10 @@
 }
 
 .btnPrimary {
-  background-color: #2563eb;
-  color: #ffffff;
+  background-color: #eca696;
+  color: #fffbf9;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 1.5rem;
   padding: 0.75rem 1.25rem;
   font-weight: 600;
   font-size: 0.875rem;
@@ -240,14 +241,15 @@
 }
 
 .btnPrimary:hover {
-  background-color: #1d4ed8;
+  background-color: #e09584;
 }
 
 .btnDanger {
-  background-color: #ffffff;
+  background-color: #fffbf9;
   color: #ef4444;
-  border: 1px solid #ef4444;
-  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
   padding: 0.75rem 1.25rem;
   font-weight: 600;
   font-size: 0.875rem;
@@ -273,9 +275,10 @@
 }
 
 .statCard {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  background-color: #fffbf9;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
   padding: 1.5rem;
   display: flex;
   align-items: center;
@@ -292,7 +295,7 @@
   font-size: 1.5rem;
 }
 
-.statIcon.blue { background-color: #eff6ff; color: #2563eb; }
+.statIcon.blue { background-color: #fcedea; color: #eca696; }
 .statIcon.green { background-color: #ecfdf5; color: #10b981; }
 .statIcon.purple { background-color: #f5f3ff; color: #8b5cf6; }
 .statIcon.orange { background-color: #fff7ed; color: #f97316; }
@@ -304,7 +307,7 @@
 
 .statLabel {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #8f807a;
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
@@ -312,7 +315,7 @@
 .statValue {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #352925;
 }
 
 .statTrend {
@@ -325,7 +328,7 @@
 }
 
 .statTrend.up { color: #10b981; }
-.statTrend.neutral { color: #64748b; }
+.statTrend.neutral { color: #8f807a; }
 
 /* Grid Layout */
 .dashboardGrid {
@@ -337,9 +340,10 @@
 
 /* Base Card */
 .card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  background-color: #fffbf9;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -349,7 +353,7 @@
 .cardTitle {
   font-size: 1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #352925;
   margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
@@ -366,7 +370,7 @@
   color: #10b981;
   background-color: #ecfdf5;
   padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
+  border-radius: 1.5rem;
 }
 
 .sessionStatus.break {
@@ -376,7 +380,7 @@
 
 .sessionTimeBox {
   background-color: #ecfdf5;
-  border-radius: 0.5rem;
+  border-radius: 1.5rem;
   padding: 1rem;
   display: flex;
   align-items: center;
@@ -404,18 +408,18 @@
 
 .sessionTimeLabel {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #8f807a;
 }
 
 .sessionTimeValue {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #352925;
 }
 
 .sessionTimeDate {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #a89a94;
 }
 
 .sessionDetails {
@@ -432,14 +436,14 @@
 
 .detailLabel {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #8f807a;
   margin-bottom: 0.25rem;
 }
 
 .detailValue {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #352925;
 }
 
 /* Live Timeline */
@@ -458,7 +462,7 @@
   bottom: 0;
   left: 17px;
   width: 2px;
-  background-color: #e2e8f0;
+  background-color: #e6d8d3;
   z-index: 0;
 }
 
@@ -473,14 +477,14 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: #e2e8f0;
-  border: 4px solid #ffffff;
+  background-color: #e6d8d3;
+  border: 4px solid #fffbf9;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
 .timelineDot.active {
-  background-color: #2563eb;
+  background-color: #eca696;
 }
 
 .timelineDot.success {
@@ -500,13 +504,13 @@
 .timelineTime {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #64748b;
+  color: #8f807a;
   width: 45px;
 }
 
 .timelineText {
   font-size: 0.875rem;
-  color: #0f172a;
+  color: #352925;
   flex: 1;
 }
 
@@ -519,7 +523,7 @@
 .viewAllBtn {
   background: none;
   border: none;
-  color: #2563eb;
+  color: #eca696;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
@@ -528,7 +532,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(234, 168, 154, 0.2);
   margin-top: 1rem;
   width: 100%;
 }
@@ -560,21 +564,21 @@
 .completedTitle {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #352925;
 }
 
 .completedTime {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #8f807a;
 }
 
 .completedDuration {
-  background-color: #f1f5f9;
+  background-color: #ece0da;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: #8f807a;
 }
 
 /* Today's Summary Chart */
@@ -591,13 +595,13 @@
 
 .summaryStatLabel {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #8f807a;
 }
 
 .summaryStatValue {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #352925;
 }
 
 .chartContainer {
@@ -613,9 +617,10 @@
 }
 
 .actionBtn {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  background-color: #fffbf9;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.25rem;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -627,14 +632,14 @@
 }
 
 .actionBtn:hover {
-  border-color: #cbd5e1;
+  border-color: #d8cac4;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 
 .actionIcon {
   width: 32px;
   height: 32px;
-  border-radius: 0.5rem;
+  border-radius: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -644,12 +649,12 @@
 .actionTitle {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #352925;
 }
 
 .actionDesc {
   font-size: 0.7rem;
-  color: #64748b;
+  color: #8f807a;
 }
 
 /* Modal Overlay */
@@ -668,8 +673,8 @@
 }
 
 .modalContent {
-  background-color: #ffffff;
-  border-radius: 1rem;
+  background-color: #fffbf9;
+  border-radius: 1.5rem;
   padding: 2rem;
   width: 90%;
   max-width: 500px;
@@ -686,14 +691,14 @@
 .modalTitle {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #352925;
 }
 
 .closeBtn {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #64748b;
+  color: #8f807a;
   cursor: pointer;
 }
 
@@ -712,15 +717,16 @@
 .inputField {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
   font-size: 0.875rem;
   font-family: inherit;
 }
 
 .inputField:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #eca696;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
@@ -737,8 +743,9 @@ textarea.inputField {
 .moodBtn {
   flex: 1;
   padding: 0.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
   background-color: #f8fafc;
   cursor: pointer;
   display: flex;
@@ -749,12 +756,12 @@ textarea.inputField {
 }
 
 .moodBtn:hover {
-  background-color: #f1f5f9;
+  background-color: #ece0da;
 }
 
 .moodBtn.selected {
-  border-color: #2563eb;
-  background-color: #eff6ff;
+  border-color: #eca696;
+  background-color: #fcedea;
 }
 
 .moodEmoji {
@@ -764,11 +771,11 @@ textarea.inputField {
 .moodLabel {
   font-size: 0.7rem;
   font-weight: 500;
-  color: #64748b;
+  color: #8f807a;
 }
 
 .moodBtn.selected .moodLabel {
-  color: #2563eb;
+  color: #eca696;
 }
 
 .modalActions {
@@ -779,10 +786,11 @@ textarea.inputField {
 }
 
 .btnSecondary {
-  background-color: #ffffff;
-  color: #64748b;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
+  background-color: #fffbf9;
+  color: #8f807a;
+  border: none;
+  box-shadow: 8px 8px 16px rgba(210, 185, 175, 0.4), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
   padding: 0.75rem 1.25rem;
   font-weight: 600;
   font-size: 0.875rem;
@@ -816,9 +824,9 @@ textarea.inputField {
 
 .addTaskBtn {
   background: none;
-  border: 1px dashed #cbd5e1;
-  color: #2563eb;
-  border-radius: 0.5rem;
+  border: 1px dashed #d8cac4;
+  color: #eca696;
+  border-radius: 1.5rem;
   padding: 0.5rem;
   width: 100%;
   font-size: 0.875rem;
@@ -828,19 +836,19 @@ textarea.inputField {
 }
 
 .addTaskBtn:hover {
-  background-color: #f1f5f9;
+  background-color: #ece0da;
 }
 
 .settingsGroupTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #352925;
   margin-bottom: 0.25rem;
 }
 
 .settingsGroupDesc {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #8f807a;
 }
 
 .darkTheme .settingsGroupTitle {
@@ -848,13 +856,13 @@ textarea.inputField {
 }
 
 .darkTheme .settingsGroupDesc {
-  color: #94a3b8;
+  color: #a89a94;
 }
 
 /* Dark Theme Overrides */
 .darkTheme.pageContainer {
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: #352925;
+  color: #ece0da;
 }
 
 .darkTheme .sidebar,
@@ -862,7 +870,7 @@ textarea.inputField {
 .darkTheme .statCard,
 .darkTheme .modalContent,
 .darkTheme .actionBtn {
-  background-color: #1e293b;
+  background-color: #4a3b36;
   border-color: #334155;
 }
 
@@ -873,7 +881,7 @@ textarea.inputField {
 
 .darkTheme .navItem.active {
   background-color: #3b82f6;
-  color: #ffffff;
+  color: #fffbf9;
 }
 
 .darkTheme .topHeader h1,
@@ -897,17 +905,17 @@ textarea.inputField {
 .darkTheme .summaryStatLabel,
 .darkTheme .actionDesc,
 .darkTheme .detailLabel {
-  color: #94a3b8;
+  color: #a89a94;
 }
 
 .darkTheme .inputField {
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: #352925;
+  color: #ece0da;
   border-color: #334155;
 }
 
 .darkTheme .btnSecondary {
-  background-color: #1e293b;
+  background-color: #4a3b36;
   color: #f8fafc;
   border-color: #475569;
 }

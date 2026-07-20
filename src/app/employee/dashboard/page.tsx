@@ -170,35 +170,35 @@ export default function DashboardOverview() {
                 top: 'calc(100% + 10px)', 
                 right: 0, 
                 width: '320px', 
-                backgroundColor: '#ffffff', 
+                backgroundColor: '#fffbf9', 
                 borderRadius: '12px', 
                 boxShadow: '0 10px 25px rgba(0,0,0,0.1)', 
-                border: '1px solid #e2e8f0', 
+                border: '1px solid #e6d8d3', 
                 zIndex: 50,
                 padding: '16px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Notifications</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: 500, cursor: 'pointer' }} onClick={() => setUnreadCount(0)}>Mark all read</span>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#352925', margin: 0 }}>Notifications</h3>
+                  <span style={{ fontSize: '0.75rem', color: '#eca696', fontWeight: 500, cursor: 'pointer' }} onClick={() => setUnreadCount(0)}>Mark all read</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? '#3b82f6' : 'transparent', marginTop: '6px' }}></div>
+                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid #ece0da' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? '#eca696' : 'transparent', marginTop: '6px' }}></div>
                     <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1e293b' }}>Welcome to Mimo!</div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>Your account is now active.</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4a3b36' }}>Welcome to Mimo!</div>
+                      <div style={{ fontSize: '0.75rem', color: '#8f807a', marginTop: '2px' }}>Your account is now active.</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? '#10b981' : 'transparent', marginTop: '6px' }}></div>
+                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid #ece0da' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? '#9bc9a6' : 'transparent', marginTop: '6px' }}></div>
                     <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1e293b' }}>Session Auto-stopped</div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>Yesterday at 5:00 PM</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4a3b36' }}>Session Auto-stopped</div>
+                      <div style={{ fontSize: '0.75rem', color: '#8f807a', marginTop: '2px' }}>Yesterday at 5:00 PM</div>
                     </div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', cursor: 'pointer' }} onClick={() => setShowNotifications(false)}>Close</span>
+                  <span style={{ fontSize: '0.75rem', color: '#8f807a', cursor: 'pointer' }} onClick={() => setShowNotifications(false)}>Close</span>
                 </div>
               </div>
             )}
@@ -260,17 +260,17 @@ export default function DashboardOverview() {
           <div className={styles.card}>
             <div className={styles.cardTitle}>
               Weekly Overview
-              <select style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: '0.875rem' }}>
+              <select style={{ border: 'none', background: 'transparent', color: '#8f807a', fontSize: '0.875rem' }}>
                 <option>This Week</option>
               </select>
             </div>
             <div className={styles.chartContainer}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8f807a' }} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {barData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.active ? '#2563eb' : '#e2e8f0'} />
+                      <Cell key={`cell-${index}`} fill={entry.active ? '#eca696' : '#e6d8d3'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -302,9 +302,9 @@ export default function DashboardOverview() {
             <div className={styles.chartContainer} style={{ height: '120px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={areaData} margin={{ top: 5, right: 0, left: -25, bottom: 0 }}>
-                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b' }} />
+                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#8f807a' }} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
-                  <Area type="monotone" dataKey="value" stroke="#2563eb" fill="#eff6ff" strokeWidth={2} />
+                  <Area type="monotone" dataKey="value" stroke="#eca696" fill="#fcedea" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

@@ -208,17 +208,17 @@ export default function AdminEmployeeDashboardOverview() {
                 <AreaChart data={areaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--mimo-primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--mimo-primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#eca696" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#eca696" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={10} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
+                    contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: '#e6d8d3', borderRadius: '8px' }}
                     itemStyle={{ color: 'var(--text-primary)' }}
                     formatter={(val: number) => [`${val.toFixed(1)} hrs`, 'Work']}
                   />
-                  <Area type="monotone" dataKey="value" stroke="var(--mimo-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                  <Area type="monotone" dataKey="value" stroke="#eca696" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -270,13 +270,13 @@ export default function AdminEmployeeDashboardOverview() {
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={10} />
                   <Tooltip 
                     cursor={{ fill: 'var(--bg-secondary)', opacity: 0.4 }}
-                    contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
+                    contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: '#e6d8d3', borderRadius: '8px' }}
                     itemStyle={{ color: 'var(--text-primary)' }}
                     formatter={(val: number) => [`${val} hrs`, 'Work']}
                   />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {barData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.active ? 'var(--mimo-primary)' : 'var(--border-color)'} />
+                      <Cell key={`cell-${index}`} fill={entry.active ? '#eca696' : '#e6d8d3'} />
                     ))}
                   </Bar>
                 </BarChart>
