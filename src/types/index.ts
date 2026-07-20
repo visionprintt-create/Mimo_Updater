@@ -1,5 +1,5 @@
 // ─── User & Auth Types ─────────────────────────────────────────────
-export type UserRole = 'admin' | 'lead' | 'employee';
+export type UserRole = 'admin' | 'lead' | 'employee' | 'intern';
 export type UserStatus = 'pending' | 'approved' | 'suspended' | 'rejected' | 'deleted';
 export type Department =
   | 'Marketing'
