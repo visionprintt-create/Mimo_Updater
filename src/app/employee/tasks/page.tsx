@@ -5,7 +5,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useAuthStore } from '@/store/authStore';
 import { getWeeklyTasks, addWeeklyTask, updateWeeklyTask, deleteWeeklyTask, createAuditLog } from '@/lib/firestore';
 import type { WeeklyTask } from '@/types';
-import styles from '../Dashboard.module.css';
+import styles from '../dashboard/Dashboard.module.css';
 
 export default function TasksPage() {
   const { mimoUser } = useAuthStore();

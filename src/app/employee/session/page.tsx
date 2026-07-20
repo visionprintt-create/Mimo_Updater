@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { signOutUser } from '@/lib/auth';
-import styles from '../Dashboard.module.css';
+import styles from '../dashboard/Dashboard.module.css';
 import { MOODS } from '@/types';
 
 export default function SessionPage() {

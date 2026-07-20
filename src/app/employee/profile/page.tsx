@@ -6,7 +6,7 @@ import { updateUser } from '@/lib/firestore';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useSettingsStore } from '@/store/settingsStore';
-import styles from '../Dashboard.module.css';
+import styles from '../dashboard/Dashboard.module.css';
 
 export default function ProfilePage() {
   const { mimoUser } = useAuthStore();

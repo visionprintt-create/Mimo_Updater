@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { getUserSessions } from '@/lib/firestore';
 import type { WorkSession } from '@/types';
-import styles from '../Dashboard.module.css';
+import styles from '../dashboard/Dashboard.module.css';
 
 export default function HistoryPage() {
   const { mimoUser } = useAuthStore();
