@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { getGlobalStats, getDepartmentStats, getAllUsers } from '@/lib/firestore';
 import type { WorkSession, MimoUser, Department } from '@/types';
 import { DEPARTMENTS, ADMIN_ROLES } from '@/types';
-import { useSessionStore } from '@/store/sessionStore';
+import { useAuthStore } from '@/store/authStore';
 
 import { fmtDur } from '@/lib/utils';
 import { getTheme } from '@/lib/theme';
@@ -27,7 +27,7 @@ const DEPT_BG: Record<string, string> = {
 };
 
 export default function AnalyticsPage() {
-  const { mimoUser } = useSessionStore();
+  const { mimoUser } = useAuthStore();
   const searchParams = useSearchParams();
   const searchQuery = (searchParams.get('q') || '').toLowerCase();
 
