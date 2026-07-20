@@ -5,6 +5,7 @@ import type { WorkSession, BreakEntry, TaskEntry, Mood } from '@/types';
 import { SESSION_DURATION_MS } from '@/types';
 import {
   createSession,
+  createAuditLog,
   updateSession,
   getActiveSession,
   createNotification,
@@ -82,6 +83,15 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
       const sessionId = await createSession(session);
 
+      await createAuditLog({
+        actorId: userId,
+        actorName: userName,
+        action: 'SESSION_STARTED',
+        targetId: sessionId,
+        details: `Session started by ${userName}`,
+        createdAt: new Date().toISOString()
+      });
+
       set({
         activeSession: { ...session, id: sessionId },
         isWorking: true,
@@ -97,6 +107,10 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   clockOut: async () => {
     get().stopTimer();
+    const { isOnBreak, endBreak } = get();
+    if (isOnBreak) {
+      await endBreak();
+    }
     // Don't close session yet — user needs to submit work log first
     set({ isWorking: false });
   },
@@ -181,6 +195,15 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     if (draftAchievements.trim()) updates.achievements = draftAchievements;
 
     await updateSession(activeSession.id, updates);
+
+    await createAuditLog({
+      actorId: activeSession.userId,
+      actorName: activeSession.userName,
+      action: 'SESSION_ENDED',
+      targetId: activeSession.id,
+      details: `Session ended by ${activeSession.userName}`,
+      createdAt: new Date().toISOString()
+    });
 
     get().reset();
   },
@@ -304,6 +327,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         isWorking: true,
         isOnBreak: onBreak,
         remainingMs: remaining,
+        draftTasks: session.tasks || [],
       });
 
       get().startTimer();

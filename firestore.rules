@@ -18,7 +18,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-        getUserData().role in ['founder', 'co-founder', 'hr'];
+        getUserData().role in ['founder', 'co-founder', 'hr', 'admin'];
     }
 
     // ─── Users Collection ────────────────────────────────────
@@ -61,6 +61,33 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isOwner(request.resource.data.userId);
       allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    // ─── Leaves Collection ───────────────────────────────────
+    match /leaves/{leaveId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isAdmin() || (isOwner(resource.data.userId) && resource.data.status == 'pending');
+    }
+
+    // ─── Invitations Collection ──────────────────────────────
+    match /invitations/{email} {
+      // Admins can create, read, update, delete invitations
+      allow read, write: if isAdmin();
+      // Unauthenticated users cannot read invitations (they must sign in first)
+      // But wait, when they sign in with Google, they ARE authenticated.
+      // So any authenticated user can read their own invitation by email.
+      allow read, delete: if isAuthenticated() && request.auth.token.email == email;
+    }
+
+    // ─── Audit Logs Collection ───────────────────────────────
+    match /audit_logs/{logId} {
+      // Any authenticated user can create an audit log (e.g. for session starts)
+      allow create: if isAuthenticated();
+      // Only admins can read audit logs
+      allow read: if isAdmin();
+      allow update, delete: if false;
     }
 
     // ─── Notifications Collection ────────────────────────────

@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signIn, signInWithGoogle, isAdmin } from '@/lib/auth';
+import { signIn, signUp, signInWithGoogle, isAdmin, isLead } from '@/lib/auth';
 import './login.css';
 
 export default function LoginPage() {
@@ -15,6 +15,25 @@ export default function LoginPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  const handleDevLogin = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setEmailLoading(true);
+    try {
+      const user = await signIn('admin@afifaa.com', 'admin123');
+      if (isAdmin(user.role)) router.push('/admin/dashboard');
+    } catch (err: any) {
+      if (err.message.includes('auth/invalid-credential')) {
+        // Create it on the fly if it doesn't exist
+        const user = await signUp('admin@afifaa.com', 'admin123', 'Afifaa Admin', 'admin', ['Management'], '0000000000', '', '');
+        if (isAdmin(user.role)) router.push('/admin/dashboard');
+      } else {
+        setError('Dev login failed: ' + err.message);
+      }
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -24,9 +43,11 @@ export default function LoginPage() {
       const user = await signIn(email, password);
 
       if (isAdmin(user.role)) {
-        router.push('/admin');
+        router.push('/admin/dashboard');
+      } else if (isLead(user.role)) {
+        router.push('/lead/dashboard');
       } else {
-        router.push('/dashboard');
+        router.push('/employee/dashboard');
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -49,8 +70,9 @@ export default function LoginPage() {
     try {
       const user = await signInWithGoogle();
       if (!user) router.push('/onboarding');
-      else if (isAdmin(user.role)) router.push('/admin');
-      else router.push('/dashboard');
+      else if (isAdmin(user.role)) router.push('/admin/dashboard');
+      else if (isLead(user.role)) router.push('/lead/dashboard');
+      else router.push('/employee/dashboard');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Google Login failed';
       if (message === 'PENDING_APPROVAL') router.push('/pending');
@@ -67,12 +89,18 @@ export default function LoginPage() {
       
       <div className="login-card">
         <div className="login-left">
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a1a', letterSpacing: '1px' }}>
-              MIMO <span style={{ color: '#4a6358', fontStyle: 'italic' }}>MONITOR</span>
-            </span>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h1 style={{ 
+              fontSize: '36px', 
+              fontWeight: 800, 
+              color: '#1e293b', 
+              lineHeight: '1.2',
+              fontFamily: '"Playfair Display", Georgia, serif'
+            }}>
+              Welcome<br />
+              <span style={{ color: '#3b82f6', fontStyle: 'italic', fontWeight: 900 }}>MIMO Buddy</span>
+            </h1>
           </div>
-          <h1 className="login-title">Log in</h1>
           
           {error && <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '16px', textAlign: 'center' }}>{error}</div>}
 
@@ -136,26 +164,14 @@ export default function LoginPage() {
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
             </button>
-            <button type="button" className="social-btn" disabled={emailLoading || googleLoading}>
-              <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z" fill="#E74C3C"/>
-              </svg>
-            </button>
           </div>
 
           <Link href="/forgot" className="login-forgot">Forgot login or password?</Link>
 
-          <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: '#666' }}>
-            <p>
-              Don&apos;t have an account?{' '}
-              <Link href="/register" style={{ color: '#4a6358', fontWeight: 600, textDecoration: 'none' }}>Register here</Link>
-            </p>
-          </div>
-
-          <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '12px', color: '#555', lineHeight: '1.6' }}>
+          <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '12px', color: '#555', lineHeight: '1.6' }}>
             <p>
               Software Designed & Developed by{' '}
-              <Link href="/admin" style={{ color: '#4a6358', textDecoration: 'none', fontWeight: 700 }}>Afifaaa</Link>
+              <button type="button" onClick={handleDevLogin} style={{ color: '#3b82f6', background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 700, cursor: 'pointer' }}>AFIFAA</button>
             </p>
             <p>© 2026 Vision Printt Technologies. All Rights Reserved.</p>
           </div>

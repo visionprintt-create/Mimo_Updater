@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { isAdmin } from '@/lib/auth';
+import { hasPermission, Permission } from '@/lib/permissions';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requireAdmin?: boolean;
+  requiredPermission?: Permission;
 }
 
-export default function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
+export default function AuthGuard({ children, requiredPermission }: AuthGuardProps) {
   const router = useRouter();
   const { firebaseUser, mimoUser, loading } = useAuthStore();
   const [checked, setChecked] = useState(false);
@@ -51,14 +51,16 @@ export default function AuthGuard({ children, requireAdmin = false }: AuthGuardP
       return;
     }
 
-    if (requireAdmin && !isAdmin(mimoUser.role)) {
-      router.replace('/dashboard');
+    if (requiredPermission && !hasPermission(mimoUser.role, requiredPermission)) {
+      if (mimoUser.role === 'admin') router.replace('/admin/dashboard');
+      else if (mimoUser.role === 'lead') router.replace('/lead/dashboard');
+      else router.replace('/employee/dashboard');
       return;
     }
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setChecked(true);
-  }, [firebaseUser, mimoUser, loading, requireAdmin, router]);
+  }, [firebaseUser, mimoUser, loading, requiredPermission, router]);
 
   if (loading || !checked) {
     return (

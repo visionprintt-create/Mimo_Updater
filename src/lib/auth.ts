@@ -10,9 +10,9 @@ import {
 } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
 import { initializeApp, deleteApp } from 'firebase/app';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from './firebase';
-import type { MimoUser, UserRole, Department } from '@/types';
+import type { MimoUser, UserRole, Department, Invitation } from '@/types';
 
 // ─── Sign Up ───────────────────────────────────────────────────────
 export async function signUp(
@@ -37,7 +37,7 @@ export async function signUp(
     role: role,
     departments: departments,
     phoneNumber: phoneNumber,
-    status: 'pending',
+    status: role === 'admin' ? 'approved' : 'pending',
     internshipStartDate,
     internshipEndDate,
     joinedAt: new Date().toISOString(),
@@ -134,6 +134,21 @@ export async function signIn(email: string, password: string) {
 
   const mimoUser = userDoc.data() as MimoUser;
 
+  // Auto-migrate legacy roles
+  if (['founder', 'co-founder', 'hr'].includes(mimoUser.role as string)) {
+    await updateDoc(doc(db, 'users', credential.user.uid), { role: 'admin' });
+    mimoUser.role = 'admin' as UserRole;
+  } else if (mimoUser.role as string === 'intern') {
+    await updateDoc(doc(db, 'users', credential.user.uid), { role: 'employee' });
+    mimoUser.role = 'employee' as UserRole;
+  }
+
+  // Auto-approve admins
+  if (mimoUser.role === 'admin' && mimoUser.status === 'pending') {
+    await updateDoc(doc(db, 'users', credential.user.uid), { status: 'approved' });
+    mimoUser.status = 'approved';
+  }
+
   if (mimoUser.status === 'pending') {
     throw new Error('PENDING_APPROVAL');
   }
@@ -163,7 +178,22 @@ export async function signInWithGoogle() {
   
   if (userDoc.exists()) {
     const mimoUser = userDoc.data() as MimoUser;
+
+    // Auto-migrate legacy roles
+    if (['founder', 'co-founder', 'hr'].includes(mimoUser.role as string)) {
+      await updateDoc(doc(db, 'users', user.uid), { role: 'admin' });
+      mimoUser.role = 'admin' as UserRole;
+    } else if (mimoUser.role as string === 'intern') {
+      await updateDoc(doc(db, 'users', user.uid), { role: 'employee' });
+      mimoUser.role = 'employee' as UserRole;
+    }
     
+    // Auto-approve admins
+    if (mimoUser.role === 'admin' && mimoUser.status === 'pending') {
+      await updateDoc(doc(db, 'users', user.uid), { status: 'approved' });
+      mimoUser.status = 'approved';
+    }
+
     if (mimoUser.status === 'pending') {
       throw new Error('PENDING_APPROVAL');
     }
@@ -175,6 +205,32 @@ export async function signInWithGoogle() {
     }
     
     return mimoUser;
+  }
+  
+  // If user doesn't exist, check if they have an invitation
+  if (user.email) {
+    const inviteDoc = await getDoc(doc(db, 'invitations', user.email.toLowerCase()));
+    if (inviteDoc.exists()) {
+      const invite = inviteDoc.data() as Invitation;
+      
+      // Auto-provision the user profile
+      const mimoUser: MimoUser = {
+        uid: user.uid,
+        email: invite.email,
+        displayName: invite.displayName,
+        role: invite.role,
+        departments: invite.departments,
+        position: invite.position || '',
+        phoneNumber: '',
+        status: 'approved',
+        joinedAt: new Date().toISOString(),
+      };
+
+      await setDoc(doc(db, 'users', user.uid), mimoUser);
+      await deleteDoc(doc(db, 'invitations', user.email.toLowerCase()));
+      
+      return mimoUser;
+    }
   }
   
   // Return null to indicate they need onboarding
@@ -190,7 +246,25 @@ export async function signOutUser() {
 export async function getUserProfile(uid: string): Promise<MimoUser | null> {
   const userDoc = await getDoc(doc(db, 'users', uid));
   if (!userDoc.exists()) return null;
-  return userDoc.data() as MimoUser;
+  
+  const mimoUser = userDoc.data() as MimoUser;
+  
+  // Auto-migrate legacy roles
+  if (['founder', 'co-founder', 'hr'].includes(mimoUser.role as string)) {
+    await updateDoc(doc(db, 'users', uid), { role: 'admin' });
+    mimoUser.role = 'admin' as UserRole;
+  } else if (mimoUser.role as string === 'intern') {
+    await updateDoc(doc(db, 'users', uid), { role: 'employee' });
+    mimoUser.role = 'employee' as UserRole;
+  }
+
+  // Auto-approve admins
+  if (mimoUser.role === 'admin' && mimoUser.status === 'pending') {
+    await updateDoc(doc(db, 'users', uid), { status: 'approved' });
+    mimoUser.status = 'approved';
+  }
+
+  return mimoUser;
 }
 
 // ─── Auth State Listener ───────────────────────────────────────────
@@ -199,6 +273,10 @@ export function onAuthChange(callback: (user: User | null) => void) {
 }
 
 // ─── Check if user is admin ────────────────────────────────────────
-export function isAdmin(role: UserRole): boolean {
-  return ['founder', 'co-founder', 'hr'].includes(role);
+export function isAdmin(role: UserRole | undefined): boolean {
+  return role === 'admin';
+}
+
+export function isLead(role: UserRole | undefined): boolean {
+  return role === 'lead';
 }

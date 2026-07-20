@@ -1,5 +1,5 @@
 // ─── User & Auth Types ─────────────────────────────────────────────
-export type UserRole = 'founder' | 'hr' | 'intern';
+export type UserRole = 'admin' | 'lead' | 'employee';
 export type UserStatus = 'pending' | 'approved' | 'suspended' | 'rejected' | 'deleted';
 export type Department =
   | 'Marketing'
@@ -21,18 +21,23 @@ export const DEPARTMENTS: Department[] = [
   'Design',
 ];
 
-export const ADMIN_ROLES: UserRole[] = ['founder', 'hr'];
+export const ADMIN_ROLES: UserRole[] = ['admin', 'lead'];
 
 export interface MimoUser {
   uid: string;
+  employeeId?: string;
   email: string;
   phoneNumber?: string;
   displayName: string;
   role: UserRole;
-  departments: Department[];
-  department?: Department; // deprecated, for backward compatibility
+  department?: Department; // Keeping string for simpler queries later
+  departments?: Department[]; // deprecated, but kept if existing code relies on it temporarily
+  team?: string;
+  position?: string;
+  managerId?: string;
   status: UserStatus;
   avatarUrl?: string;
+  photoURL?: string;
   approvedBy?: string;
   approvedAt?: string;
   rejectedBy?: string;
@@ -41,7 +46,48 @@ export interface MimoUser {
   internshipStartDate?: string;
   internshipEndDate?: string;
   joinedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   lastActiveAt?: string;
+}
+
+export type LeaveType = 'Sick' | 'Casual' | 'Unpaid';
+export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+
+export interface LeaveRequest {
+  id?: string;
+  userId: string;
+  userName: string; // for easier display in admin panel
+  startDate: string;
+  endDate: string;
+  days: number;
+  leaveType: LeaveType;
+  reason: string;
+  status: LeaveStatus;
+  createdAt: string;
+  approvedBy?: string;
+  rejectionReason?: string;
+}
+
+export interface Invitation {
+  email: string;
+  displayName: string;
+  role: UserRole;
+  departments: Department[];
+  position?: string;
+  invitedBy: string;
+  invitedAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  actorId: string;
+  actorName: string;
+  action: string;
+  targetId?: string;
+  targetName?: string;
+  details: string;
+  createdAt: string;
 }
 
 // ─── Session & Timer Types ─────────────────────────────────────────

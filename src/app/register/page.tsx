@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('intern');
+  const [role, setRole] = useState<UserRole>('employee');
   const [departments, setDepartments] = useState<Department[]>(['Frontend']);
   const [internshipStartDate, setInternshipStartDate] = useState('');
   const [internshipEndDate, setInternshipEndDate] = useState('');
@@ -70,7 +70,7 @@ export default function RegisterPage() {
       } else if (isAdmin(user.role)) {
         router.push('/admin');
       } else {
-        router.push('/dashboard');
+        router.push('/employee-dashboard');
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Google Login failed';
@@ -186,18 +186,18 @@ export default function RegisterPage() {
               onChange={(e) => {
                 const r = e.target.value as UserRole;
                 setRole(r);
-                if (r === 'hr') setDepartments(['HR']);
-                else if (r === 'founder') setDepartments(['Management']);
+                if (r === 'lead') setDepartments(['Frontend']);
+                else if (r === 'admin') setDepartments(['Management']);
                 else setDepartments(['Frontend']);
               }}
             >
-              <option value="intern">Intern</option>
-              <option value="hr">HR</option>
-              <option value="founder">Founder</option>
+              <option value="employee">Employee</option>
+              <option value="lead">Team Lead</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
 
-          {role === 'intern' && (
+          {role === 'employee' && (
             <>
               <div className="form-group">
                 <label className="form-label">

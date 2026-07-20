@@ -13,7 +13,7 @@ export default function AdminLayout({
 }) {
   return (
     <AuthProvider>
-      <AuthGuard requireAdmin>
+      <AuthGuard requiredPermission="VIEW_ALL_ANALYTICS">
         <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', overflow: 'hidden' }}>
           <AdminSidebar />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>

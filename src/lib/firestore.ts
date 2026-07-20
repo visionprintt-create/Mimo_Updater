@@ -25,6 +25,7 @@ import type {
   UserStatus,
   SessionStatus,
 } from '@/types';
+import type { LeaveRequest, LeaveStatus } from '@/types';
 
 // ═══════════════════════════════════════════════════════════════════
 // USER OPERATIONS
@@ -116,6 +117,19 @@ export async function updateUserInternshipDates(uid: string, startDate: string, 
 
 export async function updateUser(uid: string, data: Partial<MimoUser>) {
   await updateDoc(doc(db, 'users', uid), data);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INVITATIONS
+// ═══════════════════════════════════════════════════════════════════
+
+export async function getInvitations(): Promise<import('@/types').Invitation[]> {
+  const snap = await getDocs(collection(db, 'invitations'));
+  return snap.docs.map(d => d.data() as import('@/types').Invitation);
+}
+
+export async function deleteInvitation(email: string) {
+  await deleteDoc(doc(db, 'invitations', email.toLowerCase()));
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -421,4 +435,59 @@ export async function updateWeeklyTask(taskId: string, updates: Partial<import('
 
 export async function deleteWeeklyTask(taskId: string): Promise<void> {
   await deleteDoc(doc(db, 'weekly_tasks', taskId));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LEAVE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════
+
+export const createLeaveRequest = async (leaveData: Omit<LeaveRequest, 'id'>) => {
+  const leavesRef = collection(db, 'leaves');
+  const docRef = await addDoc(leavesRef, leaveData);
+  return docRef.id;
+};
+
+export const getUserLeaveRequests = async (userId: string): Promise<LeaveRequest[]> => {
+  const leavesRef = collection(db, 'leaves');
+  const q = query(leavesRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as LeaveRequest));
+};
+
+export const getAllLeaveRequests = async (): Promise<LeaveRequest[]> => {
+  const leavesRef = collection(db, 'leaves');
+  const q = query(leavesRef, orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as LeaveRequest));
+};
+
+export const updateLeaveStatus = async (leaveId: string, status: LeaveStatus, approverId: string, rejectionReason?: string) => {
+  const leaveRef = doc(db, 'leaves', leaveId);
+  const updateData: any = {
+    status,
+    approvedBy: approverId,
+  };
+  if (rejectionReason) {
+    updateData.rejectionReason = rejectionReason;
+  }
+  await updateDoc(leaveRef, updateData);
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// AUDIT LOGS
+// ═══════════════════════════════════════════════════════════════════
+
+export async function createAuditLog(log: Omit<import('@/types').AuditLog, 'id'>) {
+  const docRef = await addDoc(collection(db, 'audit_logs'), log);
+  await updateDoc(docRef, { id: docRef.id });
+}
+
+export async function getAuditLogs(limitCount: number = 100): Promise<import('@/types').AuditLog[]> {
+  const q = query(
+    collection(db, 'audit_logs'),
+    orderBy('createdAt', 'desc'),
+    limit(limitCount)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => d.data() as import('@/types').AuditLog);
 }

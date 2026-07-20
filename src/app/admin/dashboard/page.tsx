@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { getGlobalStats, getDepartmentStats, getAllUsers } from '@/lib/firestore';
 import type { WorkSession, MimoUser, Department } from '@/types';
 import { DEPARTMENTS, ADMIN_ROLES } from '@/types';
+import { useSessionStore } from '@/store/sessionStore';
 
 import { fmtDur } from '@/lib/utils';
 import { getTheme } from '@/lib/theme';
@@ -26,6 +27,7 @@ const DEPT_BG: Record<string, string> = {
 };
 
 export default function AnalyticsPage() {
+  const { mimoUser } = useSessionStore();
   const searchParams = useSearchParams();
   const searchQuery = (searchParams.get('q') || '').toLowerCase();
 
@@ -36,6 +38,7 @@ export default function AnalyticsPage() {
   const [activeView, setActiveView] = useState<'overview' | 'by-department'>('overview');
   const [selectedDept, setSelectedDept] = useState<Department | 'all'>('all');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const [globalStats, setGlobalStats] = useState({ totalSessions: 0, totalDurationMs: 0 });
   const [deptStatsTotal, setDeptStatsTotal] = useState<Record<string, { totalSessions: number; totalDurationMs: number }>>({});
 
@@ -241,6 +244,8 @@ export default function AnalyticsPage() {
   }, [filteredSessions, dateRange]);
   const maxDailyHours = Math.max(...dailyActivity.map((d) => d.hours), 1);
 
+
+
   if (loading) {
     return (
       <div className="loading-screen" style={{ minHeight: '50vh' }}>
@@ -256,30 +261,7 @@ export default function AnalyticsPage() {
           <h1>📈 Analytics</h1>
           <p>Team performance and productivity insights</p>
         </div>
-        <button onClick={async () => {
-          try {
-            const snap = await getDocs(collection(db, 'users'));
-            const promises = snap.docs.map(async (d) => {
-              const data = d.data();
-              if (data.department && !data.departments) {
-                await updateDoc(doc(db, 'users', d.id), { 
-                  departments: [data.department]
-                });
-              } else if (!data.departments) {
-                await updateDoc(doc(db, 'users', d.id), { 
-                  departments: ['Frontend']
-                });
-              }
-            });
-            await Promise.all(promises);
-            alert('Database migrated successfully! All users now have a departments array.');
-          } catch (e) {
-            console.error(e);
-            alert('Error updating database');
-          }
-        }} style={{ padding: '8px 16px', background: 'var(--mimo-primary)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-          Migrate Database
-        </button>
+
       </div>
 
       {/* Controls row */}
@@ -610,6 +592,8 @@ export default function AnalyticsPage() {
           </div>
         );
       })()}
+
+
     </div>
   );
 }
