@@ -216,7 +216,7 @@ export default function AdminEmployeeDashboardOverview() {
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: '#e6d8d3', borderRadius: '8px' }}
                     itemStyle={{ color: 'var(--text-primary)' }}
-                    formatter={(val: number) => [`${val.toFixed(1)} hrs`, 'Work']}
+                    formatter={(val: any) => [`${Number(val).toFixed(1)} hrs`, 'Work']}
                   />
                   <Area type="monotone" dataKey="value" stroke="#eca696" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
                 </AreaChart>
@@ -272,7 +272,7 @@ export default function AdminEmployeeDashboardOverview() {
                     cursor={{ fill: 'var(--bg-secondary)', opacity: 0.4 }}
                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: '#e6d8d3', borderRadius: '8px' }}
                     itemStyle={{ color: 'var(--text-primary)' }}
-                    formatter={(val: number) => [`${val} hrs`, 'Work']}
+                    formatter={(val: any) => [`${Number(val)} hrs`, 'Work']}
                   />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {barData.map((entry, index) => (
