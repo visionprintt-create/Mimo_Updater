@@ -147,9 +147,9 @@ export default function EmployeesPage() {
       await updateUser(editingUser.uid, {
         displayName: editingUser.displayName,
         role: editingUser.role,
-        departments: editingUser.departments,
-        position: editingUser.position,
-        phoneNumber: editingUser.phoneNumber
+        departments: editingUser.departments || ['Frontend'],
+        position: editingUser.position || '',
+        phoneNumber: editingUser.phoneNumber || ''
       });
       if (mimoUser) {
         await createAuditLog({

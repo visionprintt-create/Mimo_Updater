@@ -13,12 +13,12 @@ import styles from './dashboard/Dashboard.module.css';
 import { useSettingsStore } from '@/store/settingsStore';
 
 const NAV_ITEMS = [
-  { name: 'Dashboard', path: '/employee/dashboard', icon: '🏠' },
-  { name: 'Session', path: '/employee/session', icon: '⏱️' },
-  { name: 'Tasks', path: '/employee/tasks', icon: '📋' },
-  { name: 'Leave', path: '/employee/leave', icon: '🌴' },
-  { name: 'History', path: '/employee/history', icon: '📜' },
-  { name: 'Profile', path: '/employee/profile', icon: '👤' },
+  { name: 'Dashboard', path: '/employee/dashboard' },
+  { name: 'Session', path: '/employee/session' },
+  { name: 'Tasks', path: '/employee/tasks' },
+  { name: 'Leave', path: '/employee/leave' },
+  { name: 'History', path: '/employee/history' },
+  { name: 'Profile', path: '/employee/profile' },
 ];
 
 export default function EmployeeDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -74,7 +74,7 @@ export default function EmployeeDashboardLayout({ children }: { children: React.
               href={item.path}
               className={`${styles.navItem} ${pathname === item.path ? styles.active : ''}`}
             >
-              {item.icon} {item.name}
+              {item.name}
             </Link>
           ))}
         </div>
@@ -96,7 +96,7 @@ export default function EmployeeDashboardLayout({ children }: { children: React.
           </div>
         </div>
         <div className={styles.signOutBtn} onClick={handleSignOut}>
-          🚪 Sign Out
+          Sign Out
         </div>
       </div>
 

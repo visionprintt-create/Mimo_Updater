@@ -18,7 +18,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-        getUserData().role in ['founder', 'co-founder', 'hr', 'admin'];
+        getUserData().role in ['founder', 'co-founder', 'hr', 'admin', 'lead'];
     }
 
     // ─── Users Collection ────────────────────────────────────

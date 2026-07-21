@@ -116,7 +116,8 @@ export async function updateUserInternshipDates(uid: string, startDate: string, 
 
 
 export async function updateUser(uid: string, data: Partial<MimoUser>) {
-  await updateDoc(doc(db, 'users', uid), data);
+  const cleanData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+  await updateDoc(doc(db, 'users', uid), cleanData);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -489,5 +490,5 @@ export async function getAuditLogs(limitCount: number = 100): Promise<import('@/
     limit(limitCount)
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => d.data() as import('@/types').AuditLog);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as import('@/types').AuditLog));
 }

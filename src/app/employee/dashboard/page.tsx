@@ -170,35 +170,35 @@ export default function DashboardOverview() {
                 top: 'calc(100% + 10px)', 
                 right: 0, 
                 width: '320px', 
-                backgroundColor: '#fffbf9', 
+                backgroundColor: 'var(--bg-card)', 
                 borderRadius: '12px', 
                 boxShadow: '0 10px 25px rgba(0,0,0,0.1)', 
-                border: '1px solid #e6d8d3', 
+                border: '1px solid var(--border-color)', 
                 zIndex: 50,
                 padding: '16px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#352925', margin: 0 }}>Notifications</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#eca696', fontWeight: 500, cursor: 'pointer' }} onClick={() => setUnreadCount(0)}>Mark all read</span>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Notifications</h3>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--mimo-primary)', fontWeight: 500, cursor: 'pointer' }} onClick={() => setUnreadCount(0)}>Mark all read</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid #ece0da' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? '#eca696' : 'transparent', marginTop: '6px' }}></div>
+                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--bg-card-hover)' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? 'var(--mimo-primary)' : 'transparent', marginTop: '6px' }}></div>
                     <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4a3b36' }}>Welcome to Mimo!</div>
-                      <div style={{ fontSize: '0.75rem', color: '#8f807a', marginTop: '2px' }}>Your account is now active.</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>Welcome to Mimo!</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Your account is now active.</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid #ece0da' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? '#9bc9a6' : 'transparent', marginTop: '6px' }}></div>
+                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--bg-card-hover)' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: unreadCount > 0 ? 'var(--status-active)' : 'transparent', marginTop: '6px' }}></div>
                     <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4a3b36' }}>Session Auto-stopped</div>
-                      <div style={{ fontSize: '0.75rem', color: '#8f807a', marginTop: '2px' }}>Yesterday at 5:00 PM</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>Session Auto-stopped</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Yesterday at 5:00 PM</div>
                     </div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#8f807a', cursor: 'pointer' }} onClick={() => setShowNotifications(false)}>Close</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }} onClick={() => setShowNotifications(false)}>Close</span>
                 </div>
               </div>
             )}
@@ -217,7 +217,6 @@ export default function DashboardOverview() {
 
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.blue}`}>⏱️</div>
           <div className={styles.statInfo}>
             <div className={styles.statLabel}>Total Work Time</div>
             <div className={styles.statValue}>{formatDuration(totalWorkedMs)}</div>
@@ -225,7 +224,6 @@ export default function DashboardOverview() {
           </div>
         </div>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.green}`}>📈</div>
           <div className={styles.statInfo}>
             <div className={styles.statLabel}>Active Session</div>
             <div className={styles.statValue}>{activeSession ? formatDuration(currentElapsedMs) : 'Offline'}</div>
@@ -237,7 +235,6 @@ export default function DashboardOverview() {
           </div>
         </div>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.purple}`}>✅</div>
           <div className={styles.statInfo}>
             <div className={styles.statLabel}>Tasks Completed</div>
             <div className={styles.statValue}>{totalTasksCompleted}</div>
@@ -245,7 +242,6 @@ export default function DashboardOverview() {
           </div>
         </div>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.orange}`}>⭐</div>
           <div className={styles.statInfo}>
             <div className={styles.statLabel}>Productivity Score</div>
             <div className={styles.statValue}>{productivityScore}%</div>
@@ -260,17 +256,17 @@ export default function DashboardOverview() {
           <div className={styles.card}>
             <div className={styles.cardTitle}>
               Weekly Overview
-              <select style={{ border: 'none', background: 'transparent', color: '#8f807a', fontSize: '0.875rem' }}>
+              <select style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                 <option>This Week</option>
               </select>
             </div>
             <div className={styles.chartContainer}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8f807a' }} />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {barData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.active ? '#eca696' : '#e6d8d3'} />
+                      <Cell key={`cell-${index}`} fill={entry.active ? 'var(--mimo-primary)' : 'var(--border-color)'} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -281,12 +277,7 @@ export default function DashboardOverview() {
 
         {/* Right Column */}
         <div>
-          <div className={styles.headerRow}>
-            <h1 className={styles.pageTitle}>Welcome back, {mimoUser.displayName} 👋</h1>
-            <Link href="/employee/profile" className={styles.settingsLink}>
-              ⚙️ Profile
-            </Link>
-          </div>
+
           <div className={styles.card}>
             <div className={styles.cardTitle}>Today's Summary</div>
             <div className={styles.summaryStats}>
@@ -302,9 +293,9 @@ export default function DashboardOverview() {
             <div className={styles.chartContainer} style={{ height: '120px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={areaData} margin={{ top: 5, right: 0, left: -25, bottom: 0 }}>
-                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#8f807a' }} />
+                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'var(--text-secondary)' }} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
-                  <Area type="monotone" dataKey="value" stroke="#eca696" fill="#fcedea" strokeWidth={2} />
+                  <Area type="monotone" dataKey="value" stroke="var(--mimo-primary)" fill="rgba(214, 155, 105, 0.15)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
