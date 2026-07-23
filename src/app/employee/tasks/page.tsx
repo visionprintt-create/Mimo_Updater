@@ -228,7 +228,7 @@ export default function TasksPage() {
           </div>
 
           {showTaskForm && (
-            <form onSubmit={handleCreateTask} style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleCreateTask} className="glass-card-static" style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '4px' }}>Task Title *</label>
                 <input required type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} className={styles.inputField} placeholder="e.g. Build Login API" />
@@ -269,13 +269,11 @@ export default function TasksPage() {
                 const canEditDeadline = t.status !== 'completed' && !overdue;
 
                 return (
-                  <div key={t.id} style={{ 
+                  <div key={t.id} className="glass-card-static" style={{ 
                     padding: '1.25rem', 
-                    backgroundColor: '#ffffff', 
-                    border: overdue ? '1px solid #fca5a5' : '1px solid #e2e8f0', 
-                    borderRadius: '12px', 
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    position: 'relative'
+                    border: overdue ? '1px solid #fca5a5' : 'none', 
+                    position: 'relative',
+                    marginBottom: '1rem'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                       <div style={{ flex: 1 }}>
