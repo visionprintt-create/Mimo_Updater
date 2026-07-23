@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
-import styles from '../dashboard/Dashboard.module.css';
 
 export default function MigrateTasksPage() {
   const [status, setStatus] = useState('');
@@ -62,7 +61,7 @@ export default function MigrateTasksPage() {
       <h1>Migrate Tasks Data</h1>
       <p>Click the button below to migrate old <code>weekly_tasks</code> to the new <code>tasks</code> collection.</p>
       <button 
-        className={styles.btnPrimary} 
+        style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
         onClick={handleMigrate}
         disabled={loading}
       >
