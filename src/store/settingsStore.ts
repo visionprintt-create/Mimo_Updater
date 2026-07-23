@@ -15,7 +15,7 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       theme: 'light',
       timeFormat: '12h',
-      notificationsEnabled: true,
+      notificationsEnabled: false,
       setTheme: (theme) => set({ theme }),
       setTimeFormat: (timeFormat) => set({ timeFormat }),
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { updateUser } from '@/lib/firestore';
+import { resetPassword } from '@/lib/auth';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -18,6 +19,12 @@ export default function ProfilePage() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mimoUser) {
@@ -70,6 +77,17 @@ export default function ProfilePage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!mimoUser?.email) return;
+    try {
+      await resetPassword(mimoUser.email);
+      alert('Password reset email sent! Check your inbox.');
+    } catch (error: any) {
+      console.error('Error sending reset email:', error);
+      alert(`Failed to send password reset email: ${error.message || 'Unknown error'}`);
+    }
+  };
+
   const requestNotificationPermission = async () => {
     if ('Notification' in window) {
       const permission = await Notification.requestPermission();
@@ -91,6 +109,10 @@ export default function ProfilePage() {
       setNotificationsEnabled(false);
     }
   };
+
+  if (!mounted) {
+    return <div style={{ minHeight: '50vh' }}></div>;
+  }
 
   return (
     <>
@@ -194,7 +216,11 @@ export default function ProfilePage() {
               Manage your password and security preferences.
             </p>
             
-            <button className={styles.btnSecondary} style={{ width: '100%', marginBottom: '1rem' }} disabled>
+            <button 
+              className={styles.btnSecondary} 
+              style={{ width: '100%', marginBottom: '1rem' }} 
+              onClick={handlePasswordReset}
+            >
               Change Password
             </button>
             

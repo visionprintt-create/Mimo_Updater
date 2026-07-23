@@ -56,11 +56,35 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ─── Weekly Tasks Collection ─────────────────────────────
-    match /weekly_tasks/{taskId} {
+    // ─── Tasks Collection ────────────────────────────────────
+    match /tasks/{taskId} {
+      // Admins and Employees can read tasks
       allow read: if isAuthenticated();
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      
+      // Employees can only create tasks assigned to themselves
+      allow create: if isAuthenticated() && 
+        request.resource.data.assignedTo == request.auth.uid;
+        
+      // Strict Update Rules
+      allow update: if isAuthenticated() && (
+        isAdmin() || 
+        (
+          resource.data.assignedTo == request.auth.uid &&
+          // Cannot reassign task
+          request.resource.data.assignedTo == resource.data.assignedTo &&
+          request.resource.data.assignedBy == resource.data.assignedBy &&
+          // Cannot modify admin override fields
+          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['delayReason', 'deadlineUpdatedBy', 'deadlineUpdatedAt'])) &&
+          // Can only edit dueDate if the ORIGINAL dueDate hasn't passed yet
+          (
+            request.resource.data.dueDate == resource.data.dueDate || 
+            resource.data.dueDate > request.time
+          )
+        )
+      );
+      
+      // Employees can delete their own tasks, Admins can delete any
+      allow delete: if isAdmin() || isOwner(resource.data.assignedTo);
     }
 
     // ─── Leaves Collection ───────────────────────────────────

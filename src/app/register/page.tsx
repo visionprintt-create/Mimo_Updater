@@ -70,7 +70,7 @@ export default function RegisterPage() {
       } else if (isAdmin(user.role)) {
         router.push('/admin');
       } else {
-        router.push('/employee-dashboard');
+        router.push('/employee/dashboard');
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Google Login failed';

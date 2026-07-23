@@ -21,9 +21,14 @@ export default function DashboardOverview() {
   } = useSessionStore();
 
   const [allSessions, setAllSessions] = useState<WorkSession[]>([]);
+  const [mounted, setMounted] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(3);
   const [currentElapsedMs, setCurrentElapsedMs] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   useEffect(() => {
     if (mimoUser?.uid) {
@@ -142,6 +147,7 @@ export default function DashboardOverview() {
   const productivityScore = Math.min(100, Math.round((totalTasksCompleted / Math.max(1, allSessions.length)) * 15 + 75));
   const efficiencyScore = Math.min(100, Math.round(70 + (totalWorkedMs / (1000 * 60 * 60 * 40)) * 30));
 
+  if (!mounted) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Dashboard...</div>;
   if (!mimoUser) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Dashboard...</div>;
 
   return (
@@ -208,7 +214,7 @@ export default function DashboardOverview() {
               const depts = mimoUser.departments || (mimoUser.department ? [mimoUser.department] : []);
               await useSessionStore.getState().clockIn(mimoUser.uid, mimoUser.displayName, depts);
             }
-            window.location.href = '/employee-dashboard/session';
+            window.location.href = '/employee/session';
           }}>
             ▶️ {isWorking ? 'View Active Session' : 'Start Session'}
           </button>

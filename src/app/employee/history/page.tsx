@@ -11,6 +11,11 @@ export default function HistoryPage() {
   const { mimoUser } = useAuthStore();
   const { timeFormat } = useSettingsStore();
   const [allSessions, setAllSessions] = useState<WorkSession[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mimoUser?.uid) {
@@ -35,6 +40,8 @@ export default function HistoryPage() {
     const m = totalM % 60;
     return `${h}h ${m}m`;
   };
+
+  if (!mounted) return null;
 
   return (
     <>

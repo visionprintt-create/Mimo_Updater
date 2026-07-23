@@ -24,7 +24,7 @@ export default function PendingPage() {
           if (isAdmin(data.role)) {
             router.replace('/admin');
           } else {
-            router.replace('/employee-dashboard');
+            router.replace('/employee/dashboard');
           }
         } else if (data.status === 'rejected') {
           router.replace('/login');

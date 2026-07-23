@@ -1,66 +1,199 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getAllSessions, reviewSession, getAllUsers } from '@/lib/firestore';
-import { ADMIN_ROLES } from '@/types';
+import { getAllSessions, reviewSession, getAllUsers, getAllLeaveRequests } from '@/lib/firestore';
+import { ADMIN_ROLES, LeaveRequest } from '@/types';
 import type { WorkSession } from '@/types';
 
 import { fmtDur } from '@/lib/utils';
 import { getTheme } from '@/lib/theme';
 
+interface MonthlyStats {
+  totalMs: number;
+  sessions: number;
+  completedTasks: number;
+  leaves: number;
+}
+
+interface UserMonthlyData {
+  current: MonthlyStats;
+  previous: MonthlyStats;
+}
+
+type FilterStatus = 'All' | 'Pending Review' | 'Reviewed';
+type FilterTime = 'All Time' | 'Today' | 'This Week' | 'This Month';
+
 export default function ReviewsPage() {
   const [sessions, setSessions] = useState<WorkSession[]>([]);
-  const [userStats, setUserStats] = useState<Record<string, { currentMonthMs: number, previousMonthMs: number }>>({});
+  const [userStats, setUserStats] = useState<Record<string, UserMonthlyData>>({});
   const [loading, setLoading] = useState(true);
+  
   const mimoUser = useAuthStore((s) => s.mimoUser);
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<FilterStatus>('All');
+  const [timeFilter, setTimeFilter] = useState<FilterTime>('All Time');
+  const [employeeFilter, setEmployeeFilter] = useState<string>('All');
 
-  const loadSessions = async () => {
+  // Drawer
+  const [selectedSession, setSelectedSession] = useState<WorkSession | null>(null);
+  
+  // Review Form
+  const [rating, setRating] = useState<number>(0);
+  const [feedback, setFeedback] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const loadData = async () => {
     setLoading(true);
-    const [s, usrs] = await Promise.all([getAllSessions(), getAllUsers()]);
-    const adminUids = new Set(usrs.filter(u => ADMIN_ROLES.includes(u.role)).map(u => u.uid));
-    const completed = s.filter((x) => x.status !== 'active' && !adminUids.has(x.userId));
-    completed.sort((a, b) => {
-      const deptA = a.userDepartment || '';
-      const deptB = b.userDepartment || '';
-      if (deptA < deptB) return -1;
-      if (deptA > deptB) return 1;
-      return new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime();
-    });
-    
-    const stats: Record<string, { currentMonthMs: number, previousMonthMs: number }> = {};
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    try {
+      const [s, usrs, lvs] = await Promise.all([getAllSessions(), getAllUsers(), getAllLeaveRequests()]);
+      const adminUids = new Set(usrs.filter(u => ADMIN_ROLES.includes(u.role)).map(u => u.uid));
+      
+      const completed = s.filter((x) => x.status !== 'active' && !adminUids.has(x.userId));
+      completed.sort((a, b) => new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime());
+      
+      const stats: Record<string, UserMonthlyData> = {};
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const previousMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-    completed.forEach(session => {
-      const d = new Date(session.clockInTime);
-      const m = d.getMonth();
-      const y = d.getFullYear();
-      const ms = session.totalDurationMs || 0;
+      const initStats = (): MonthlyStats => ({ totalMs: 0, sessions: 0, completedTasks: 0, leaves: 0 });
+
+      completed.forEach(session => {
+        const d = new Date(session.clockInTime);
+        const m = d.getMonth();
+        const y = d.getFullYear();
+        const ms = session.totalDurationMs || 0;
+        const tasksCount = session.tasks?.length || 0;
+        
+        if (!stats[session.userId]) {
+          stats[session.userId] = { current: initStats(), previous: initStats() };
+        }
+        
+        if (m === currentMonth && y === currentYear) {
+          stats[session.userId].current.totalMs += ms;
+          stats[session.userId].current.sessions += 1;
+          stats[session.userId].current.completedTasks += tasksCount;
+        } else if (m === previousMonth && y === previousMonthYear) {
+          stats[session.userId].previous.totalMs += ms;
+          stats[session.userId].previous.sessions += 1;
+          stats[session.userId].previous.completedTasks += tasksCount;
+        }
+      });
+
+      lvs.forEach(lv => {
+        const d = new Date(lv.createdAt);
+        const m = d.getMonth();
+        const y = d.getFullYear();
+        if (lv.status === 'approved') {
+          if (!stats[lv.userId]) {
+            stats[lv.userId] = { current: initStats(), previous: initStats() };
+          }
+          if (m === currentMonth && y === currentYear) {
+            stats[lv.userId].current.leaves += lv.days;
+          } else if (m === previousMonth && y === previousMonthYear) {
+            stats[lv.userId].previous.leaves += lv.days;
+          }
+        }
+      });
       
-      if (!stats[session.userId]) {
-        stats[session.userId] = { currentMonthMs: 0, previousMonthMs: 0 };
-      }
-      
-      if (m === currentMonth && y === currentYear) {
-        stats[session.userId].currentMonthMs += ms;
-      } else if (m === previousMonth && y === previousMonthYear) {
-        stats[session.userId].previousMonthMs += ms;
-      }
-    });
-    
-    setUserStats(stats);
-    setSessions(completed);
+      setUserStats(stats);
+      setSessions(completed);
+    } catch (e) {
+      console.error(e);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
-    loadSessions();
+    loadData();
   }, []);
+
+  const filteredSessions = useMemo(() => {
+    return sessions.filter(s => {
+      // Status Filter
+      if (statusFilter === 'Reviewed' && !s.review) return false;
+      if (statusFilter === 'Pending Review' && s.review) return false;
+      
+      // Employee Filter
+      if (employeeFilter !== 'All' && s.userId !== employeeFilter) return false;
+
+      // Time Filter
+      if (timeFilter !== 'All Time') {
+        const sessionDate = new Date(s.clockInTime);
+        const now = new Date();
+        if (timeFilter === 'Today') {
+          if (sessionDate.toDateString() !== now.toDateString()) return false;
+        } else if (timeFilter === 'This Week') {
+          const firstDay = new Date(now.setDate(now.getDate() - now.getDay()));
+          if (sessionDate < firstDay) return false;
+        } else if (timeFilter === 'This Month') {
+          if (sessionDate.getMonth() !== now.getMonth() || sessionDate.getFullYear() !== now.getFullYear()) return false;
+        }
+      }
+      return true;
+    });
+  }, [sessions, statusFilter, timeFilter, employeeFilter]);
+
+  const uniqueEmployees = useMemo(() => {
+    const map = new Map<string, string>();
+    sessions.forEach(s => map.set(s.userId, s.userName));
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [sessions]);
+
+  const submitReview = async () => {
+    if (!selectedSession || !mimoUser) return;
+    setSubmittingReview(true);
+    try {
+      await reviewSession(selectedSession.id, {
+        reviewedBy: mimoUser.uid,
+        reviewerName: mimoUser.displayName,
+        action: 'approved',
+        comment: feedback,
+        rating: rating,
+        reviewedAt: new Date().toISOString()
+      });
+      // Update local state
+      setSessions(prev => prev.map(s => {
+        if (s.id === selectedSession.id) {
+          return {
+            ...s,
+            review: {
+              reviewedBy: mimoUser.uid,
+              reviewerName: mimoUser.displayName,
+              action: 'approved',
+              comment: feedback,
+              rating: rating,
+              reviewedAt: new Date().toISOString()
+            }
+          };
+        }
+        return s;
+      }));
+      setSelectedSession(null);
+      setFeedback('');
+      setRating(0);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to submit review');
+    }
+    setSubmittingReview(false);
+  };
+
+  const calcDiff = (curr: number, prev: number) => {
+    const diff = curr - prev;
+    if (diff > 0) return `+${diff}`;
+    return `${diff}`;
+  };
+
+  const getProductivity = (stats: MonthlyStats) => {
+    if (stats.sessions === 0) return 0;
+    // Arbitrary metric: 75 base + tasks per session * 5
+    return Math.min(100, Math.round((stats.completedTasks / stats.sessions) * 15 + 75));
+  };
 
   if (loading) {
     return (
@@ -71,146 +204,258 @@ export default function ReviewsPage() {
   }
 
   return (
-    <div className="animate-in">
-      <div className="page-header">
+    <div className="animate-in" style={{ position: 'relative' }}>
+      <div className="page-header" style={{ marginBottom: '1rem' }}>
         <h1>📋 Work Reviews</h1>
         <p>Review and provide feedback on completed work sessions</p>
       </div>
 
-      {/* No filters needed as it shows all completed sessions */}
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px', background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as FilterStatus)} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+          <option value="All">All Status</option>
+          <option value="Pending Review">🟡 Pending Review</option>
+          <option value="Reviewed">🟢 Reviewed</option>
+        </select>
+        <select value={timeFilter} onChange={e => setTimeFilter(e.target.value as FilterTime)} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+          <option value="All Time">All Time</option>
+          <option value="Today">Today</option>
+          <option value="This Week">This Week</option>
+          <option value="This Month">This Month</option>
+        </select>
+        <select value={employeeFilter} onChange={e => setEmployeeFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+          <option value="All">All Employees</option>
+          {uniqueEmployees.map(emp => (
+            <option key={emp.id} value={emp.id}>{emp.name}</option>
+          ))}
+        </select>
+      </div>
 
-      {sessions.length === 0 ? (
+      {filteredSessions.length === 0 ? (
         <div className="empty-state glass-card-static">
           <div className="empty-icon">✅</div>
           <h3>No work found</h3>
-          <p>There are currently no completed sessions.</p>
+          <p>No completed sessions match your filters.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {sessions.map((session) => {
-            const initials = session.userName
-              ?.split(' ')
-              .map((n) => n[0])
-              .join('')
-              .toUpperCase()
-              .slice(0, 2) || '?';
-
-            const theme = getTheme(session.userDepartment);
-            const avatarColor = theme.accent;
+          {filteredSessions.map((session) => {
+            const initials = session.userName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
+            const dept = session.userDepartments?.[0] || session.userDepartment || 'Unknown';
+            const theme = getTheme(dept);
+            const stats = userStats[session.userId];
+            const isReviewed = !!session.review;
 
             return (
-              <div key={session.id} className="session-review-card">
+              <div key={session.id} style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-color)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', overflow: 'hidden' }}>
+                {/* Status Badge */}
+                <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', alignItems: 'center', gap: '6px', background: isReviewed ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: isReviewed ? '#10b981' : '#f59e0b', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isReviewed ? '#10b981' : '#f59e0b' }} />
+                  {isReviewed ? 'Reviewed' : 'Pending Review'}
+                </div>
+
                 {/* Header */}
-                <div className="session-meta">
-                      <div className="avatar avatar-lg" style={{ background: avatarColor, color: '#ffffff' }}>
-                        {initials}
-                      </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600 }}>{session.userName}</div>
-                    {userStats[session.userId] && (
-                      <div style={{ fontSize: '11px', color: 'var(--mimo-primary)', marginTop: '2px', marginBottom: '4px', fontWeight: 500 }}>
-                        This Month: {fmtDur(userStats[session.userId].currentMonthMs)} • Last Month: {fmtDur(userStats[session.userId].previousMonthMs)}
-                      </div>
-                    )}
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>
-                      {new Date(session.clockInTime).toLocaleDateString(undefined, {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                      })}{' '}
-                      •{' '}
-                      {new Date(session.clockInTime).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                      {session.clockOutTime &&
-                        ` — ${new Date(session.clockOutTime).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}`}
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <div className="avatar avatar-lg" style={{ background: theme.accent, color: '#fff' }}>{initials}</div>
+                  <div>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--text-primary)' }}>{session.userName}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className={`badge badge-dept-${dept.toLowerCase().replace(/\s+/g, '-')}`}>{dept}</span>
+                      <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                        🕒 {new Date(session.clockInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {session.clockOutTime ? new Date(session.clockOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                      </span>
                     </div>
                   </div>
-                  <span className="session-duration">{fmtDur(session.totalDurationMs)}</span>
-                  <span className={`badge badge-dept-${(session.userDepartments?.[0] || session.userDepartment || 'other').toLowerCase().replace(/\s+/g, '-')}`}>
-                    {(session.userDepartments?.[0] || session.userDepartment || 'Unknown')}
-                  </span>
-
-                             {/* Work Summary & Tasks */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {session.workSummary && (
-                    <div style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.6 }}>
-                      {session.workSummary}
-                    </div>
-                  )}
-
-                  {session.tasks.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-primary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                      <h4 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Tasks Completed</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {session.tasks.map((task) => (
-                          <div key={task.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--mimo-primary)', marginTop: '8px', flexShrink: 0 }} />
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>{task.title}</div>
-                              {task.description && (
-                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                  {task.description}
-                                </div>
-                              )}
-                              <div>
-                                <span style={{ background: '#ffffff', color: 'var(--mimo-primary)', fontSize: '10px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, border: '1px solid var(--border-color)' }}>
-                                  {task.category.toUpperCase()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* Extra Metadata (Mood, Breaks, Blockers) */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '16px' }}>
-                  {session.mood && (
-                    <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Mood:</span> 
-                      <span>{session.mood === 'frustrated' ? '😤' : session.mood === 'neutral' ? '😐' : session.mood === 'good' ? '😊' : '🔥'}</span>
-                    </div>
-                  )}
-                  {session.breaks.length > 0 && (
-                    <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Breaks:</span> 
-                      <span style={{ color: 'var(--text-primary)' }}>{session.breaks.length} ({fmtDur(session.breakDurationMs)})</span>
-                    </div>
-                  )}
-                  
-                  {session.blockers && (
-                    <div style={{ flex: '1 1 100%', display: 'flex', gap: '8px', padding: '12px', background: 'rgba(225, 112, 85, 0.05)', borderRadius: '8px', border: '1px solid rgba(225, 112, 85, 0.2)' }}>
-                      <span style={{ color: 'var(--status-flagged)', fontSize: '16px' }}>⚠️</span>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <strong style={{ color: 'var(--status-flagged)', fontSize: '12px', textTransform: 'uppercase' }}>Blockers</strong>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>{session.blockers}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {session.achievements && (
-                    <div style={{ flex: '1 1 100%', display: 'flex', gap: '8px', padding: '12px', background: 'rgba(0, 184, 148, 0.05)', borderRadius: '8px', border: '1px solid rgba(0, 184, 148, 0.2)' }}>
-                      <span style={{ color: 'var(--status-active)', fontSize: '16px' }}>⭐</span>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <strong style={{ color: 'var(--status-active)', fontSize: '12px', textTransform: 'uppercase' }}>Achievements</strong>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>{session.achievements}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {/* Grid Summary */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', background: 'var(--bg-primary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Worked</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{fmtDur(session.totalDurationMs)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Breaks</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{session.breaks.length}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Tasks</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{session.tasks.length} Completed</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Mood</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{session.mood === 'frustrated' ? '😤' : session.mood === 'neutral' ? '😐' : session.mood === 'good' ? '😊' : session.mood === 'fire' ? '🔥' : 'N/A'}</div>
+                  </div>
                 </div>
 
+                {/* Rating (if reviewed) */}
+                {session.review && session.review.rating && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontSize: '18px' }}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i}>{i < session.review!.rating! ? '★' : '☆'}</span>
+                    ))}
+                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginLeft: '8px' }}>{session.review.rating}/5</span>
+                  </div>
+                )}
 
+                {/* Monthly Comparison */}
+                {stats && (
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px' }}>
+                    <div style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>📅 This Month</div>
+                      <div style={{ fontWeight: 600, color: 'var(--mimo-primary)' }}>{fmtDur(stats.current.totalMs)}</div>
+                    </div>
+                    <div style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>📅 Last Month</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{fmtDur(stats.previous.totalMs)}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                  <button 
+                    onClick={() => {
+                      setSelectedSession(session);
+                      if (session.review) {
+                        setRating(session.review.rating || 0);
+                        setFeedback(session.review.comment || '');
+                      } else {
+                        setRating(0);
+                        setFeedback('');
+                      }
+                    }}
+                    style={{ background: 'var(--mimo-primary)', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{isReviewed ? 'View Details' : 'Review'}</span>
+                    <span>→</span>
+                  </button>
+                </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Slide-out Drawer */}
+      {selectedSession && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, display: 'flex', justifyContent: 'flex-end', background: 'rgba(0,0,0,0.5)' }} onClick={() => setSelectedSession(null)}>
+          <div style={{ width: '450px', maxWidth: '100%', background: 'var(--bg-card)', height: '100%', boxShadow: '-5px 0 25px rgba(0,0,0,0.1)', overflowY: 'auto', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 10 }}>
+              <h2 style={{ margin: 0, fontSize: '18px' }}>Session Details</h2>
+              <button onClick={() => setSelectedSession(null)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--text-secondary)' }}>×</button>
+            </div>
+            
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
+              {/* Employee Info */}
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div className="avatar avatar-lg" style={{ background: getTheme(selectedSession.userDepartments?.[0] || selectedSession.userDepartment || 'Unknown').accent, color: '#fff' }}>
+                  {selectedSession.userName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>{selectedSession.userName}</h3>
+                  <span className={`badge badge-dept-${(selectedSession.userDepartments?.[0] || selectedSession.userDepartment || 'other').toLowerCase().replace(/\s+/g, '-')}`}>
+                    {selectedSession.userDepartments?.[0] || selectedSession.userDepartment || 'Unknown'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Monthly Stats Comparison */}
+              {userStats[selectedSession.userId] && (
+                <div style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px', border: '1px solid var(--border-color)' }}>
+                  <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--text-secondary)' }}>Performance vs Last Month</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Hours</span>
+                      <span style={{ fontWeight: 600 }}>{fmtDur(userStats[selectedSession.userId].current.totalMs)} <span style={{ color: userStats[selectedSession.userId].current.totalMs >= userStats[selectedSession.userId].previous.totalMs ? '#10b981' : '#f43f5e', fontSize: '12px', marginLeft: '4px' }}>({calcDiff(Math.round(userStats[selectedSession.userId].current.totalMs / 3600000), Math.round(userStats[selectedSession.userId].previous.totalMs / 3600000))}h)</span></span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Tasks</span>
+                      <span style={{ fontWeight: 600 }}>{userStats[selectedSession.userId].current.completedTasks} <span style={{ color: userStats[selectedSession.userId].current.completedTasks >= userStats[selectedSession.userId].previous.completedTasks ? '#10b981' : '#f43f5e', fontSize: '12px', marginLeft: '4px' }}>({calcDiff(userStats[selectedSession.userId].current.completedTasks, userStats[selectedSession.userId].previous.completedTasks)})</span></span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Productivity</span>
+                      <span style={{ fontWeight: 600 }}>{getProductivity(userStats[selectedSession.userId].current)}% <span style={{ color: getProductivity(userStats[selectedSession.userId].current) >= getProductivity(userStats[selectedSession.userId].previous) ? '#10b981' : '#f43f5e', fontSize: '12px', marginLeft: '4px' }}>({calcDiff(getProductivity(userStats[selectedSession.userId].current), getProductivity(userStats[selectedSession.userId].previous))}%)</span></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Session Timeline */}
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text-secondary)' }}>Session Summary</h4>
+                <div style={{ padding: '16px', background: 'var(--bg-primary)', borderRadius: '12px', border: '1px solid var(--border-color)', fontSize: '14px', lineHeight: 1.6 }}>
+                  {selectedSession.workSummary || 'No summary provided.'}
+                </div>
+              </div>
+
+              {/* Tasks */}
+              {selectedSession.tasks.length > 0 && (
+                <div>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text-secondary)' }}>Tasks ({selectedSession.tasks.length})</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {selectedSession.tasks.map(t => (
+                      <div key={t.id} style={{ padding: '12px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ fontWeight: 600, fontSize: '14px' }}>{t.title}</div>
+                        {t.description && <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>{t.description}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Review Section */}
+              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px', marginTop: 'auto' }}>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>{selectedSession.review ? 'Manager Review' : 'Submit Review'}</h4>
+                
+                {/* Rating Input */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Employee Rating</label>
+                  <div style={{ display: 'flex', gap: '8px', fontSize: '28px', color: '#f59e0b' }}>
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <span 
+                        key={star} 
+                        style={{ cursor: selectedSession.review ? 'default' : 'pointer' }}
+                        onClick={() => !selectedSession.review && setRating(star)}
+                      >
+                        {star <= rating ? '★' : '☆'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Feedback Input */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Feedback</label>
+                  {selectedSession.review ? (
+                    <div style={{ padding: '16px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '14px', lineHeight: 1.6 }}>
+                      {selectedSession.review.comment || 'No feedback provided.'}
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '12px' }}>
+                        Reviewed by {selectedSession.review.reviewerName || 'Manager'} on {new Date(selectedSession.review.reviewedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ) : (
+                    <textarea 
+                      value={feedback}
+                      onChange={e => setFeedback(e.target.value)}
+                      placeholder="Great progress today. Need better documentation..."
+                      style={{ width: '100%', height: '100px', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', resize: 'vertical' }}
+                    />
+                  )}
+                </div>
+
+                {!selectedSession.review && (
+                  <button 
+                    disabled={submittingReview || rating === 0}
+                    onClick={submitReview}
+                    style={{ width: '100%', padding: '12px', background: 'var(--mimo-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: (submittingReview || rating === 0) ? 'not-allowed' : 'pointer', opacity: (submittingReview || rating === 0) ? 0.7 : 1 }}
+                  >
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
         </div>
       )}
     </div>

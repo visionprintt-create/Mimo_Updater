@@ -7,6 +7,7 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
 import { initializeApp, deleteApp } from 'firebase/app';
@@ -280,3 +281,9 @@ export function isAdmin(role: UserRole | undefined): boolean {
 export function isLead(role: UserRole | undefined): boolean {
   return role === 'lead';
 }
+
+// ─── Reset Password ────────────────────────────────────────────────
+export async function resetPassword(email: string) {
+  return sendPasswordResetEmail(auth, email);
+}
+

@@ -18,6 +18,11 @@ export default function AdminEmployeeDashboardOverview() {
   const [employee, setEmployee] = useState<MimoUser | null>(null);
   const [allSessions, setAllSessions] = useState<WorkSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const activeSession = allSessions.find(s => s.status === 'active');
   const isWorking = !!activeSession;
@@ -151,8 +156,8 @@ export default function AdminEmployeeDashboardOverview() {
   const productivityScore = Math.min(100, Math.round((totalTasksCompleted / Math.max(1, allSessions.length)) * 15 + 75));
   const efficiencyScore = Math.min(100, Math.round(70 + (totalWorkedMs / (1000 * 60 * 60 * 40)) * 30));
 
-  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Dashboard...</div>;
-  if (!employee) return <div style={{ padding: '2rem', textAlign: 'center' }}>Employee not found.</div>;
+  if (!mounted) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Employee Dashboard...</div>;
+  if (loading || !employee) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Employee Dashboard...</div>;
 
   return (
     <>

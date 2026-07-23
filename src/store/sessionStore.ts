@@ -10,6 +10,7 @@ import {
   getActiveSession,
   createNotification,
 } from '@/lib/firestore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface SessionState {
   // Active session
@@ -247,6 +248,18 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       read: false,
       createdAt: new Date().toISOString(),
     });
+
+    // Desktop Notification
+    if (
+      useSettingsStore.getState().notificationsEnabled &&
+      'Notification' in window &&
+      Notification.permission === 'granted'
+    ) {
+      new Notification('Session Auto-Stopped', {
+        body: 'Your session has ended automatically. Please submit your work log.',
+        icon: '/favicon.ico'
+      });
+    }
 
     set({
       isWorking: false,

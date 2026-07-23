@@ -166,16 +166,27 @@ export interface UIPreferences {
   accentColor: string;
 }
 
-// ─── Weekly Task ────────────────────────────────────────
+// ─── Task Management ────────────────────────────────────────
 
-export interface WeeklyTask {
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+export type TaskPriority = 'Low' | 'Medium' | 'High';
+
+export interface MimoTask {
   id: string;
-  userId: string;
   title: string;
-  completed: boolean;
-  completedAt?: string;
-  createdAt: string;
+  description?: string;
+  assignedTo: string; // Employee UID
+  assignedBy: string; // Admin/Lead UID
+  priority: TaskPriority;
+  status: TaskStatus;
+  startDate: string;
   dueDate: string;
+  completedAt?: string;
+  delayReason?: string;
+  deadlineUpdatedBy?: string;
+  deadlineUpdatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 export type ReviewAction = 'approved';
 
@@ -184,6 +195,7 @@ export interface SessionReview {
   reviewerName: string;
   action: ReviewAction;
   comment?: string;
+  rating?: number;
   reviewedAt: string;
 }
 

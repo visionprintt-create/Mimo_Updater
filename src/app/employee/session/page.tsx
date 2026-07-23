@@ -22,6 +22,11 @@ export default function SessionPage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [currentElapsedMs, setCurrentElapsedMs] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -80,7 +85,7 @@ export default function SessionPage() {
   };
 
   const handleEndSession = async () => {
-    if (isWorking) {
+    if (activeSession) {
       await clockOut(); // Pauses timer
       setShowSubmitModal(true);
     }
@@ -104,11 +109,17 @@ export default function SessionPage() {
     if (!draftSummary.trim()) { alert('Add a work summary.'); return; }
     
     setSubmitting(true);
-    await submitWorkLog();
-    setSubmitting(false);
-    setShowSubmitModal(false);
-    await signOutUser();
-    router.push('/login');
+    try {
+      await submitWorkLog();
+      setShowSubmitModal(false);
+      await signOutUser();
+      router.push('/login');
+    } catch (e: any) {
+      console.error(e);
+      alert('Failed to submit work log: ' + e.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const timelineItems: Array<{ time: string; text: string; status: string; extra?: string }> = [];
@@ -123,6 +134,8 @@ export default function SessionPage() {
   }
 
   const currentTask = draftTasks.length > 0 ? draftTasks[draftTasks.length - 1].title || 'Writing task...' : 'No task added';
+
+  if (!mounted) return null;
 
   return (
     <>

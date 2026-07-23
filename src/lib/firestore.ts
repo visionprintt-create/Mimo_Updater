@@ -15,6 +15,7 @@ import {
   getCountFromServer,
   getAggregateFromServer,
   sum,
+  Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type {
@@ -80,7 +81,7 @@ export async function updateUserStatus(
 
 export async function purgeUserData(uid: string) {
   const sessionsQ = query(collection(db, 'sessions'), where('userId', '==', uid));
-  const tasksQ = query(collection(db, 'tasks'), where('userId', '==', uid));
+  const tasksQ = query(collection(db, 'tasks'), where('assignedTo', '==', uid));
   const notifsQ = query(collection(db, 'notifications'), where('userId', '==', uid));
 
   const [sessions, tasks, notifs] = await Promise.all([
@@ -272,9 +273,11 @@ export async function reviewSession(
   const cleanReview: Record<string, unknown> = {
     action: review.action,
     reviewedBy: review.reviewedBy,
+    reviewerName: review.reviewerName,
     reviewedAt: review.reviewedAt,
   };
   if (review.comment) cleanReview.comment = review.comment;
+  if (review.rating !== undefined) cleanReview.rating = review.rating;
 
   const updates: Record<string, unknown> = { review: cleanReview };
 
@@ -391,51 +394,66 @@ export async function getTodaysSessions(): Promise<WorkSession[]> {
 
   return getSessionsInRange(today.toISOString(), tomorrow.toISOString());
 }
-// ─── Weekly Tasks ─────────────────────────────────────────────
+// ─── Task Management ─────────────────────────────────────────────
 
-export async function getWeeklyTasks(userId: string): Promise<import('@/types').WeeklyTask[]> {
+function mapTaskFromDB(d: any): import('@/types').MimoTask {
+  const data = d.data();
+  return {
+    id: d.id,
+    ...data,
+    startDate: data.startDate?.toDate ? data.startDate.toDate().toISOString() : data.startDate,
+    dueDate: data.dueDate?.toDate ? data.dueDate.toDate().toISOString() : data.dueDate,
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+    completedAt: data.completedAt?.toDate ? data.completedAt.toDate().toISOString() : data.completedAt,
+    deadlineUpdatedAt: data.deadlineUpdatedAt?.toDate ? data.deadlineUpdatedAt.toDate().toISOString() : data.deadlineUpdatedAt,
+  } as import('@/types').MimoTask;
+}
+
+export async function getTasksByEmployee(userId: string): Promise<import('@/types').MimoTask[]> {
   const q = query(
-    collection(db, 'weekly_tasks'),
-    where('userId', '==', userId)
+    collection(db, 'tasks'),
+    where('assignedTo', '==', userId)
   );
   const snap = await getDocs(q);
-  const tasks = snap.docs.map(d => ({ id: d.id, ...d.data() } as import('@/types').WeeklyTask));
-  
-  // Sort on the client side to avoid needing a Firestore composite index
+  const tasks = snap.docs.map(mapTaskFromDB);
   return tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function addWeeklyTask(userId: string, title: string, customDueDate?: string): Promise<string> {
-  const ref = doc(collection(db, 'weekly_tasks'));
-  
-  let d: Date;
-  if (customDueDate) {
-    d = new Date(customDueDate);
-    // ensure end of day for the selected date
-    d.setHours(23, 59, 59, 999);
-  } else {
-    d = new Date();
-    const day = d.getDay();
-    d.setDate(d.getDate() + (6 - day));
-    d.setHours(23, 59, 59, 999);
-  }
-  
+export async function getAllTasks(): Promise<import('@/types').MimoTask[]> {
+  const q = query(collection(db, 'tasks'));
+  const snap = await getDocs(q);
+  const tasks = snap.docs.map(mapTaskFromDB);
+  return tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function addTask(taskData: Omit<import('@/types').MimoTask, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  const ref = doc(collection(db, 'tasks'));
+  const now = Timestamp.now();
   await setDoc(ref, {
-    userId,
-    title,
-    completed: false,
-    createdAt: new Date().toISOString(),
-    dueDate: d.toISOString()
+    ...taskData,
+    startDate: taskData.startDate ? Timestamp.fromDate(new Date(taskData.startDate)) : null,
+    dueDate: taskData.dueDate ? Timestamp.fromDate(new Date(taskData.dueDate)) : null,
+    createdAt: now,
+    updatedAt: now,
   });
   return ref.id;
 }
 
-export async function updateWeeklyTask(taskId: string, updates: Partial<import('@/types').WeeklyTask>): Promise<void> {
-  await updateDoc(doc(db, 'weekly_tasks', taskId), updates);
+export async function updateTask(taskId: string, updates: Partial<import('@/types').MimoTask>): Promise<void> {
+  const now = Timestamp.now();
+  const dbUpdates: any = { ...updates, updatedAt: now };
+  if (updates.startDate) dbUpdates.startDate = Timestamp.fromDate(new Date(updates.startDate));
+  if (updates.dueDate) dbUpdates.dueDate = Timestamp.fromDate(new Date(updates.dueDate));
+  if (updates.completedAt) dbUpdates.completedAt = Timestamp.fromDate(new Date(updates.completedAt));
+  else if (updates.completedAt === '') dbUpdates.completedAt = null;
+  if (updates.deadlineUpdatedAt) dbUpdates.deadlineUpdatedAt = Timestamp.fromDate(new Date(updates.deadlineUpdatedAt));
+
+  await updateDoc(doc(db, 'tasks', taskId), dbUpdates);
 }
 
-export async function deleteWeeklyTask(taskId: string): Promise<void> {
-  await deleteDoc(doc(db, 'weekly_tasks', taskId));
+export async function deleteTask(taskId: string): Promise<void> {
+  await deleteDoc(doc(db, 'tasks', taskId));
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -479,8 +497,8 @@ export const updateLeaveStatus = async (leaveId: string, status: LeaveStatus, ap
 // ═══════════════════════════════════════════════════════════════════
 
 export async function createAuditLog(log: Omit<import('@/types').AuditLog, 'id'>) {
-  const docRef = await addDoc(collection(db, 'audit_logs'), log);
-  await updateDoc(docRef, { id: docRef.id });
+  const docRef = doc(collection(db, 'audit_logs'));
+  await setDoc(docRef, { ...log, id: docRef.id });
 }
 
 export async function getAuditLogs(limitCount: number = 100): Promise<import('@/types').AuditLog[]> {
