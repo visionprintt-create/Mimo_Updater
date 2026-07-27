@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { signIn, signUp, signInWithGoogle, isAdmin, isLead } from '@/lib/auth';
 import './login.css';
 
@@ -170,8 +169,6 @@ export default function LoginPage() {
               </svg>
             </button>
           </div>
-
-          <Link href="/forgot" className="login-forgot">Forgot login or password?</Link>
 
           <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '12px', color: '#555', lineHeight: '1.6' }}>
             <p>
