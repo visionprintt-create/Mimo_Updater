@@ -17,17 +17,22 @@ export default function LoginPage() {
 
   const handleDevLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
+    setError('');
     setEmailLoading(true);
     try {
-      const user = await signIn('admin@afifaa.com', 'admin123');
-      if (isAdmin(user.role)) router.push('/admin/dashboard');
+      await signIn('admin@afifaa.com', 'admin123');
+      router.push('/admin/dashboard');
     } catch (err: any) {
-      if (err.message.includes('auth/invalid-credential')) {
-        // Create it on the fly if it doesn't exist
-        const user = await signUp('admin@afifaa.com', 'admin123', 'Afifaa Admin', 'admin', ['Management'], '0000000000', '', '');
-        if (isAdmin(user.role)) router.push('/admin/dashboard');
-      } else {
-        setError('Dev login failed: ' + err.message);
+      try {
+        await signUp('admin@afifaa.com', 'admin123', 'Afifaa Admin', 'admin', ['Management'], '0000000000', '', '');
+        router.push('/admin/dashboard');
+      } catch (signUpErr: any) {
+        try {
+          await signIn('admin@afifaa.com', 'admin123');
+          router.push('/admin/dashboard');
+        } catch (finalErr: any) {
+          setError('Dev login failed: ' + (finalErr instanceof Error ? finalErr.message : String(finalErr)));
+        }
       }
     } finally {
       setEmailLoading(false);

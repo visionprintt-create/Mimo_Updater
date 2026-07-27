@@ -25,6 +25,7 @@ export default function DashboardOverview() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(3);
   const [currentElapsedMs, setCurrentElapsedMs] = useState(0);
+  const [timeRange, setTimeRange] = useState<'thisWeek' | 'lastWeek' | 'twoWeeks'>('thisWeek');
 
   useEffect(() => {
     setMounted(true);
@@ -80,15 +81,30 @@ export default function DashboardOverview() {
   const totalWorkedMs = allSessions.reduce((acc, s) => acc + (s.totalDurationMs || 0), 0);
   const totalTasksCompleted = allSessions.reduce((acc, s) => acc + (s.tasks?.length || 0), 0);
 
+  const todayWorkedMs = (() => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const completedTodayMs = allSessions.filter(s => {
+      const sDate = new Date(s.clockInTime);
+      sDate.setHours(0,0,0,0);
+      if (activeSession && s.id === activeSession.id) return false;
+      return sDate.getTime() === today.getTime();
+    }).reduce((acc, s) => acc + (s.totalDurationMs || 0), 0);
+    return completedTodayMs + currentElapsedMs;
+  })();
+
   const barData = (() => {
     const data = [];
     const today = new Date();
     today.setHours(0,0,0,0);
     
-    for (let i = 6; i >= 0; i--) {
+    const startOffset = timeRange === 'thisWeek' ? 6 : timeRange === 'lastWeek' ? 13 : 13;
+    const endOffset = timeRange === 'lastWeek' ? 7 : 0;
+
+    for (let i = startOffset; i >= endOffset; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+      const dayStr = d.toLocaleDateString('en-US', { weekday: 'short', month: timeRange === 'twoWeeks' ? 'numeric' : undefined, day: timeRange === 'twoWeeks' ? 'numeric' : undefined });
       
       const daySessions = allSessions.filter(s => {
         const sDate = new Date(s.clockInTime);
@@ -96,7 +112,7 @@ export default function DashboardOverview() {
         return sDate.getTime() === d.getTime();
       });
       
-      const totalMs = daySessions.reduce((acc, s) => acc + (s.totalDurationMs || 0), 0);
+      const totalMs = i === 0 ? todayWorkedMs : daySessions.reduce((acc, s) => acc + (s.totalDurationMs || 0), 0);
       const hours = totalMs / (1000 * 60 * 60);
       
       data.push({
@@ -118,13 +134,23 @@ export default function DashboardOverview() {
       return sDate.getTime() === today.getTime();
     });
 
-    const buckets = {
+    const sessionsToBucket = [...todaySessions];
+    if (activeSession) {
+      const actDate = new Date(activeSession.clockInTime);
+      actDate.setHours(0,0,0,0);
+      if (actDate.getTime() === today.getTime() && !sessionsToBucket.some(s => s.id === activeSession.id)) {
+        sessionsToBucket.push(activeSession);
+      }
+    }
+
+    const buckets: Record<string, number> = {
       '12 AM': 0, '4 AM': 0, '8 AM': 0, '12 PM': 0, '4 PM': 0, '8 PM': 0, '11 PM': 0
     };
 
-    todaySessions.forEach(s => {
+    sessionsToBucket.forEach(s => {
       const hour = new Date(s.clockInTime).getHours();
-      const durationHours = (s.totalDurationMs || 0) / (1000 * 60 * 60);
+      const durMs = (activeSession && s.id === activeSession.id) ? Math.max(s.totalDurationMs || 0, currentElapsedMs) : (s.totalDurationMs || 0);
+      const durationHours = durMs / (1000 * 60 * 60);
       if (hour >= 0 && hour < 4) buckets['12 AM'] += durationHours;
       else if (hour >= 4 && hour < 8) buckets['4 AM'] += durationHours;
       else if (hour >= 8 && hour < 12) buckets['8 AM'] += durationHours;
@@ -154,7 +180,7 @@ export default function DashboardOverview() {
     <>
       <div className={styles.topHeader}>
         <div className={styles.greeting}>
-          <h1>Good Morning, {mimoUser?.displayName?.split(' ')[0] || 'Mohamed'}! 👋</h1>
+          <h1>Good Morning, {mimoUser?.displayName?.split(' ')[0] || 'there'}! 👋</h1>
           <p>Here's your high-level overview for today.</p>
         </div>
         <div className={styles.headerControls}>
@@ -262,8 +288,14 @@ export default function DashboardOverview() {
           <div className={styles.card}>
             <div className={styles.cardTitle}>
               Weekly Overview
-              <select style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                <option>This Week</option>
+              <select 
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value as any)}
+                style={{ border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '0.8125rem', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="thisWeek">This Week (Last 7 Days)</option>
+                <option value="lastWeek">Previous 7 Days</option>
+                <option value="twoWeeks">Last 14 Days</option>
               </select>
             </div>
             <div className={styles.chartContainer}>
@@ -289,7 +321,7 @@ export default function DashboardOverview() {
             <div className={styles.summaryStats}>
               <div className={styles.summaryStat}>
                 <div className={styles.summaryStatLabel}>Work Time</div>
-                <div className={styles.summaryStatValue}>{formatDuration(currentElapsedMs)}</div>
+                <div className={styles.summaryStatValue}>{formatDuration(todayWorkedMs)}</div>
               </div>
               <div className={styles.summaryStat}>
                 <div className={styles.summaryStatLabel}>Efficiency</div>

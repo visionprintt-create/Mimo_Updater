@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
 
     setGlobalStats({ totalSessions: allInternSessions.length, totalDurationMs });
     setDeptStatsTotal(deptMap);
-    setSessions(recentSessions.filter((ses) => ses.status !== 'active'));
+    setSessions(allInternSessions.filter((ses) => ses.status !== 'active'));
     setLoading(false);
   };
 
@@ -267,7 +267,26 @@ export default function AnalyticsPage() {
       {/* Controls row */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginRight: '8px' }}>Charts showing last 7 days</span>
+          {(['week', 'month', 'all'] as const).map((range) => (
+            <button
+              key={range}
+              className="btn btn-sm"
+              style={{
+                background: dateRange === range ? 'var(--mimo-primary)' : 'var(--bg-input)',
+                color: dateRange === range ? '#fff' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: dateRange === range ? 600 : 500,
+                transition: 'all 0.2s ease',
+                boxShadow: dateRange === range ? '0 4px 12px rgba(108, 92, 231, 0.3)' : 'none'
+              }}
+              onClick={() => setDateRange(range)}
+            >
+              {range === 'week' ? '📅 Last 7 Days' : range === 'month' ? '📅 Last 30 Days' : '📅 All Time'}
+            </button>
+          ))}
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {(['overview', 'by-department'] as const).map((view) => (
@@ -296,6 +315,37 @@ export default function AnalyticsPage() {
       {/* ── OVERVIEW VIEW ── */}
       {activeView === 'overview' && (
         <>
+          {/* Top Stat Cards with glowing neumorphic border look */}
+          <div className="admin-stats-row">
+            <div className="admin-stat-card">
+              <div className="admin-stat-info">
+                <div className="admin-stat-label">Total Team Work Time</div>
+                <div className="admin-stat-value">{fmtDur(totalHoursMs)}</div>
+                <div className="admin-stat-trend">↑ Across {totalSessions} sessions</div>
+              </div>
+            </div>
+            <div className="admin-stat-card">
+              <div className="admin-stat-info">
+                <div className="admin-stat-label">Active Team Members</div>
+                <div className="admin-stat-value">{users.length}</div>
+                <div className="admin-stat-trend">Approved & Active</div>
+              </div>
+            </div>
+            <div className="admin-stat-card">
+              <div className="admin-stat-info">
+                <div className="admin-stat-label">Avg Session Duration</div>
+                <div className="admin-stat-value">{fmtDur(avgSessionMs)}</div>
+                <div className="admin-stat-trend neutral">Per session average</div>
+              </div>
+            </div>
+            <div className="admin-stat-card">
+              <div className="admin-stat-info">
+                <div className="admin-stat-label">Total Tasks Logged</div>
+                <div className="admin-stat-value">{totalTasks}</div>
+                <div className="admin-stat-trend">Across team & departments</div>
+              </div>
+            </div>
+          </div>
 
 
           {/* Daily Activity Chart */}

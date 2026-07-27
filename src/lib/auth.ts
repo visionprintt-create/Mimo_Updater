@@ -130,6 +130,20 @@ export async function signIn(email: string, password: string) {
   const userDoc = await getDoc(doc(db, 'users', credential.user.uid));
 
   if (!userDoc.exists()) {
+    if (email === 'admin@afifaa.com') {
+      const adminUser: MimoUser = {
+        uid: credential.user.uid,
+        email: email,
+        displayName: 'Afifaa Admin',
+        role: 'admin',
+        departments: ['Management'],
+        phoneNumber: '0000000000',
+        status: 'approved',
+        joinedAt: new Date().toISOString(),
+      };
+      await setDoc(doc(db, 'users', credential.user.uid), adminUser);
+      return adminUser;
+    }
     throw new Error('User profile not found. Please contact admin.');
   }
 
