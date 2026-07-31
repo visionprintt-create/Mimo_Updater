@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { getAllSessions, reviewSession, getAllUsers, getAllLeaveRequests } from '@/lib/firestore';
+import { getAllSessions, reviewSession, getAllUsers, getAllLeaveRequests, updateUser } from '@/lib/firestore';
 import { ADMIN_ROLES, LeaveRequest } from '@/types';
-import type { WorkSession } from '@/types';
+import type { WorkSession, MimoUser } from '@/types';
 
 import { fmtDur } from '@/lib/utils';
 import { getTheme } from '@/lib/theme';
@@ -27,6 +27,7 @@ type FilterTime = 'All Time' | 'Today' | 'This Week' | 'This Month';
 export default function ReviewsPage() {
   const [sessions, setSessions] = useState<WorkSession[]>([]);
   const [userStats, setUserStats] = useState<Record<string, UserMonthlyData>>({});
+  const [usersMap, setUsersMap] = useState<Record<string, MimoUser>>({});
   const [loading, setLoading] = useState(true);
   
   const mimoUser = useAuthStore((s) => s.mimoUser);
@@ -49,6 +50,10 @@ export default function ReviewsPage() {
     try {
       const [s, usrs, lvs] = await Promise.all([getAllSessions(), getAllUsers(), getAllLeaveRequests()]);
       const adminUids = new Set(usrs.filter(u => ADMIN_ROLES.includes(u.role)).map(u => u.uid));
+      
+      const uMap: Record<string, MimoUser> = {};
+      usrs.forEach(u => { uMap[u.uid] = u; });
+      setUsersMap(uMap);
       
       const completed = s.filter((x) => x.status !== 'active' && !adminUids.has(x.userId));
       completed.sort((a, b) => new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime());
@@ -195,6 +200,30 @@ export default function ReviewsPage() {
     return Math.min(100, Math.round((stats.completedTasks / stats.sessions) * 15 + 75));
   };
 
+  const { currentMonthKey, previousMonthKey } = useMemo(() => {
+    const now = new Date();
+    const curKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+    const prevYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const prevKey = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;
+    return { currentMonthKey: curKey, previousMonthKey: prevKey };
+  }, []);
+
+  const handlePaymentStatusChange = async (userId: string, monthKey: string, newStatus: 'paid' | 'unpaid') => {
+    const user = usersMap[userId];
+    if (!user) return;
+    const updatedStatus = { ...(user.paymentStatus || {}), [monthKey]: newStatus };
+    setUsersMap(prev => ({
+      ...prev,
+      [userId]: { ...prev[userId], paymentStatus: updatedStatus }
+    }));
+    try {
+      await updateUser(userId, { paymentStatus: updatedStatus });
+    } catch (e) {
+      console.error('Failed to update payment status:', e);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-screen" style={{ minHeight: '50vh' }}>
@@ -245,6 +274,8 @@ export default function ReviewsPage() {
             const theme = getTheme(dept);
             const stats = userStats[session.userId];
             const isReviewed = !!session.review;
+            const curStatus = usersMap[session.userId]?.paymentStatus?.[currentMonthKey] || 'unpaid';
+            const prevStatus = usersMap[session.userId]?.paymentStatus?.[previousMonthKey] || 'unpaid';
 
             return (
               <div key={session.id} style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-color)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', overflow: 'hidden' }}>
@@ -298,19 +329,53 @@ export default function ReviewsPage() {
                   </div>
                 )}
 
-                {/* Monthly Comparison */}
-                {stats && (
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '4px' }}>
-                    <div style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>📅 This Month</div>
-                      <div style={{ fontWeight: 600, color: 'var(--mimo-primary)' }}>{fmtDur(stats.current.totalMs)}</div>
-                    </div>
-                    <div style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>📅 Last Month</div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{fmtDur(stats.previous.totalMs)}</div>
-                    </div>
+                {/* Monthly Payment Status Option */}
+                <div style={{ display: 'flex', gap: '16px', marginTop: '4px' }}>
+                  <div style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>📅 This Month</div>
+                    <select
+                      value={curStatus}
+                      onChange={(e) => handlePaymentStatusChange(session.userId, currentMonthKey, e.target.value as 'paid' | 'unpaid')}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        border: '1px solid var(--border-color)',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        backgroundColor: curStatus === 'paid' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                        color: curStatus === 'paid' ? '#10b981' : '#f59e0b',
+                      }}
+                    >
+                      <option value="unpaid">⏳ Unpaid</option>
+                      <option value="paid">✅ Paid</option>
+                    </select>
                   </div>
-                )}
+                  <div style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px dashed var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>📅 Last Month</div>
+                    <select
+                      value={prevStatus}
+                      onChange={(e) => handlePaymentStatusChange(session.userId, previousMonthKey, e.target.value as 'paid' | 'unpaid')}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        border: '1px solid var(--border-color)',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        backgroundColor: prevStatus === 'paid' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                        color: prevStatus === 'paid' ? '#10b981' : '#f59e0b',
+                      }}
+                    >
+                      <option value="unpaid">⏳ Unpaid</option>
+                      <option value="paid">✅ Paid</option>
+                    </select>
+                  </div>
+                </div>
 
                 {/* Action */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>

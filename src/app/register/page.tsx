@@ -340,7 +340,7 @@ export default function RegisterPage() {
         <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
           <p>
             Software Designed & Developed by{' '}
-            <Link href="/admin" style={{ color: '#2563eb', textDecoration: 'underline', fontSize: '14px', fontWeight: 'bold' }}>زافرين عفيفة</Link>
+            <Link href="/admin" style={{ color: '#2563eb', textDecoration: 'underline', fontSize: '14px', fontWeight: 'bold' }}>Zafreen Afifa</Link>
           </p>
           <p>© 2026 Vision Printt Technologies. All Rights Reserved.</p>
         </div>

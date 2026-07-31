@@ -49,6 +49,7 @@ export interface MimoUser {
   createdAt?: string;
   updatedAt?: string;
   lastActiveAt?: string;
+  paymentStatus?: Record<string, 'paid' | 'unpaid'>;
 }
 
 export type LeaveType = 'Sick' | 'Casual' | 'Unpaid';

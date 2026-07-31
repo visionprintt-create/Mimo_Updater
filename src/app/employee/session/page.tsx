@@ -7,7 +7,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { signOutUser } from '@/lib/auth';
 import styles from '../dashboard/Dashboard.module.css';
-import { MOODS } from '@/types';
+import { MOODS, SESSION_DURATION_MS } from '@/types';
 
 export default function SessionPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function SessionPage() {
   const { 
     activeSession, isWorking, isOnBreak, clockIn, clockOut, startBreak, endBreak,
     draftTasks, setDraftTasks, draftSummary, setDraftSummary,
-    draftMood, setDraftMood, submitWorkLog
+    draftMood, setDraftMood, submitWorkLog, autoStop
   } = useSessionStore();
 
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -35,22 +35,41 @@ export default function SessionPage() {
         const now = Date.now();
         const start = new Date(activeSession.clockInTime).getTime();
         const breakTime = activeSession.breakDurationMs || 0;
-        setCurrentElapsedMs(now - start - breakTime);
+        const elapsed = now - start - breakTime;
+        if (elapsed >= SESSION_DURATION_MS) {
+          setCurrentElapsedMs(SESSION_DURATION_MS);
+          autoStop();
+          setShowSubmitModal(true);
+        } else {
+          setCurrentElapsedMs(elapsed);
+        }
       }, 1000);
     } else if (activeSession) {
       // Calculate exact static elapsed time if on break or clocked out
       let endCalcMs = Date.now();
       if (isOnBreak && activeSession.breaks.length > 0) {
         endCalcMs = new Date(activeSession.breaks[activeSession.breaks.length - 1].startedAt).getTime();
+      } else if (activeSession.clockOutTime) {
+        endCalcMs = new Date(activeSession.clockOutTime).getTime();
       }
       const start = new Date(activeSession.clockInTime).getTime();
       const breakTime = activeSession.breakDurationMs || 0;
-      setCurrentElapsedMs(endCalcMs - start - breakTime);
+      const elapsed = endCalcMs - start - breakTime;
+      setCurrentElapsedMs(Math.min(elapsed, SESSION_DURATION_MS));
     } else {
       setCurrentElapsedMs(0);
     }
     return () => clearInterval(interval);
-  }, [activeSession, isWorking, isOnBreak]);
+  }, [activeSession, isWorking, isOnBreak, autoStop]);
+
+  React.useEffect(() => {
+    if (activeSession && (activeSession.status === 'auto-stopped' || currentElapsedMs >= SESSION_DURATION_MS)) {
+      if (isWorking || isOnBreak) {
+        autoStop();
+      }
+      setShowSubmitModal(true);
+    }
+  }, [activeSession, currentElapsedMs, isWorking, isOnBreak, autoStop]);
 
   const formatLiveTimer = (ms: number) => {
     if (ms < 0) return '00:00:00';
@@ -153,7 +172,7 @@ export default function SessionPage() {
             <div className={styles.cardTitle}>
               Active Timer
               <div className={`${styles.sessionStatus} ${isOnBreak ? styles.break : ''}`}>
-                <div className={styles.statusDot}></div> {isOnBreak ? 'On Break' : (isWorking ? 'Working' : 'Offline')}
+                <div className={styles.statusDot}></div> {activeSession?.status === 'auto-stopped' ? 'Completed (3h Limit)' : (isOnBreak ? 'On Break' : (isWorking ? 'Working' : 'Offline'))}
               </div>
             </div>
             
@@ -162,8 +181,8 @@ export default function SessionPage() {
                 <div className={`${styles.sessionTimeBox} ${isOnBreak ? styles.break : ''}`}>
                   <div className={styles.sessionIcon}>⏱️</div>
                   <div className={styles.sessionTimeInfo}>
-                    <div className={styles.sessionTimeLabel}>Elapsed Time</div>
-                    <div className={styles.sessionTimeValue}>{formatLiveTimer(currentElapsedMs)}</div>
+                    <div className={styles.sessionTimeLabel}>Time Remaining (3h Limit)</div>
+                    <div className={styles.sessionTimeValue}>{formatLiveTimer(Math.max(0, SESSION_DURATION_MS - currentElapsedMs))}</div>
                     <div className={styles.sessionTimeDate}>Started at {formatTime(activeSession.clockInTime)}</div>
                   </div>
                 </div>
@@ -179,22 +198,32 @@ export default function SessionPage() {
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                {activeSession.status === 'auto-stopped' || (!isWorking && !isOnBreak) ? (
                   <button 
                     className={styles.btnPrimary} 
-                    onClick={toggleBreak}
-                    style={{ flex: 1, backgroundColor: isOnBreak ? '#10b981' : '#f97316' }}
+                    onClick={() => setShowSubmitModal(true)}
+                    style={{ width: '100%', backgroundColor: '#ef4444' }}
                   >
-                    {isOnBreak ? '▶️ Resume Work' : '⏸ Start Break'}
+                    📝 Submit Work Log (Required)
                   </button>
-                  <button 
-                    className={styles.btnDanger} 
-                    onClick={handleEndSession}
-                    style={{ flex: 1 }}
-                  >
-                    ⏹ End Session
-                  </button>
-                </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button 
+                      className={styles.btnPrimary} 
+                      onClick={toggleBreak}
+                      style={{ flex: 1, backgroundColor: isOnBreak ? '#10b981' : '#f97316' }}
+                    >
+                      {isOnBreak ? '▶️ Resume Work' : '⏸ Start Break'}
+                    </button>
+                    <button 
+                      className={styles.btnDanger} 
+                      onClick={handleEndSession}
+                      style={{ flex: 1 }}
+                    >
+                      ⏹ End Session
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <div style={{ textAlign: 'center', padding: '2rem 0' }}>

@@ -9,6 +9,7 @@ import { signOutUser } from '@/lib/auth';
 import AuthGuard from '@/components/AuthGuard';
 import AuthProvider from '@/components/AuthProvider';
 import styles from './dashboard/Dashboard.module.css';
+import { SESSION_DURATION_MS } from '@/types';
 
 import { useSettingsStore } from '@/store/settingsStore';
 
@@ -25,7 +26,7 @@ export default function EmployeeDashboardLayout({ children }: { children: React.
   const router = useRouter();
   const pathname = usePathname();
   const { mimoUser, loading } = useAuthStore();
-  const { loadActiveSession } = useSessionStore();
+  const { activeSession, isWorking, isOnBreak, loadActiveSession, autoStop } = useSessionStore();
   const { theme } = useSettingsStore();
   const [mounted, setMounted] = useState(false);
 
@@ -44,6 +45,26 @@ export default function EmployeeDashboardLayout({ children }: { children: React.
       router.push('/login');
     }
   }, [mounted, loading, mimoUser, router]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (activeSession && isWorking && !isOnBreak) {
+      interval = setInterval(() => {
+        const start = new Date(activeSession.clockInTime).getTime();
+        const breakTime = activeSession.breakDurationMs || 0;
+        if (Date.now() - start - breakTime >= SESSION_DURATION_MS) {
+          autoStop();
+        }
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [activeSession, isWorking, isOnBreak, autoStop]);
+
+  useEffect(() => {
+    if (activeSession && activeSession.status === 'auto-stopped' && pathname !== '/employee/session') {
+      router.push('/employee/session');
+    }
+  }, [activeSession, pathname, router]);
 
   const handleSignOut = async () => {
     await signOutUser();

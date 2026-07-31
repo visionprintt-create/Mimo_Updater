@@ -278,6 +278,85 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        <div>
+          <div className={styles.card}>
+            <div className={styles.cardTitle}>Payment Status 💳</div>
+            <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+              Monthly salary & stipend payment status.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* This Month */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>This Month</div>
+                  <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '1rem', marginTop: '0.25rem' }}>
+                    {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </div>
+                </div>
+                <div>
+                  {(() => {
+                    const now = new Date();
+                    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    const status = mimoUser?.paymentStatus?.[key] || 'unpaid';
+                    return (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '0.35rem 0.85rem',
+                        backgroundColor: status === 'paid' ? '#ecfdf5' : '#fef3c7',
+                        color: status === 'paid' ? '#10b981' : '#d97706',
+                        borderRadius: '1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        textTransform: 'capitalize'
+                      }}>
+                        {status === 'paid' ? '✅ Paid' : '⏳ Unpaid'}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Last Month */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Last Month</div>
+                  <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '1rem', marginTop: '0.25rem' }}>
+                    {(() => {
+                      const now = new Date();
+                      const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                      return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    })()}
+                  </div>
+                </div>
+                <div>
+                  {(() => {
+                    const now = new Date();
+                    const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+                    const prevYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+                    const key = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`;
+                    const status = mimoUser?.paymentStatus?.[key] || 'unpaid';
+                    return (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '0.35rem 0.85rem',
+                        backgroundColor: status === 'paid' ? '#ecfdf5' : '#fef3c7',
+                        color: status === 'paid' ? '#10b981' : '#d97706',
+                        borderRadius: '1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        textTransform: 'capitalize'
+                      }}>
+                        {status === 'paid' ? '✅ Paid' : '⏳ Unpaid'}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
