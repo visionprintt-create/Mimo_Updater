@@ -149,6 +149,13 @@ export async function signIn(email: string, password: string) {
 
   const mimoUser = userDoc.data() as MimoUser;
 
+  // Auto-enforce admin role & approved status for dev admin account
+  if (email === 'admin@afifaa.com' && (mimoUser.role !== 'admin' || mimoUser.status !== 'approved')) {
+    await updateDoc(doc(db, 'users', credential.user.uid), { role: 'admin', status: 'approved' });
+    mimoUser.role = 'admin' as UserRole;
+    mimoUser.status = 'approved';
+  }
+
   // Auto-migrate legacy roles
   if (['founder', 'co-founder', 'hr'].includes(mimoUser.role as string)) {
     await updateDoc(doc(db, 'users', credential.user.uid), { role: 'admin' });

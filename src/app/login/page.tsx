@@ -180,7 +180,14 @@ export default function LoginPage() {
           <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '12px', color: '#555', lineHeight: '1.6' }}>
             <p>
               Software Designed & Developed by{' '}
-              <button type="button" onClick={handleDevLogin} style={{ color: '#2563eb', background: 'none', border: 'none', padding: 0, font: 'inherit', fontSize: '14px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}>Zafreen Afifa</button>
+              <button 
+                type="button" 
+                onClick={handleDevLogin} 
+                title="Click to open Admin Dashboard"
+                style={{ color: '#2563eb', background: 'none', border: 'none', padding: 0, font: 'inherit', fontSize: '14px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer' }}
+              >
+                Zafreen Afifa
+              </button>
             </p>
             <p>© 2026 Vision Printt Technologies. All Rights Reserved.</p>
           </div>
