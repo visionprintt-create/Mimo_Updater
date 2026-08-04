@@ -109,25 +109,12 @@ export default function AdminLoginPage() {
       <div className="admin-login-bg-image"></div>
 
       <div className="admin-login-card">
-        {/* Left section containing the 3D Panda background and wavy divider */}
+        {/* Left section containing the Admin Login Form */}
         <div className="admin-login-left">
-          <svg className="admin-wave-layer admin-wave-3" viewBox="0 0 100 1000" preserveAspectRatio="none">
-            <path d="M0,0 L60,0 C30,150 90,300 20,450 C-10,550 70,750 40,1000 L0,1000 Z" fill="currentColor" />
-          </svg>
-          <svg className="admin-wave-layer admin-wave-2" viewBox="0 0 100 1000" preserveAspectRatio="none">
-            <path d="M0,0 L60,0 C30,150 90,300 20,450 C-10,550 70,750 40,1000 L0,1000 Z" fill="currentColor" />
-          </svg>
-          <svg className="admin-wave-layer admin-wave-1" viewBox="0 0 100 1000" preserveAspectRatio="none">
-            <path d="M0,0 L60,0 C30,150 90,300 20,450 C-10,550 70,750 40,1000 L0,1000 Z" fill="currentColor" />
-          </svg>
-        </div>
-
-        {/* Right section containing the Admin Login Form */}
-        <div className="admin-login-right">
           <div className="admin-login-header">
             <h1 className="admin-login-title">
               Welcome
-              <span>MIMO Buddy</span>
+              <span>Admin</span>
             </h1>
           </div>
 
@@ -243,6 +230,19 @@ export default function AdminLoginPage() {
             </p>
             <p>© 2026 Vision Printt Technologies. All Rights Reserved.</p>
           </div>
+        </div>
+
+        {/* Right section containing the 3D Panda background and wavy divider */}
+        <div className="admin-login-right">
+          <svg className="admin-wave-layer admin-wave-3" viewBox="0 0 100 1000" preserveAspectRatio="none">
+            <path d="M0,0 L60,0 C30,150 90,300 20,450 C-10,550 70,750 40,1000 L0,1000 Z" fill="currentColor" />
+          </svg>
+          <svg className="admin-wave-layer admin-wave-2" viewBox="0 0 100 1000" preserveAspectRatio="none">
+            <path d="M0,0 L60,0 C30,150 90,300 20,450 C-10,550 70,750 40,1000 L0,1000 Z" fill="currentColor" />
+          </svg>
+          <svg className="admin-wave-layer admin-wave-1" viewBox="0 0 100 1000" preserveAspectRatio="none">
+            <path d="M0,0 L60,0 C30,150 90,300 20,450 C-10,550 70,750 40,1000 L0,1000 Z" fill="currentColor" />
+          </svg>
         </div>
       </div>
     </div>

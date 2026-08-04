@@ -33,13 +33,24 @@
   width: 100%;
   max-width: 960px;
   min-height: 680px;
-  background: #ffffff;
+  background: #fdf4e3;
   border-radius: 40px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
   overflow: hidden;
 }
 
 .admin-login-left {
+  width: 52%;
+  background: #fdf4e3;
+  padding: 44px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+}
+
+.admin-login-right {
   width: 48%;
   position: relative;
   background-image: url('/panda_bg.png');
@@ -49,47 +60,35 @@
   overflow: hidden;
 }
 
-.admin-login-right {
-  width: 52%;
-  background: #ffffff;
-  padding: 44px 56px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  position: relative;
-  z-index: 10;
-}
-
-/* SVG Waves on right edge of image section pointing left */
+/* SVG Waves on left edge of image section pointing right */
 .admin-wave-layer {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 140px;
   height: 100%;
-  transform: scaleX(-1);
   pointer-events: none;
 }
 
 .admin-wave-1 {
-  right: -2px; /* Smooth overlap with right white form panel */
+  left: -2px; /* Smooth overlap with left warm beige form panel */
   z-index: 5;
-  color: #ffffff;
-  filter: drop-shadow(-4px 0 10px rgba(0, 0, 0, 0.15));
+  color: #fdf4e3;
+  filter: drop-shadow(4px 0 10px rgba(0, 0, 0, 0.15));
 }
 
 .admin-wave-2 {
-  right: 14px;
+  left: 14px;
   z-index: 4;
   color: #f8edd1; /* Soft light gold */
-  filter: drop-shadow(-4px 0 8px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(4px 0 8px rgba(0, 0, 0, 0.2));
 }
 
 .admin-wave-3 {
-  right: 28px;
+  left: 28px;
   z-index: 3;
   color: #d6af48; /* Metallic gold/bronze border */
-  filter: drop-shadow(-4px 0 8px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(4px 0 8px rgba(0, 0, 0, 0.35));
 }
 
 /* Typography & Form Elements */
@@ -315,20 +314,21 @@
   .admin-login-card {
     height: auto;
     border-radius: 32px;
-    background: rgba(255, 255, 255, 0.88);
+    background: rgba(253, 244, 227, 0.92);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(253, 244, 227, 0.6);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   }
 
   .admin-login-left {
-    display: none;
+    width: 100%;
+    background: transparent;
+    padding: 36px 28px;
   }
 
   .admin-login-right {
-    width: 100%;
-    padding: 36px 28px;
+    display: none;
   }
   
   .admin-input {
