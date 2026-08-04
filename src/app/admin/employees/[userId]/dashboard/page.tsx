@@ -6,8 +6,10 @@ import { useParams } from 'next/navigation';
 import { useSettingsStore } from '@/store/settingsStore';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import styles from '@/app/employee/dashboard/Dashboard.module.css';
-import { getUser, getUserSessions } from '@/lib/firestore';
-import type { WorkSession, MimoUser } from '@/types';
+import { getUser, getUserSessions, getTasksByEmployee, addTask, createAuditLog } from '@/lib/firestore';
+import type { WorkSession, MimoUser, MimoTask, TaskPriority } from '@/types';
+import { SESSION_DURATION_MS } from '@/types';
+import { useAuthStore } from '@/store/authStore';
 
 export default function AdminEmployeeDashboardOverview() {
   const params = useParams();
@@ -15,10 +17,26 @@ export default function AdminEmployeeDashboardOverview() {
 
   const { timeFormat } = useSettingsStore();
 
+  const { mimoUser: adminUser } = useAuthStore();
+
   const [employee, setEmployee] = useState<MimoUser | null>(null);
   const [allSessions, setAllSessions] = useState<WorkSession[]>([]);
+  const [tasks, setTasks] = useState<MimoTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newPriority, setNewPriority] = useState<TaskPriority>('Medium');
+
+  const getDefaultDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(17, 0, 0, 0);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  };
+  const [newDueDate, setNewDueDate] = useState(getDefaultDate());
 
   useEffect(() => {
     setMounted(true);
@@ -32,21 +50,65 @@ export default function AdminEmployeeDashboardOverview() {
   const [currentElapsedMs, setCurrentElapsedMs] = useState(0);
   const [timeRange, setTimeRange] = useState<'thisWeek' | 'lastWeek' | 'twoWeeks'>('thisWeek');
 
-  useEffect(() => {
+  const loadEmployeeData = () => {
     if (userId) {
       Promise.all([
         getUser(userId),
-        getUserSessions(userId)
-      ]).then(([userDoc, sessions]) => {
+        getUserSessions(userId),
+        getTasksByEmployee(userId)
+      ]).then(([userDoc, sessions, empTasks]) => {
         setEmployee(userDoc);
         setAllSessions(sessions);
+        setTasks(empTasks || []);
         setLoading(false);
       }).catch(err => {
         console.error('Error fetching employee data:', err);
         setLoading(false);
       });
     }
+  };
+
+  useEffect(() => {
+    loadEmployeeData();
   }, [userId]);
+
+  const handleAssignTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminUser || !newTitle.trim() || !newDueDate || !employee) return;
+
+    try {
+      const dueDateIso = new Date(newDueDate).toISOString();
+      const taskId = await addTask({
+        title: newTitle.trim(),
+        description: newDesc.trim(),
+        assignedTo: userId,
+        assignedBy: adminUser.uid,
+        priority: newPriority,
+        status: 'pending',
+        startDate: new Date().toISOString(),
+        dueDate: dueDateIso,
+      });
+
+      await createAuditLog({
+        actorId: adminUser.uid,
+        actorName: adminUser.displayName,
+        action: 'TASK_ASSIGNED',
+        targetId: taskId,
+        details: `Assigned task "${newTitle}" to ${employee.displayName}`,
+        createdAt: new Date().toISOString()
+      });
+
+      setShowTaskModal(false);
+      setNewTitle('');
+      setNewDesc('');
+      setNewPriority('Medium');
+      setNewDueDate(getDefaultDate());
+      loadEmployeeData();
+    } catch (e: any) {
+      console.error('Failed to assign task', e);
+      alert('Failed to assign task: ' + (e.message || 'Unknown error'));
+    }
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -70,6 +132,15 @@ export default function AdminEmployeeDashboardOverview() {
     }
     return () => clearInterval(interval);
   }, [activeSession, isWorking, isOnBreak]);
+
+  const formatLiveTimer = (ms: number) => {
+    if (ms < 0) return '00:00:00';
+    const totalS = Math.floor(ms / 1000);
+    const h = Math.floor(totalS / 3600).toString().padStart(2, '0');
+    const m = Math.floor((totalS % 3600) / 60).toString().padStart(2, '0');
+    const s = (totalS % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
 
   const formatDuration = (ms: number) => {
     if (ms < 0) return '0h 0m';
@@ -187,7 +258,7 @@ export default function AdminEmployeeDashboardOverview() {
 
   return (
     <>
-      <div className={styles.topHeader}>
+      <div className={styles.topHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div className={styles.greeting}>
           <h1 style={{ display: 'flex', alignItems: 'center' }}>
             <Link href="/admin/employees" className="btn btn-sm btn-ghost" style={{ padding: '4px 8px', marginRight: '16px' }}>
@@ -195,8 +266,22 @@ export default function AdminEmployeeDashboardOverview() {
             </Link> 
             {employee.displayName}'s Dashboard
           </h1>
-          <p>Viewing as Admin</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px', flexWrap: 'wrap' }}>
+            <span style={{ backgroundColor: 'rgba(214, 155, 105, 0.15)', color: 'var(--mimo-primary)', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
+              🏢 Department: {employee.department || employee.departments?.join(', ') || 'Unassigned'}
+            </span>
+            <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>
+              👤 Role: {employee.position || employee.role || 'Employee'}
+            </span>
+          </div>
         </div>
+        <button 
+          className={styles.btnPrimary} 
+          onClick={() => setShowTaskModal(true)}
+          style={{ padding: '10px 20px', fontSize: '14px', cursor: 'pointer', border: 'none', borderRadius: '8px' }}
+        >
+          + Assign New Task
+        </button>
       </div>
 
       <div className={styles.statsRow}>
@@ -209,11 +294,11 @@ export default function AdminEmployeeDashboardOverview() {
         </div>
         <div className={styles.statCard}>
           <div className={styles.statInfo}>
-            <div className={styles.statLabel}>Active Session</div>
-            <div className={styles.statValue}>{activeSession ? formatDuration(currentElapsedMs) : 'Offline'}</div>
+            <div className={styles.statLabel}>Active Timer (3h Limit)</div>
+            <div className={styles.statValue}>{activeSession ? formatLiveTimer(Math.max(0, SESSION_DURATION_MS - currentElapsedMs)) : 'Offline'}</div>
             <div className={`${styles.statTrend} ${styles.neutral}`}>
               {activeSession 
-                ? (isOnBreak ? `On Break | Started at ${formatTime(activeSession.clockInTime)}` : `Live | Started at ${formatTime(activeSession.clockInTime)}`)
+                ? (isOnBreak ? `Paused | Started at ${formatTime(activeSession.clockInTime)}` : `Live | Started at ${formatTime(activeSession.clockInTime)}`)
                 : 'Not started'}
             </div>
           </div>
@@ -291,6 +376,112 @@ export default function AdminEmployeeDashboardOverview() {
           </div>
         </div>
       </div>
+
+      <div className={styles.card} style={{ marginTop: '24px', marginBottom: '32px' }}>
+        <div className={styles.cardTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Assigned Tasks ({tasks.length})</span>
+          <button 
+            className={styles.btnPrimary} 
+            style={{ padding: '6px 14px', fontSize: '12px', cursor: 'pointer', border: 'none', borderRadius: '6px' }} 
+            onClick={() => setShowTaskModal(true)}
+          >
+            + Assign Task
+          </button>
+        </div>
+        {tasks.length === 0 ? (
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', padding: '1rem 0' }}>No tasks assigned to this employee yet.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
+            {tasks.map(t => (
+              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '15px' }}>{t.title}</span>
+                    <span style={{ 
+                      fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px',
+                      backgroundColor: t.priority === 'High' ? 'rgba(239, 68, 68, 0.15)' : t.priority === 'Medium' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                      color: t.priority === 'High' ? '#ef4444' : t.priority === 'Medium' ? '#f59e0b' : '#3b82f6'
+                    }}>
+                      {t.priority}
+                    </span>
+                    <span style={{ 
+                      fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px',
+                      backgroundColor: t.status === 'completed' ? 'rgba(16, 185, 129, 0.15)' : t.status === 'in_progress' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+                      color: t.status === 'completed' ? '#10b981' : t.status === 'in_progress' ? '#3b82f6' : 'var(--text-secondary)'
+                    }}>
+                      {t.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                  {t.description && <p style={{ margin: '6px 0 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>{t.description}</p>}
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                    Due: {new Date(t.dueDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showTaskModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent} style={{ maxWidth: '500px', width: '90%', background: 'var(--bg-primary)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-color)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Assign Task to {employee.displayName}</h2>
+              <button onClick={() => setShowTaskModal(false)} style={{ background: 'transparent', border: 'none', fontSize: '20px', color: 'var(--text-secondary)', cursor: 'pointer' }}>×</button>
+            </div>
+            <form onSubmit={handleAssignTask} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Task Title *</label>
+                <input 
+                  type="text" 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
+                  placeholder="What needs to be done?" 
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Description (Optional)</label>
+                <textarea 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
+                  placeholder="Provide any extra details or instructions..." 
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Priority</label>
+                <select 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
+                  value={newPriority} 
+                  onChange={(e) => setNewPriority(e.target.value as TaskPriority)}
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Due Date & Time *</label>
+                <input 
+                  type="datetime-local" 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '14px' }}
+                  value={newDueDate} 
+                  onChange={(e) => setNewDueDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                <button type="button" onClick={() => setShowTaskModal(false)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" className={styles.btnPrimary} style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Assign Task</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -48,7 +48,7 @@ export default function HistoryPage() {
       <div className={styles.topHeader}>
         <div className={styles.greeting}>
           <h1>Your History 📜</h1>
-          <p>Review your past sessions, daily hours, and logged breaks.</p>
+          <p>Review your past sessions, daily hours, and paused duration.</p>
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export default function HistoryPage() {
                     {formatDuration(session.totalDurationMs)}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem' }}>
-                    Break: {formatDuration(session.breakDurationMs || 0)}
+                    Paused: {formatDuration(session.breakDurationMs || 0)}
                   </div>
                 </div>
               </div>

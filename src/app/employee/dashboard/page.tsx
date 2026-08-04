@@ -7,8 +7,8 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import styles from './Dashboard.module.css';
-import { getUserSessions } from '@/lib/firestore';
-import type { WorkSession } from '@/types';
+import { getUserSessions, getTasksByEmployee } from '@/lib/firestore';
+import type { WorkSession, MimoTask } from '@/types';
 import { SESSION_DURATION_MS } from '@/types';
 
 
@@ -21,6 +21,7 @@ export default function DashboardOverview() {
   } = useSessionStore();
 
   const [allSessions, setAllSessions] = useState<WorkSession[]>([]);
+  const [myTasks, setMyTasks] = useState<MimoTask[]>([]);
   const [mounted, setMounted] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(3);
@@ -35,6 +36,9 @@ export default function DashboardOverview() {
     if (mimoUser?.uid) {
       getUserSessions(mimoUser.uid).then(sessions => {
         setAllSessions(sessions);
+      });
+      getTasksByEmployee(mimoUser.uid).then(tasks => {
+        setMyTasks(tasks || []);
       });
     }
   }, [mimoUser]);
@@ -61,6 +65,15 @@ export default function DashboardOverview() {
     }
     return () => clearInterval(interval);
   }, [activeSession, isWorking, isOnBreak]);
+
+  const formatLiveTimer = (ms: number) => {
+    if (ms < 0) return '00:00:00';
+    const totalS = Math.floor(ms / 1000);
+    const h = Math.floor(totalS / 3600).toString().padStart(2, '0');
+    const m = Math.floor((totalS % 3600) / 60).toString().padStart(2, '0');
+    const s = (totalS % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
 
   const formatDuration = (ms: number) => {
     if (ms < 0) return '0h 0m';
@@ -257,11 +270,11 @@ export default function DashboardOverview() {
         </div>
         <div className={styles.statCard}>
           <div className={styles.statInfo}>
-            <div className={styles.statLabel}>Active Session</div>
-            <div className={styles.statValue}>{activeSession ? formatDuration(currentElapsedMs) : 'Offline'}</div>
+            <div className={styles.statLabel}>Active Timer (3h Limit)</div>
+            <div className={styles.statValue}>{activeSession ? formatLiveTimer(Math.max(0, SESSION_DURATION_MS - currentElapsedMs)) : 'Offline'}</div>
             <div className={`${styles.statTrend} ${styles.neutral}`}>
               {activeSession 
-                ? (isOnBreak ? `On Break | Started at ${formatTime(activeSession.clockInTime)}` : `Live | Started at ${formatTime(activeSession.clockInTime)}`)
+                ? (isOnBreak ? `Paused | Started at ${formatTime(activeSession.clockInTime)}` : `Live | Started at ${formatTime(activeSession.clockInTime)}`)
                 : 'Not started'}
             </div>
           </div>
@@ -339,6 +352,53 @@ export default function DashboardOverview() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className={styles.card} style={{ marginTop: '24px', marginBottom: '32px' }}>
+        <div className={styles.cardTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Assigned Tasks ({myTasks.length})</span>
+          <Link href="/employee/tasks" className={styles.btnPrimary} style={{ padding: '6px 14px', fontSize: '12px', textDecoration: 'none', borderRadius: '6px' }}>
+            View All in Tasks Page →
+          </Link>
+        </div>
+        {myTasks.length === 0 ? (
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', padding: '1rem 0' }}>No tasks assigned right now.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
+            {myTasks.slice(0, 5).map(t => (
+              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '15px' }}>{t.title}</span>
+                    <span style={{ 
+                      fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px',
+                      backgroundColor: t.priority === 'High' ? 'rgba(239, 68, 68, 0.15)' : t.priority === 'Medium' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                      color: t.priority === 'High' ? '#ef4444' : t.priority === 'Medium' ? '#f59e0b' : '#3b82f6'
+                    }}>
+                      {t.priority}
+                    </span>
+                    <span style={{ 
+                      fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px',
+                      backgroundColor: t.status === 'completed' ? 'rgba(16, 185, 129, 0.15)' : t.status === 'in_progress' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+                      color: t.status === 'completed' ? '#10b981' : t.status === 'in_progress' ? '#3b82f6' : 'var(--text-secondary)'
+                    }}>
+                      {t.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                  {t.description && <p style={{ margin: '6px 0 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>{t.description}</p>}
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                    Due: {new Date(t.dueDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {myTasks.length > 5 && (
+              <div style={{ textAlign: 'center', marginTop: '8px' }}>
+                <Link href="/employee/tasks" style={{ color: 'var(--mimo-primary)', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>+ View {myTasks.length - 5} more tasks</Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

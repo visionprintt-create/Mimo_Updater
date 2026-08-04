@@ -145,9 +145,9 @@ export default function SessionPage() {
   if (activeSession) {
     timelineItems.push({ time: formatTime(activeSession.clockInTime), text: 'Checked In', status: 'success' });
     activeSession.breaks.forEach(b => {
-      timelineItems.push({ time: formatTime(b.startedAt), text: 'Break Started', status: 'warning', extra: b.reason });
+      timelineItems.push({ time: formatTime(b.startedAt), text: 'Timer Paused', status: 'warning', extra: b.reason });
       if (b.endedAt) {
-        timelineItems.push({ time: formatTime(b.endedAt), text: 'Break Ended', status: 'active' });
+        timelineItems.push({ time: formatTime(b.endedAt), text: 'Timer Continued', status: 'active' });
       }
     });
   }
@@ -161,7 +161,7 @@ export default function SessionPage() {
       <div className={styles.topHeader}>
         <div className={styles.greeting}>
           <h1>Current Session ⏱️</h1>
-          <p>Manage your live timer, breaks, and daily tasks.</p>
+          <p>Manage your 3-hour session timer, pauses, and daily tasks.</p>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ export default function SessionPage() {
             <div className={styles.cardTitle}>
               Active Timer
               <div className={`${styles.sessionStatus} ${isOnBreak ? styles.break : ''}`}>
-                <div className={styles.statusDot}></div> {activeSession?.status === 'auto-stopped' ? 'Completed (3h Limit)' : (isOnBreak ? 'On Break' : (isWorking ? 'Working' : 'Offline'))}
+                <div className={styles.statusDot}></div> {activeSession?.status === 'auto-stopped' ? 'Completed (3h Limit)' : (isOnBreak ? 'Paused' : (isWorking ? 'Working' : 'Offline'))}
               </div>
             </div>
             
@@ -193,7 +193,7 @@ export default function SessionPage() {
                   </div>
                   {isOnBreak && (
                     <div className={styles.detailRow}>
-                      <div className={styles.detailLabel}>Break Time</div>
+                      <div className={styles.detailLabel}>Paused Duration</div>
                       <div className={styles.detailValue}>{activeSession?.breakDurationMs ? formatDuration(activeSession.breakDurationMs) : '0m'}</div>
                     </div>
                   )}
@@ -213,7 +213,7 @@ export default function SessionPage() {
                       onClick={toggleBreak}
                       style={{ flex: 1, backgroundColor: isOnBreak ? '#10b981' : '#f97316' }}
                     >
-                      {isOnBreak ? '▶️ Resume Work' : '⏸ Start Break'}
+                      {isOnBreak ? '▶️ Continue' : '⏸ Pause'}
                     </button>
                     <button 
                       className={styles.btnDanger} 

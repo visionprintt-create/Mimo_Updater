@@ -306,7 +306,7 @@ export default function ReviewsPage() {
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{fmtDur(session.totalDurationMs)}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Breaks</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Pauses</div>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{session.breaks.length}</div>
                   </div>
                   <div>
